@@ -12,9 +12,6 @@
 
 #include "rx_tx.h"
 
-// g++ dual_rx_tx.cpp -lSoapySDR -lm -o dual_rx_tx.bin
-
-
 using namespace std;
 
 //Device structure, should be initialize to NULL
@@ -27,7 +24,7 @@ int error()
     exit(-1);
 }
 
-int main(int argc, char** argv)
+int main()
 {
     //Find devices
     int n;

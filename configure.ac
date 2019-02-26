@@ -24,7 +24,7 @@ AC_CONFIG_FILES([
 			Makefile
             src/Makefile
             ])
-
+PKG_CHECK_MODULES([LIMESUITE], [LimeSuite])
 CXXFLAGS="$CXXFLAGS \
 -std=c++11 \
 -pthread \
@@ -40,5 +40,6 @@ CXXFLAGS="$CXXFLAGS \
 -Wformat=2 \
 -Wmissing-format-attribute \
 -Wno-format-nonliteral \
--fvisibility=default "
+-fvisibility=default \
+-lLimeSuite"
 AC_OUTPUT
