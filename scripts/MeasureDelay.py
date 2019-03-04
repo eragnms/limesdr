@@ -4,11 +4,13 @@
 python MeasureDelay.py --rate=10e6 --freq=1e9 --rx-gain=20 --tx-gain=20 --rx-ant=LNAL --tx-ant=BAND1
 In the above example I just put some rubber duck antennas on channel A LNAL and BAND1 ports. Correlation should get a strong tone and it should give 8 us with those settings.
 https://github.com/pothosware/SoapySDR/issues/140
+https://discourse.myriadrf.org/t/need-help-soapysdr-python-gethardwaretime-function/2056/4
 """
 
 import argparse
 import os
 import time
+import matplotlib.pyplot as plt
 
 import numpy as np
 
@@ -115,6 +117,8 @@ def measure_delay(
         #stash time on first buffer
         if status.ret > 0 and rx_buffs.size:
             rx_time_0 = status.timeNs
+            print(rx_time_0)
+            print(rx_buffs.size)
             if (status.flags & SOAPY_SDR_HAS_TIME) == 0:
                 raise Exception('receive fail - no timestamp on first readStream %s'%(str(status)))
 
@@ -147,7 +151,7 @@ def measure_delay(
         samps = samps - np.mean(samps) #remove dc
         samps = np.absolute(samps) #magnitude
         samps = samps / max(samps) #norm ampl to peak
-        #print (samps[:100])
+        #print (samps[:200])
         return samps
 
     tx_pulse_norm = normalize(tx_pulse)
@@ -160,6 +164,14 @@ def measure_delay(
         np.save(os.path.join(dump_dir, 'rxRawI.npy'), np.real(rx_buffs))
         np.save(os.path.join(dump_dir, 'rxRawQ.npy'), np.imag(rx_buffs))
 
+    x = np.linspace(0, num_tx_samps, num_tx_samps, endpoint=True)
+    plt.plot(x, tx_pulse_norm)
+    plt.show()
+    x = np.linspace(0, num_rx_samps, num_rx_samps, endpoint=True)
+    plt.plot(x, rx_buffs_norm)
+    plt.show()
+
+
     #look for the for peak index for time offsets
     rx_argmax_index = np.argmax(rx_buffs_norm)
     tx_argmax_index = np.argmax(tx_pulse_norm)
@@ -168,6 +180,7 @@ def measure_delay(
     rx_coor_index = np.argmax(np.correlate(rx_buffs_norm, tx_pulse_norm)) + len(tx_pulse_norm) // 2
     print(rx_coor_index)
     print(rx_argmax_index)
+    print(tx_argmax_index)
     if abs(rx_coor_index-rx_argmax_index) > len(tx_pulse_norm)/4:
         raise Exception(
             'correlation(%d) does not match argmax(%d), probably bad data' %
@@ -177,6 +190,10 @@ def measure_delay(
     tx_peak_time = int(tx_time_0 + (tx_argmax_index / rate) * 1e9)
     rx_peak_time = int(rx_time_0 + (rx_argmax_index / rate) * 1e9)
     time_delta = rx_peak_time - tx_peak_time
+    print(tx_time_0)
+    print(rx_time_0)
+    print(tx_peak_time)
+
     print('>>> Time delta %f us'%(time_delta / 1e3))
     print("Done!")
 
