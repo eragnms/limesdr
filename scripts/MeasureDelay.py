@@ -2,7 +2,8 @@
 """Measure round trip delay through RF loopback/leakage
 
 python MeasureDelay.py --rate=10e6 --freq=1e9 --rx-gain=20 --tx-gain=20 --rx-ant=LNAL --tx-ant=BAND1
-
+In the above example I just put some rubber duck antennas on channel A LNAL and BAND1 ports. Correlation should get a strong tone and it should give 8 us with those settings.
+https://github.com/pothosware/SoapySDR/issues/140
 """
 
 import argparse
@@ -40,7 +41,8 @@ def measure_delay(
 ):
     """Transmit a bandlimited pulse, receive it and find the delay."""
 
-    print("1")
+    print("TX antenna %s"%tx_ant)
+
     sdr = SoapySDR.Device(args)
     if not sdr.hasHardwareTime():
         raise Exception('this device does not support timed streaming')
@@ -145,7 +147,7 @@ def measure_delay(
         samps = samps - np.mean(samps) #remove dc
         samps = np.absolute(samps) #magnitude
         samps = samps / max(samps) #norm ampl to peak
-        #print samps[:100]
+        #print (samps[:100])
         return samps
 
     tx_pulse_norm = normalize(tx_pulse)
@@ -164,6 +166,8 @@ def measure_delay(
 
     #check goodness of peak by comparing argmax and correlation
     rx_coor_index = np.argmax(np.correlate(rx_buffs_norm, tx_pulse_norm)) + len(tx_pulse_norm) // 2
+    print(rx_coor_index)
+    print(rx_argmax_index)
     if abs(rx_coor_index-rx_argmax_index) > len(tx_pulse_norm)/4:
         raise Exception(
             'correlation(%d) does not match argmax(%d), probably bad data' %
