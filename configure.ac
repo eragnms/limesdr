@@ -41,5 +41,5 @@ CXXFLAGS="$CXXFLAGS \
 -Wmissing-format-attribute \
 -Wno-format-nonliteral \
 -fvisibility=default \
--lLimeSuite"
+-lSoapySDR "
 AC_OUTPUT
