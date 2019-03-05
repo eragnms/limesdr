@@ -5,6 +5,8 @@ python MeasureDelay.py --rate=10e6 --freq=1e9 --rx-gain=20 --tx-gain=20 --rx-ant
 In the above example I just put some rubber duck antennas on channel A LNAL and BAND1 ports. Correlation should get a strong tone and it should give 8 us with those settings.
 https://github.com/pothosware/SoapySDR/issues/140
 https://discourse.myriadrf.org/t/need-help-soapysdr-python-gethardwaretime-function/2056/4
+
+It looks like the measured delay depends on the sample rate used and not on the rx buffer size, nor on the tx buffer size.
 """
 
 import argparse
@@ -184,7 +186,7 @@ def measure_delay(
 
     #calculate time offset
     tx_peak_time = int(tx_time_0 + (tx_argmax_index / rate) * 1e9)
-    rx_peak_time = int(rx_time_0 + (rx_argmax_index / rate) * 1e9)
+    rx_peak_time = int(receive_time + (rx_argmax_index / rate) * 1e9)
     time_delta = rx_peak_time - tx_peak_time
   
     print('>>> Time delta %f us'%(time_delta / 1e3))
