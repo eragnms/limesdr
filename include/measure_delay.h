@@ -12,3 +12,6 @@
 #include <iostream>
 #include <SoapySDR/Device.hpp>
 #include <SoapySDR/Formats.hpp>
+#include <SoapySDR/Errors.hpp>
+#include <SoapySDR/Time.hpp>
+#include <unistd.h>

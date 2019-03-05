@@ -53,4 +53,29 @@ int main()
         if (tx_bw != 0) {
                 device->setBandwidth(SOAPY_SDR_TX, tx_ch, tx_bw);
         }
+        std::vector<size_t> rx_channel;
+        std::vector<size_t> tx_channel;
+        SoapySDR::Stream *rx_stream = device->setupStream(SOAPY_SDR_RX,
+                                                            SOAPY_SDR_CF32,
+                                                            rx_channel);
+        SoapySDR::Stream *tx_stream = device->setupStream(SOAPY_SDR_TX,
+                                                            SOAPY_SDR_CF32,
+                                                            tx_channel);
+        uint32_t microseconds(1e+6);
+        usleep(microseconds);
+        device->activateStream(tx_stream);
+        //tx_pulse = generate_cf32_pulse(num_tx_samps)
+        // tx_time_0 = int(sdr.getHardwareTime() + 0.1e9) #100ms
+        // tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST
+        // status = sdr.writeStream(tx_stream, [tx_pulse], len(tx_pulse), tx_flags, tx_time_0)
+        //if status.ret != len(tx_pulse):
+        //   raise Exception('transmit failed %s'%str(status))
+
+        //rx_buffs = np.array([], np.complex64)
+        const uint32_t rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
+        //receive_time = int(tx_time_0 - ((num_rx_samps)/rate) * 1e9 / 2)
+        const uint32_t receive_time(0);
+        const size_t num_rx_samps(10000);
+        device->activateStream(rx_stream, rx_flags, receive_time,
+                               num_rx_samps);
 }
