@@ -40,6 +40,7 @@ def measure_delay(
         num_tx_samps=200,
         num_rx_samps=10000,
         dump_dir=None,
+        plot_pulses=False,
 ):
     """Transmit a bandlimited pulse, receive it and find the delay."""
 
@@ -104,7 +105,7 @@ def measure_delay(
     rx_buffs = np.array([], np.complex64)
     rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST
     #half of the samples come before the transmit time
-    receive_time = int(tx_time_0 - (num_rx_samps/rate) * 1e9 / 2)
+    receive_time = int(tx_time_0 - ((num_rx_samps)/rate) * 1e9 / 2)
     sdr.activateStream(rx_stream, rx_flags, receive_time, num_rx_samps)
     rx_time_0 = None
 
@@ -117,8 +118,6 @@ def measure_delay(
         #stash time on first buffer
         if status.ret > 0 and rx_buffs.size:
             rx_time_0 = status.timeNs
-            print(rx_time_0)
-            print(rx_buffs.size)
             if (status.flags & SOAPY_SDR_HAS_TIME) == 0:
                 raise Exception('receive fail - no timestamp on first readStream %s'%(str(status)))
 
@@ -164,13 +163,13 @@ def measure_delay(
         np.save(os.path.join(dump_dir, 'rxRawI.npy'), np.real(rx_buffs))
         np.save(os.path.join(dump_dir, 'rxRawQ.npy'), np.imag(rx_buffs))
 
-    x = np.linspace(0, num_tx_samps, num_tx_samps, endpoint=True)
-    plt.plot(x, tx_pulse_norm)
-    plt.show()
-    x = np.linspace(0, num_rx_samps, num_rx_samps, endpoint=True)
-    plt.plot(x, rx_buffs_norm)
-    plt.show()
-
+    if plot_pulses:
+        x = np.linspace(0, num_tx_samps, num_tx_samps, endpoint=True)
+        plt.plot(x, tx_pulse_norm)
+        plt.show()
+        x = np.linspace(0, num_rx_samps, num_rx_samps, endpoint=True)
+        plt.plot(x, rx_buffs_norm)
+        plt.show()
 
     #look for the for peak index for time offsets
     rx_argmax_index = np.argmax(rx_buffs_norm)
@@ -178,9 +177,6 @@ def measure_delay(
 
     #check goodness of peak by comparing argmax and correlation
     rx_coor_index = np.argmax(np.correlate(rx_buffs_norm, tx_pulse_norm)) + len(tx_pulse_norm) // 2
-    print(rx_coor_index)
-    print(rx_argmax_index)
-    print(tx_argmax_index)
     if abs(rx_coor_index-rx_argmax_index) > len(tx_pulse_norm)/4:
         raise Exception(
             'correlation(%d) does not match argmax(%d), probably bad data' %
@@ -190,10 +186,7 @@ def measure_delay(
     tx_peak_time = int(tx_time_0 + (tx_argmax_index / rate) * 1e9)
     rx_peak_time = int(rx_time_0 + (rx_argmax_index / rate) * 1e9)
     time_delta = rx_peak_time - tx_peak_time
-    print(tx_time_0)
-    print(rx_time_0)
-    print(tx_peak_time)
-
+  
     print('>>> Time delta %f us'%(time_delta / 1e3))
     print("Done!")
 
@@ -215,6 +208,7 @@ def main():
     parser.add_argument("--freq", type=float, help="Optional Tx and Rx freq (Hz)")
     parser.add_argument("--clock-rate", type=float, help="Optional clock rate (Hz)")
     parser.add_argument("--dump-dir", type=str, help="Optional directory to dump debug samples")
+    parser.add_argument("--plot-pulses", action='store_true', help="Optional plot tx and rx pulses")
     parser.add_argument("--debug", action='store_true', help="Output debug messages")
     parser.add_argument(
         "--abort-on-error", action='store_true',
@@ -246,6 +240,7 @@ def main():
             tx_chan=options.tx_chan,
             clock_rate=options.clock_rate,
             dump_dir=options.dump_dir,
+            plot_pulses=options.plot_pulses,
         )
             
 if __name__ == '__main__':
