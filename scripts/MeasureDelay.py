@@ -3,10 +3,14 @@
 
 python MeasureDelay.py --rate=10e6 --freq=1e9 --rx-gain=20 --tx-gain=20 --rx-ant=LNAL --tx-ant=BAND1
 In the above example I just put some rubber duck antennas on channel A LNAL and BAND1 ports. Correlation should get a strong tone and it should give 8 us with those settings.
+
+https://github.com/pothosware/SoapySDR/blob/master/python/apps/MeasureDelay.py
 https://github.com/pothosware/SoapySDR/issues/140
 https://discourse.myriadrf.org/t/need-help-soapysdr-python-gethardwaretime-function/2056/4
 
-It looks like the measured delay depends on the sample rate used and not on the rx buffer size, nor on the tx buffer size.
+It looks like the measured delay depends on the sample rate used and not on the rx buffer size, nor on the tx buffer size, nor on the number of rx and tx samples.
+
+when using the above call I get around 7.4 us delay reported.
 """
 
 import argparse
@@ -111,17 +115,30 @@ def measure_delay(
     sdr.activateStream(rx_stream, rx_flags, receive_time, num_rx_samps)
     rx_time_0 = None
 
+    print("Receive time: %d"%receive_time)
+
     #accumulate receive buffer into large contiguous buffer
+    n = 0
     while True:
         rx_buff = np.array([0]*1024, np.complex64)
         timeout_us = int(5e5) #500 ms >> stream time
         status = sdr.readStream(rx_stream, [rx_buff], len(rx_buff), timeoutUs=timeout_us)
 
+        
+
         #stash time on first buffer
-        if status.ret > 0 and rx_buffs.size:
+        if status.ret > 0 and not rx_buffs.size:
             rx_time_0 = status.timeNs
+            print("rx_time_0: %d"%rx_time_0)
+            print(rx_buff.size)
             if (status.flags & SOAPY_SDR_HAS_TIME) == 0:
                 raise Exception('receive fail - no timestamp on first readStream %s'%(str(status)))
+
+        if status.ret > 0:
+            n = n + 1
+            print(n)
+            print("rx_time: %d"%status.timeNs)
+            print(rx_buff.size)
 
         #accumulate buffer or exit loop
         if status.ret > 0:
@@ -186,7 +203,7 @@ def measure_delay(
 
     #calculate time offset
     tx_peak_time = int(tx_time_0 + (tx_argmax_index / rate) * 1e9)
-    rx_peak_time = int(receive_time + (rx_argmax_index / rate) * 1e9)
+    rx_peak_time = int(rx_time_0 + (rx_argmax_index / rate) * 1e9)
     time_delta = rx_peak_time - tx_peak_time
   
     print('>>> Time delta %f us'%(time_delta / 1e3))
