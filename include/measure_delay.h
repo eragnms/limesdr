@@ -17,5 +17,9 @@
 #include <unistd.h>
 #include <armadillo>
 
-std::vector<int16_t> generate_cf32_pulse(size_t num_samps, uint32_t width,
-                                         double scale_factor);
+#include "gnuplot_i.hpp"
+
+int measure_delay();
+std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
+                                        double scale_factor);
+void plot(std::vector<double> y);

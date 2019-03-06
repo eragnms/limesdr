@@ -14,8 +14,30 @@
 
 #include "measure_delay.h"
 
-
 int main()
+{
+        const size_t num_tx_samps(200);
+        std::vector<double> tx_pulse = generate_cf32_pulse(num_tx_samps, 5,
+                                                           0.3);
+        plot(tx_pulse);
+        //measure_delay();
+        return EXIT_SUCCESS;
+}
+
+void plot(std::vector<double> y)
+{
+        Gnuplot g1("lines");
+        std::vector<double> x;
+        for (size_t i = 0; i < y.size(); i++) {
+                x.push_back((double)i);
+        }
+        g1.reset_all();
+        g1.set_style("impulses").plot_x(y,"user-defined doubles");
+
+        while(true) {}
+}
+
+int measure_delay()
 {
         std::string args = "driver lime";
         SoapySDR::Device *device = SoapySDR::Device::make(args);
@@ -65,8 +87,8 @@ int main()
         usleep(microseconds);
         device->activateStream(tx_stream);
         const size_t num_tx_samps(200);
-        std::vector<int16_t> tx_pulse = generate_cf32_pulse(num_tx_samps, 5,
-                                                            0.3);
+        std::vector<double> tx_pulse = generate_cf32_pulse(num_tx_samps, 5,
+                                                           0.3);
         void *buffs[] = {tx_pulse.data()};
         uint32_t tx_time_0 = device->getHardwareTime() + 0.1e9;
         int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
@@ -89,15 +111,16 @@ int main()
         const size_t num_rx_samps(10000);
         device->activateStream(rx_stream, rx_flags, receive_time,
                                num_rx_samps);
+        return EXIT_SUCCESS;
 }
 
-std::vector<int16_t> generate_cf32_pulse(size_t num_samps, uint32_t width,
+std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
                                          double scale_factor)
 {
         arma::vec rel_time = arma::linspace(-width, width, num_samps);
         arma::vec sinc_pulse = arma::sinc(rel_time);
         sinc_pulse = sinc_pulse * scale_factor;
-        std::vector<int16_t> pulse;
-        pulse = arma::conv_to<std::vector<int16_t>>::from(sinc_pulse);
+        std::vector<double> pulse;
+        pulse = arma::conv_to<std::vector<double>>::from(sinc_pulse);
         return pulse;
 }
