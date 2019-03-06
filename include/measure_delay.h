@@ -15,3 +15,7 @@
 #include <SoapySDR/Errors.hpp>
 #include <SoapySDR/Time.hpp>
 #include <unistd.h>
+#include <armadillo>
+
+std::vector<int16_t> generate_cf32_pulse(size_t num_samps, uint32_t width,
+                                         double scale_factor);

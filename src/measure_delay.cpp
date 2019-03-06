@@ -64,12 +64,23 @@ int main()
         uint32_t microseconds(1e+6);
         usleep(microseconds);
         device->activateStream(tx_stream);
-        //tx_pulse = generate_cf32_pulse(num_tx_samps)
-        // tx_time_0 = int(sdr.getHardwareTime() + 0.1e9) #100ms
-        // tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST
-        // status = sdr.writeStream(tx_stream, [tx_pulse], len(tx_pulse), tx_flags, tx_time_0)
-        //if status.ret != len(tx_pulse):
-        //   raise Exception('transmit failed %s'%str(status))
+        const size_t num_tx_samps(200);
+        std::vector<int16_t> tx_pulse = generate_cf32_pulse(num_tx_samps, 5,
+                                                            0.3);
+        void *buffs[] = {tx_pulse.data()};
+        uint32_t tx_time_0 = device->getHardwareTime() + 0.1e9;
+        int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
+        uint32_t status = device->writeStream(tx_stream,
+                                              buffs,
+                                              num_tx_samps,
+                                              tx_flags, // compare with api!
+                                              tx_time_0);
+
+        if (status != num_tx_samps) {
+                std::cerr << "Transmit failed!"
+                          << std::endl;
+                return EXIT_FAILURE;
+        }
 
         //rx_buffs = np.array([], np.complex64)
         const uint32_t rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
@@ -78,4 +89,15 @@ int main()
         const size_t num_rx_samps(10000);
         device->activateStream(rx_stream, rx_flags, receive_time,
                                num_rx_samps);
+}
+
+std::vector<int16_t> generate_cf32_pulse(size_t num_samps, uint32_t width,
+                                         double scale_factor)
+{
+        arma::vec rel_time = arma::linspace(-width, width, num_samps);
+        arma::vec sinc_pulse = arma::sinc(rel_time);
+        sinc_pulse = sinc_pulse * scale_factor;
+        std::vector<int16_t> pulse;
+        pulse = arma::conv_to<std::vector<int16_t>>::from(sinc_pulse);
+        return pulse;
 }

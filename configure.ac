@@ -41,5 +41,6 @@ CXXFLAGS="$CXXFLAGS \
 -Wmissing-format-attribute \
 -Wno-format-nonliteral \
 -fvisibility=default \
--lSoapySDR "
+-lSoapySDR \
+-larmadillo "
 AC_OUTPUT
