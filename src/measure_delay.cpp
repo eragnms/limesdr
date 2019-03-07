@@ -24,18 +24,6 @@ int main()
         return EXIT_SUCCESS;
 }
 
-void plot(std::vector<double> y)
-{
-        Gnuplot g1("lines");
-        std::vector<double> x;
-        for (size_t i = 0; i < y.size(); i++) {
-                x.push_back((double)i);
-        }
-        g1.reset_all();
-        g1.set_style("impulses").plot_x(y,"user-defined doubles");
-        wait_for_key();
-}
-
 int measure_delay()
 {
         std::string args = "driver lime";
@@ -116,12 +104,29 @@ int measure_delay()
 std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
                                          double scale_factor)
 {
-        arma::vec rel_time = arma::linspace(-width, width, num_samps);
+        arma::vec rel_time = arma::linspace(0, 2*width, num_samps) - width;
         arma::vec sinc_pulse = arma::sinc(rel_time);
         sinc_pulse = sinc_pulse * scale_factor;
         std::vector<double> pulse;
         pulse = arma::conv_to<std::vector<double>>::from(sinc_pulse);
         return pulse;
+}
+
+/**
+ * \fn plot
+ * \brief Use gnuplot-cpp to plot data
+ *
+ * See the example.cc file that comes with the package for
+ * examples on how to use the library.
+ *
+ */
+void plot(std::vector<double> y)
+{
+        Gnuplot g1("points");
+        g1.reset_all();
+        g1.set_title("Our data");
+        g1.plot_x(y);
+        wait_for_key();
 }
 
 void wait_for_key ()
