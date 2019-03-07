@@ -33,8 +33,7 @@ void plot(std::vector<double> y)
         }
         g1.reset_all();
         g1.set_style("impulses").plot_x(y,"user-defined doubles");
-
-        while(true) {}
+        wait_for_key();
 }
 
 int measure_delay()
@@ -123,4 +122,20 @@ std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
         std::vector<double> pulse;
         pulse = arma::conv_to<std::vector<double>>::from(sinc_pulse);
         return pulse;
+}
+
+void wait_for_key ()
+{
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
+        std::cout << std::endl << "Press any key to continue..." << std::endl;
+
+        FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+        _getch();
+#elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
+        std::cout << std::endl << "Press ENTER to continue..." << std::endl;
+        std::cin.clear();
+        std::cin.ignore(std::cin.rdbuf()->in_avail());
+        std::cin.get();
+#endif
+        return;
 }

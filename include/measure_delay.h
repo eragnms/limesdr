@@ -23,3 +23,4 @@ int measure_delay();
 std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
                                         double scale_factor);
 void plot(std::vector<double> y);
+void wait_for_key();
