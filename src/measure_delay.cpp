@@ -19,8 +19,8 @@ int main()
         const size_t num_tx_samps(200);
         std::vector<double> tx_pulse = generate_cf32_pulse(num_tx_samps, 5,
                                                            0.3);
-        plot(tx_pulse);
-        //measure_delay();
+        //plot(tx_pulse);
+        measure_delay();
         return EXIT_SUCCESS;
 }
 
@@ -76,31 +76,55 @@ int measure_delay()
         const size_t num_tx_samps(200);
         std::vector<double> tx_pulse = generate_cf32_pulse(num_tx_samps, 5,
                                                            0.3);
-        void *buffs[] = {tx_pulse.data()};
+        void *tx_buffs[] = {tx_pulse.data()};
+        // Transmit at 100 ms into the "future"
         uint32_t tx_time_0 = device->getHardwareTime() + 0.1e9;
         int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         uint32_t status = device->writeStream(tx_stream,
-                                              buffs,
+                                              tx_buffs,
                                               num_tx_samps,
                                               tx_flags, // compare with api!
                                               tx_time_0);
-
         if (status != num_tx_samps) {
                 std::cerr << "Transmit failed!"
                           << std::endl;
                 return EXIT_FAILURE;
         }
 
-        //rx_buffs = np.array([], np.complex64)
+        // Receive slightly before transmit time
+        std::vector<int16_t> rx_buffs;
         const uint32_t rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
-        //receive_time = int(tx_time_0 - ((num_rx_samps)/rate) * 1e9 / 2)
-        const uint32_t receive_time(0);
-        const size_t num_rx_samps(10000);
+        uint32_t rate(10e6);
+        uint32_t num_rx_samps(10000);
+        double tx_rx_start_delta = (((double)num_rx_samps/rate) * 1e9 / 2);
+        uint32_t receive_time = (uint32_t) (tx_time_0 - tx_rx_start_delta);
         device->activateStream(rx_stream, rx_flags, receive_time,
                                num_rx_samps);
+
+        std::cout << "tx_time_0: " << tx_time_0 << std::endl;
+        std::cout << "rx_start_shift: " << tx_rx_start_delta << std::endl;
+        std::cout << "receive_time: " << receive_time << std::endl;
+
+        while (true) {
+                std::vector<int16_t> rx_buff;
+                void *rx_buffs[] = {rx_buff.data()};
+                long long int rx_timestamp;
+                int rx_flags(0);
+                device->readStream(rx_stream,
+                                   rx_buffs,
+                                   1024,
+                                   rx_flags,
+                                   &rx_timestamp,
+                                   5e5);
+        }
+
+
         return EXIT_SUCCESS;
 }
 
+/**
+ * \fn Generate a sinc pulse
+ */
 std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
                                          double scale_factor)
 {
