@@ -19,6 +19,26 @@
 
 #include "gnuplot_i.hpp"
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+/**
+ * \def TRACE
+ *
+ * Used for debugging. Simply creates an "I am here!" string.
+ *
+ * \ingroup group_Macros
+ */
+#define TRACE "Reached: " __FILE__ ":" TOSTRING(__LINE__)
+/**
+ * \def MARK
+ *
+ * Used for debugging. Simply prints an "I am here!" statement to cout.
+ * See: http://www.decompile.com/cpp/faq/file_and_line_error_string.htm
+ *
+ * \ingroup group_Macros
+ */
+#define MARK std::cout << TRACE << std::endl;
+
 int measure_delay();
 std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
                                         double scale_factor);

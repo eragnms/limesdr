@@ -130,7 +130,6 @@ def measure_delay(
         if status.ret > 0 and not rx_buffs.size:
             rx_time_0 = status.timeNs
             print("rx_time_0: %d"%rx_time_0)
-            print(rx_buff.size)
             if (status.flags & SOAPY_SDR_HAS_TIME) == 0:
                 raise Exception('receive fail - no timestamp on first readStream %s'%(str(status)))
 
@@ -138,7 +137,7 @@ def measure_delay(
             n = n + 1
             print(n)
             print("rx_time: %d"%status.timeNs)
-            print(rx_buff.size)
+            print(status.ret)
 
         #accumulate buffer or exit loop
         if status.ret > 0:

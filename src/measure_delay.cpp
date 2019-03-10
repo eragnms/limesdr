@@ -47,8 +47,14 @@ int measure_delay()
         const double sample_rate(10e+6);
         device->setSampleRate(SOAPY_SDR_RX, rx_ch, sample_rate);
         device->setSampleRate(SOAPY_SDR_TX, tx_ch, sample_rate);
-        const double rx_gain(20);
-        const double tx_gain(20);
+        double act_sample_rate =  device->getSampleRate(SOAPY_SDR_RX, rx_ch);
+        std::cout << "Actal RX rate: " << act_sample_rate << " Msps" << std::endl;
+        act_sample_rate =  device->getSampleRate(SOAPY_SDR_TX, tx_ch);
+        std::cout << "Actal TX rate: " << act_sample_rate << " Msps" << std::endl;
+        device->setAntenna(SOAPY_SDR_RX, rx_ch, "LNAL");
+        device->setAntenna(SOAPY_SDR_TX, tx_ch, "BAND1");
+        const double rx_gain(25);
+        const double tx_gain(30);
         device->setGain(SOAPY_SDR_RX, rx_ch, rx_gain);
         device->setGain(SOAPY_SDR_TX, tx_ch, tx_gain);
         const double freq(1e+9);
@@ -92,10 +98,10 @@ int measure_delay()
         }
 
         // Receive slightly before transmit time
-        std::vector<int16_t> rx_buffer;
+        uint32_t num_rx_samps(10000);
+        std::vector<int16_t> rx_buffer(num_rx_samps, 0);
         const uint32_t rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         uint32_t rate(10e6);
-        uint32_t num_rx_samps(10000);
         double tx_rx_start_delta = (((double)num_rx_samps/rate) * 1e9 / 2);
         uint32_t receive_time = (uint32_t) (tx_time_0 - tx_rx_start_delta);
         device->activateStream(rx_stream, rx_flags, receive_time,
@@ -106,36 +112,40 @@ int measure_delay()
         std::cout << "receive_time: " << receive_time << std::endl;
 
         uint32_t rx_time_0(0);
-
+        size_t buffer_length(1024);
+        std::vector<int16_t> rx_tmp_buff(buffer_length, 0);
+        void *rx_buffs[] = {rx_tmp_buff.data()};
+        size_t rx_buffer_index(0);
         while (true) {
-                std::vector<int16_t> rx_tmp_buff;
-                void *rx_buffs[] = {rx_tmp_buff.data()};
                 int rx_flags(0);
                 uint32_t timeout(5e5);
-                uint32_t buffer_length(1024);
                 long long int rx_timestamp;
-                uint32_t status = device->readStream(rx_stream,
-                                                     rx_buffs,
-                                                     buffer_length,
-                                                     rx_flags,
-                                                     rx_timestamp,
-                                                     timeout);
-                if ((status > 0) && rx_buffer.empty()) {
+                int32_t status = device->readStream(rx_stream,
+                                                    rx_buffs,
+                                                    buffer_length,
+                                                    rx_flags,
+                                                    rx_timestamp,
+                                                    timeout);
+                if ((status > 0) && (rx_buffer_index == 0)) {
                         rx_time_0 = rx_timestamp;
+                        MARK;
                 }
                 if (status > 0) {
-                        rx_buffer.insert(rx_buffer.end(),
+                        /*rx_buffer.insert(rx_buffer.end(),
                                          rx_tmp_buff.begin(),
-                                         rx_tmp_buff.end());
+                                         rx_tmp_buff.begin()+status-1);*/
+                        for (size_t n=0; n<(size_t)status; n++) {
+                                rx_buffer[rx_buffer_index++];
+                        }
+
                 } else {
                         // All samples (num_rx_samps) read
                         break;
                 }
         }
-
         std::cout << "Cleanup streams" << std::endl;
         device->deactivateStream(tx_stream);
-        device->closeStream(rx_stream);
+        //device->closeStream(rx_stream);
         device->closeStream(tx_stream);
 
         if (rx_buffer.size() != num_rx_samps) {
@@ -146,27 +156,39 @@ int measure_delay()
                 std::cerr << "Receive fail - no valid timestamp" << std::endl;
                 return EXIT_FAILURE;
         }
-
-        arma::vec rx_data = arma::conv_to<arma::vec>::from(rx_buffer);
-
+        arma::vec rx_data;
+        rx_data.set_size(100);
+        for (size_t n=0; n<100; n++){
+                rx_data(n) = (double) rx_buffer[n];
+        }
         // clear inital samples because transients
         double rx_mean = arma::mean(rx_data);
         size_t num_to_clear = (uint32_t) num_rx_samps / 100;
         for (size_t n=0; n<num_to_clear; n++) {
                 rx_data(n) = rx_mean;
         }
-
-        arma::vec tx_data = arma::conv_to<arma::vec>::from(tx_pulse);
+        MARK;
+        arma::vec tx_data;
+        MARK;
+        tx_data.set_size(10);
+        MARK;
+        for (size_t n=0; n<10; n++){
+                tx_data(n) = (double) tx_pulse[n];
+        }
+        MARK;
         arma::vec tx_pulse_norm = normalize(tx_data);
+        MARK;
         arma::vec rx_pulse_norm = normalize(rx_data);
-
+        MARK;
         arma::uword rx_argmax_index = rx_data.index_max();
         arma::uword tx_argmax_index = tx_data.index_max();
-
+        MARK;
         uint32_t tx_peak_time = (uint32_t) (tx_time_0 + (tx_argmax_index / rate) * 1e9);
+        MARK;
         uint32_t rx_peak_time = (uint32_t) (rx_time_0 + (rx_argmax_index / rate) * 1e9);
+        MARK;
         uint32_t time_delta = rx_peak_time - tx_peak_time;
-
+        MARK;
         std::cout << "Time delta: " << time_delta << " us" << std::endl;
 
         return EXIT_SUCCESS;
@@ -234,8 +256,8 @@ void print_vec(const std::vector<int>& vec)
 }
 
 arma::vec normalize(arma::vec samps) {
-        samps = samps - arma::mean(samps);
-        samps = arma::abs(samps);
-        samps = samps / arma::max(samps);
+        //samps = samps - arma::mean(samps);
+        //samps = arma::abs(samps);
+        //samps = samps / arma::max(samps);
         return samps;
 }
