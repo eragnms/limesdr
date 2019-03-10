@@ -156,9 +156,12 @@ int measure_delay()
                 std::cerr << "Receive fail - no valid timestamp" << std::endl;
                 return EXIT_FAILURE;
         }
+        MARK;
         arma::vec rx_data;
-        rx_data.set_size(100);
-        for (size_t n=0; n<100; n++){
+        MARK;
+        rx_data.set_size(num_rx_samps);
+        MARK;
+        for (size_t n=0; n<num_rx_samps; n++){
                 rx_data(n) = (double) rx_buffer[n];
         }
         // clear inital samples because transients
