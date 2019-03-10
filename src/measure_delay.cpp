@@ -19,8 +19,13 @@ int main()
         const size_t num_tx_samps(200);
         std::vector<double> tx_pulse = generate_cf32_pulse(num_tx_samps, 5,
                                                            0.3);
+        arma::vec rx_data;
+        rx_data.set_size(10000);
+
         //plot(tx_pulse);
         measure_delay();
+        //arma::vec a(10000);
+        //a.zeros();
         return EXIT_SUCCESS;
 }
 
@@ -71,11 +76,14 @@ int measure_delay()
         std::vector<size_t> rx_channel;
         std::vector<size_t> tx_channel;
         SoapySDR::Stream *rx_stream = device->setupStream(SOAPY_SDR_RX,
-                                                            SOAPY_SDR_CF32,
-                                                            rx_channel);
+                                                          SOAPY_SDR_CF32,
+                                                          rx_channel);
         SoapySDR::Stream *tx_stream = device->setupStream(SOAPY_SDR_TX,
-                                                            SOAPY_SDR_CF32,
-                                                            tx_channel);
+                                                          SOAPY_SDR_CF32,
+                                                          tx_channel);
+
+        https://github.com/skylarkwireless/sklk-soapyiris/blob/master/tests/IrisFullDuplex.cpp
+
         uint32_t microseconds(1e+6);
         usleep(microseconds);
         device->activateStream(tx_stream);
@@ -98,8 +106,10 @@ int measure_delay()
         }
 
         // Receive slightly before transmit time
-        uint32_t num_rx_samps(10000);
-        std::vector<int16_t> rx_buffer(num_rx_samps, 0);
+        uint32_t num_rx_samps(10);
+        arma::vec rx_data = arma::zeros(num_rx_samps);
+        //rx_data.set_size(num_rx_samps);
+
         const uint32_t rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         uint32_t rate(10e6);
         double tx_rx_start_delta = (((double)num_rx_samps/rate) * 1e9 / 2);
@@ -116,10 +126,11 @@ int measure_delay()
         std::vector<int16_t> rx_tmp_buff(buffer_length, 0);
         void *rx_buffs[] = {rx_tmp_buff.data()};
         size_t rx_buffer_index(0);
+
         while (true) {
                 int rx_flags(0);
                 uint32_t timeout(5e5);
-                long long int rx_timestamp;
+                long long int rx_timestamp(0);
                 int32_t status = device->readStream(rx_stream,
                                                     rx_buffs,
                                                     buffer_length,
@@ -131,40 +142,39 @@ int measure_delay()
                         MARK;
                 }
                 if (status > 0) {
-                        /*rx_buffer.insert(rx_buffer.end(),
-                                         rx_tmp_buff.begin(),
-                                         rx_tmp_buff.begin()+status-1);*/
                         for (size_t n=0; n<(size_t)status; n++) {
-                                rx_buffer[rx_buffer_index++];
+                                //rx_data(rx_buffer_index) = (double) rx_tmp_buff[n];
+                                //rx_data(rx_buffer_index) = (double) 0;
+
+                                rx_buffer_index++;
                         }
 
                 } else {
                         // All samples (num_rx_samps) read
                         break;
                 }
+                break;
         }
+        rx_data.print();
+        std::cout << rx_buffer_index << std::endl;
         std::cout << "Cleanup streams" << std::endl;
         device->deactivateStream(tx_stream);
-        //device->closeStream(rx_stream);
+        MARK;
+        device->closeStream(rx_stream);
+        MARK;
         device->closeStream(tx_stream);
+        MARK;
 
-        if (rx_buffer.size() != num_rx_samps) {
+        /*if (rx_buffer_index != num_rx_samps) {
                 std::cerr << "Receive fail - not all samples captured" << std::endl;
                 return EXIT_FAILURE;
         }
         if (rx_time_0 == 0) {
                 std::cerr << "Receive fail - no valid timestamp" << std::endl;
                 return EXIT_FAILURE;
-        }
+                }*/
         MARK;
-        arma::vec rx_data;
-        MARK;
-        rx_data.set_size(num_rx_samps);
-        MARK;
-        for (size_t n=0; n<num_rx_samps; n++){
-                rx_data(n) = (double) rx_buffer[n];
-        }
-        // clear inital samples because transients
+
         double rx_mean = arma::mean(rx_data);
         size_t num_to_clear = (uint32_t) num_rx_samps / 100;
         for (size_t n=0; n<num_to_clear; n++) {
@@ -173,15 +183,17 @@ int measure_delay()
         MARK;
         arma::vec tx_data;
         MARK;
-        tx_data.set_size(10);
+        tx_data.set_size(num_tx_samps);
         MARK;
-        for (size_t n=0; n<10; n++){
+        for (size_t n=0; n<num_tx_samps; n++){
                 tx_data(n) = (double) tx_pulse[n];
         }
         MARK;
         arma::vec tx_pulse_norm = normalize(tx_data);
         MARK;
-        arma::vec rx_pulse_norm = normalize(rx_data);
+        arma::vec rx_pulse_norm;
+        MARK;
+        normalize(rx_data);
         MARK;
         arma::uword rx_argmax_index = rx_data.index_max();
         arma::uword tx_argmax_index = tx_data.index_max();
@@ -221,6 +233,7 @@ std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
  */
 void plot(std::vector<double> y)
 {
+        MARK;
         Gnuplot g1("points");
         g1.reset_all();
         g1.set_title("Our data");
