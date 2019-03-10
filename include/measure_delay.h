@@ -23,4 +23,7 @@ int measure_delay();
 std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
                                         double scale_factor);
 void plot(std::vector<double> y);
+void plot(arma::vec y);
 void wait_for_key();
+void print_vec(const std::vector<int>& vec);
+arma::vec normalize(arma::vec samps);

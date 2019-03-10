@@ -92,7 +92,7 @@ int measure_delay()
         }
 
         // Receive slightly before transmit time
-        std::vector<int16_t> rx_buffs;
+        std::vector<int16_t> rx_buffer;
         const uint32_t rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         uint32_t rate(10e6);
         uint32_t num_rx_samps(10000);
@@ -105,19 +105,69 @@ int measure_delay()
         std::cout << "rx_start_shift: " << tx_rx_start_delta << std::endl;
         std::cout << "receive_time: " << receive_time << std::endl;
 
+        uint32_t rx_time_0(0);
+
         while (true) {
-                std::vector<int16_t> rx_buff;
-                void *rx_buffs[] = {rx_buff.data()};
-                long long int rx_timestamp;
+                std::vector<int16_t> rx_tmp_buff;
+                void *rx_buffs[] = {rx_tmp_buff.data()};
                 int rx_flags(0);
-                device->readStream(rx_stream,
-                                   rx_buffs,
-                                   1024,
-                                   rx_flags,
-                                   &rx_timestamp,
-                                   5e5);
+                uint32_t timeout(5e5);
+                uint32_t buffer_length(1024);
+                long long int rx_timestamp;
+                uint32_t status = device->readStream(rx_stream,
+                                                     rx_buffs,
+                                                     buffer_length,
+                                                     rx_flags,
+                                                     rx_timestamp,
+                                                     timeout);
+                if ((status > 0) && rx_buffer.empty()) {
+                        rx_time_0 = rx_timestamp;
+                }
+                if (status > 0) {
+                        rx_buffer.insert(rx_buffer.end(),
+                                         rx_tmp_buff.begin(),
+                                         rx_tmp_buff.end());
+                } else {
+                        // All samples (num_rx_samps) read
+                        break;
+                }
         }
 
+        std::cout << "Cleanup streams" << std::endl;
+        device->deactivateStream(tx_stream);
+        device->closeStream(rx_stream);
+        device->closeStream(tx_stream);
+
+        if (rx_buffer.size() != num_rx_samps) {
+                std::cerr << "Receive fail - not all samples captured" << std::endl;
+                return EXIT_FAILURE;
+        }
+        if (rx_time_0 == 0) {
+                std::cerr << "Receive fail - no valid timestamp" << std::endl;
+                return EXIT_FAILURE;
+        }
+
+        arma::vec rx_data = arma::conv_to<arma::vec>::from(rx_buffer);
+
+        // clear inital samples because transients
+        double rx_mean = arma::mean(rx_data);
+        size_t num_to_clear = (uint32_t) num_rx_samps / 100;
+        for (size_t n=0; n<num_to_clear; n++) {
+                rx_data(n) = rx_mean;
+        }
+
+        arma::vec tx_data = arma::conv_to<arma::vec>::from(tx_pulse);
+        arma::vec tx_pulse_norm = normalize(tx_data);
+        arma::vec rx_pulse_norm = normalize(rx_data);
+
+        arma::uword rx_argmax_index = rx_data.index_max();
+        arma::uword tx_argmax_index = tx_data.index_max();
+
+        uint32_t tx_peak_time = (uint32_t) (tx_time_0 + (tx_argmax_index / rate) * 1e9);
+        uint32_t rx_peak_time = (uint32_t) (rx_time_0 + (rx_argmax_index / rate) * 1e9);
+        uint32_t time_delta = rx_peak_time - tx_peak_time;
+
+        std::cout << "Time delta: " << time_delta << " us" << std::endl;
 
         return EXIT_SUCCESS;
 }
@@ -153,6 +203,12 @@ void plot(std::vector<double> y)
         wait_for_key();
 }
 
+void plot(arma::vec y)
+{
+        std::vector<double> y_p = arma::conv_to<std::vector<double>>::from(y);
+        plot(y_p);
+}
+
 void wait_for_key ()
 {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
@@ -167,4 +223,19 @@ void wait_for_key ()
         std::cin.get();
 #endif
         return;
+}
+
+void print_vec(const std::vector<int>& vec)
+{
+        for (auto x: vec) {
+                std::cout << ' ' << x;
+        }
+        std::cout << std::endl;
+}
+
+arma::vec normalize(arma::vec samps) {
+        samps = samps - arma::mean(samps);
+        samps = arma::abs(samps);
+        samps = samps / arma::max(samps);
+        return samps;
 }
