@@ -41,17 +41,9 @@
  */
 #define MARK std::cout << TRACE << std::endl;
 
-SoapySDR::Device * open_device();
-void configure_device(SoapySDR::Device *device);
-int measure_delay(SoapySDR::Device *device);
-std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
-                                        double scale_factor);
-void plot(std::vector<double> y);
-void plot(arma::vec y);
 void wait_for_key();
 void print_vec(const std::vector<int>& vec);
 arma::vec normalize(arma::cx_vec samps);
-int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix, uint32_t rate);
 
 class Beacon
 {
@@ -59,13 +51,22 @@ public:
         Beacon();
         void open();
         void configure();
-        void measure_tof();
         void configure_streams();
         void generate_modulation();
         void activate_streams();
         void read_rx_data();
+        void close_streams();
+        void calculate_tof();
+        void close();
 
 private:
+        int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix);
+        std::vector<double> generate_cf32_pulse(size_t num_samps,
+                                                uint32_t width,
+                                                double scale_factor);
+        void plot(std::vector<double> y);
+        void plot(arma::vec y);
+
         SoapySDR::Device *m_device;
         double m_sample_rate;
         size_t m_num_tx_samps;
@@ -79,4 +80,5 @@ private:
         arma::cx_vec m_rx_data;
         uint32_t m_rx_time_0;
         size_t m_rx_buffer_index;
+        bool m_plot_data;
 };

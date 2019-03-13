@@ -24,12 +24,15 @@ int main()
         beacon.generate_modulation();
         beacon.activate_streams();
         beacon.read_rx_data();
-        beacon.measure_tof();
+        beacon.close_streams();
+        beacon.calculate_tof();
+        beacon.close();
         return EXIT_SUCCESS;
 }
 
 Beacon::Beacon()
 {
+        m_plot_data = true;
         m_sample_rate = 10e+6;
         m_num_tx_samps = 200;
         m_num_rx_samps = 10000;
@@ -160,18 +163,22 @@ void Beacon::read_rx_data()
         }
 }
 
-void Beacon::measure_tof()
+void Beacon::close_streams()
 {
-        const bool plot_data(true);
-
-        std::cout << m_rx_data(0) << std::endl;
         std::cout << "Cleanup streams" << std::endl;
         m_device->deactivateStream(m_rx_stream);
         m_device->deactivateStream(m_tx_stream);
         m_device->closeStream(m_rx_stream);
         m_device->closeStream(m_tx_stream);
-        SoapySDR::Device::unmake(m_device);
+}
 
+void Beacon::close()
+{
+        SoapySDR::Device::unmake(m_device);
+}
+
+void Beacon::calculate_tof()
+{
         if (m_rx_buffer_index != m_num_rx_samps) {
                 std::cerr << "Receive fail - not all samples captured"
                           << std::endl;
@@ -196,32 +203,33 @@ void Beacon::measure_tof()
         arma::uword tx_argmax_index = tx_pulse_norm.index_max();
         arma::vec rx_tx_corr = arma::conv(arma::flipud(tx_pulse_norm),
                                           rx_data_norm);
-        arma::uword rx_corr_index = rx_tx_corr.index_max() - m_num_tx_samps / 2;
-        int32_t tx_peak_time = peak_time(m_tx_time_0, tx_argmax_index, m_sample_rate);
-        int32_t rx_peak_time = peak_time(m_rx_time_0, rx_corr_index, m_sample_rate);
+        arma::uword rx_corr_index = rx_tx_corr.index_max() - m_num_tx_samps/2;
+        int32_t tx_peak_time = peak_time(m_tx_time_0, tx_argmax_index);
+        int32_t rx_peak_time = peak_time(m_rx_time_0, rx_corr_index);
         int32_t time_delta = (rx_peak_time - tx_peak_time) / 1e3;
 
         std::cout << "Time delta: " << time_delta << " us" << std::endl;
         std::cout << "rx_corr_index: " << rx_corr_index << std::endl;
-        std::cout << "Num samples received: " << m_rx_buffer_index << std::endl;
+        std::cout << "Num samples received: "
+                  << m_rx_buffer_index
+                  << std::endl;
 
-        if (plot_data) {
-                //plot(tx_pulse);
-                //plot(tx_pulse_norm);
+        if (m_plot_data) {
                 plot(rx_tx_corr);
         }
 }
 
-int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix, uint32_t rate)
+int32_t Beacon::peak_time(uint32_t ref_time, arma::uword argmax_ix)
 {
-        return (int32_t)(ref_time + ((double)argmax_ix / rate) * 1e9);
+        return (int32_t)(ref_time + ((double)argmax_ix / m_sample_rate)*1e9);
 }
 
 /**
  * \fn Generate a sinc pulse
  */
-std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
-                                         double scale_factor)
+std::vector<double> Beacon::generate_cf32_pulse(size_t num_samps,
+                                                uint32_t width,
+                                                double scale_factor)
 {
         arma::vec rel_time = arma::linspace(0, 2*width, num_samps) - width;
         arma::vec sinc_pulse = arma::sinc(rel_time);
@@ -239,7 +247,7 @@ std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
  * examples on how to use the library.
  *
  */
-void plot(std::vector<double> y)
+void Beacon::plot(std::vector<double> y)
 {
         Gnuplot g1("lines");
         g1.reset_all();
@@ -248,7 +256,7 @@ void plot(std::vector<double> y)
         wait_for_key();
 }
 
-void plot(arma::vec y)
+void Beacon::plot(arma::vec y)
 {
         std::vector<double> y_p = arma::conv_to<std::vector<double>>::from(y);
         plot(y_p);
