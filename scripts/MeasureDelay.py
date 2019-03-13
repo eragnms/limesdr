@@ -158,6 +158,8 @@ def measure_delay(
     if rx_time_0 is None:
         raise Exception('receive fail - no valid timestamp')
 
+    print(rx_buffs[0])
+
     #clear initial samples because transients
     rx_mean = np.mean(rx_buffs)
     for i in range(len(rx_buffs) // 100):

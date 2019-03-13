@@ -85,10 +85,10 @@ int measure_delay()
         std::vector<size_t> rx_channel;
         std::vector<size_t> tx_channel;
         auto rx_stream = device->setupStream(SOAPY_SDR_RX,
-                                             SOAPY_SDR_CS16,
+                                             SOAPY_SDR_CF32,
                                              rx_channel);
         auto tx_stream = device->setupStream(SOAPY_SDR_TX,
-                                             SOAPY_SDR_CS16,
+                                             SOAPY_SDR_CF32,
                                              tx_channel);
 
         uint32_t microseconds(1e+6);
@@ -121,7 +121,7 @@ int measure_delay()
 
         uint32_t rx_time_0(0);
         size_t buffer_length(1024);
-        std::vector<std::complex<int16_t>> rx_buff(buffer_length);
+        std::vector<std::complex<float>> rx_buff(buffer_length);
         std::vector<void *> rx_buffs(1);
         size_t rx_buffer_index(0);
         uint32_t timeout(5e5);
@@ -149,6 +149,7 @@ int measure_delay()
                         break;
                 }
         }
+        std::cout << rx_data(0) << std::endl;
         std::cout << "Cleanup streams" << std::endl;
         device->deactivateStream(rx_stream);
         device->deactivateStream(tx_stream);
@@ -182,8 +183,8 @@ int measure_delay()
         arma::vec rx_data_norm = normalize(rx_data);
         arma::uword rx_argmax_index = rx_data_norm.index_max();
         arma::uword tx_argmax_index = tx_pulse_norm.index_max();
-        uint32_t tx_peak_time = (uint32_t)(tx_time_0 + ((double)tx_argmax_index / rate) * 1e9);
-        uint32_t rx_peak_time = (uint32_t)(rx_time_0 + ((double)rx_argmax_index / rate) * 1e9);
+        int32_t tx_peak_time = (int32_t)(tx_time_0 + ((double)tx_argmax_index / rate) * 1e9);
+        int32_t rx_peak_time = (int32_t)(rx_time_0 + ((double)rx_argmax_index / rate) * 1e9);
         int32_t time_delta = (rx_peak_time - tx_peak_time) / 1e3;
 
         std::cout << "Time delta: " << time_delta << " us" << std::endl;
@@ -199,8 +200,8 @@ int measure_delay()
         std::cout << "Samples received: " << rx_buffer_index << std::endl;
 
         if (plot_data) {
-                plot(tx_pulse);
-                plot(tx_pulse_norm);
+                //plot(tx_pulse);
+                //plot(tx_pulse_norm);
                 plot(rx_data_norm);
         }
 
