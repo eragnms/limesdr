@@ -23,6 +23,7 @@ int main()
         beacon.configure_streams();
         beacon.generate_modulation();
         beacon.activate_streams();
+        beacon.read_rx_data();
         beacon.measure_tof();
         return EXIT_SUCCESS;
 }
@@ -125,22 +126,16 @@ void Beacon::activate_streams()
                                  m_num_rx_samps);
 }
 
-void Beacon::measure_tof()
+void Beacon::read_rx_data()
 {
-        const bool plot_data(true);
-
-
-
-
-        uint32_t rx_time_0(0);
+        m_rx_time_0 = 0;
         size_t buffer_length(1024);
         std::vector<std::complex<float>> rx_buff(buffer_length);
         std::vector<void *> rx_buffs(1);
-        size_t rx_buffer_index(0);
+        m_rx_buffer_index = 0;
         uint32_t timeout(5e5);
         long long int rx_timestamp(0);
         m_rx_data.set_size(m_num_rx_samps);
-
         while (true) {
                 rx_buffs[0] = rx_buff.data();
                 int32_t status = m_device->readStream(m_rx_stream,
@@ -149,13 +144,13 @@ void Beacon::measure_tof()
                                                       m_rx_flags,
                                                       rx_timestamp,
                                                       timeout);
-                if ((status > 0) && (rx_buffer_index == 0)) {
-                        rx_time_0 = rx_timestamp;
+                if ((status > 0) && (m_rx_buffer_index == 0)) {
+                        m_rx_time_0 = rx_timestamp;
                 }
                 if (status > 0) {
                         for (size_t n=0; n<(size_t)status; n++) {
-                                m_rx_data(rx_buffer_index) = rx_buff[n];
-                                rx_buffer_index++;
+                                m_rx_data(m_rx_buffer_index) = rx_buff[n];
+                                m_rx_buffer_index++;
                         }
 
                 } else {
@@ -163,6 +158,12 @@ void Beacon::measure_tof()
                         break;
                 }
         }
+}
+
+void Beacon::measure_tof()
+{
+        const bool plot_data(true);
+
         std::cout << m_rx_data(0) << std::endl;
         std::cout << "Cleanup streams" << std::endl;
         m_device->deactivateStream(m_rx_stream);
@@ -171,11 +172,11 @@ void Beacon::measure_tof()
         m_device->closeStream(m_tx_stream);
         SoapySDR::Device::unmake(m_device);
 
-        if (rx_buffer_index != m_num_rx_samps) {
+        if (m_rx_buffer_index != m_num_rx_samps) {
                 std::cerr << "Receive fail - not all samples captured"
                           << std::endl;
         }
-        if (rx_time_0 == 0) {
+        if (m_rx_time_0 == 0) {
                 std::cerr << "Receive fail - no valid timestamp" << std::endl;
         }
 
@@ -197,12 +198,12 @@ void Beacon::measure_tof()
                                           rx_data_norm);
         arma::uword rx_corr_index = rx_tx_corr.index_max() - m_num_tx_samps / 2;
         int32_t tx_peak_time = peak_time(m_tx_time_0, tx_argmax_index, m_sample_rate);
-        int32_t rx_peak_time = peak_time(rx_time_0, rx_corr_index, m_sample_rate);
+        int32_t rx_peak_time = peak_time(m_rx_time_0, rx_corr_index, m_sample_rate);
         int32_t time_delta = (rx_peak_time - tx_peak_time) / 1e3;
 
         std::cout << "Time delta: " << time_delta << " us" << std::endl;
         std::cout << "rx_corr_index: " << rx_corr_index << std::endl;
-        std::cout << "Num samples received: " << rx_buffer_index << std::endl;
+        std::cout << "Num samples received: " << m_rx_buffer_index << std::endl;
 
         if (plot_data) {
                 //plot(tx_pulse);

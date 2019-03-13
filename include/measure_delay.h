@@ -63,6 +63,7 @@ public:
         void configure_streams();
         void generate_modulation();
         void activate_streams();
+        void read_rx_data();
 
 private:
         SoapySDR::Device *m_device;
@@ -76,4 +77,6 @@ private:
         uint32_t m_tx_time_0;
         int m_rx_flags;
         arma::cx_vec m_rx_data;
+        uint32_t m_rx_time_0;
+        size_t m_rx_buffer_index;
 };
