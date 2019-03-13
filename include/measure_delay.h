@@ -67,4 +67,6 @@ private:
         double m_sample_rate;
         size_t m_num_tx_samps;
         size_t m_num_rx_samps;
+        SoapySDR::Stream *m_tx_stream;
+        SoapySDR::Stream *m_rx_stream;
 };

@@ -90,15 +90,16 @@ void Beacon::measure_tof()
 
         std::vector<size_t> rx_channel;
         std::vector<size_t> tx_channel;
-        auto tx_stream = m_device->setupStream(SOAPY_SDR_TX,
-                                               SOAPY_SDR_CF32,
-                                               tx_channel);
-        auto rx_stream = m_device->setupStream(SOAPY_SDR_RX,
-                                               SOAPY_SDR_CF32,
-                                               rx_channel);
+
+        m_tx_stream = m_device->setupStream(SOAPY_SDR_TX,
+                                            SOAPY_SDR_CF32,
+                                            tx_channel);
+        m_rx_stream = m_device->setupStream(SOAPY_SDR_RX,
+                                            SOAPY_SDR_CF32,
+                                            rx_channel);
         uint32_t microseconds(1e+6);
         usleep(microseconds);
-        m_device->activateStream(tx_stream);
+        m_device->activateStream(m_tx_stream);
 
         std::vector<double> tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5,
                                                            0.3);
@@ -106,7 +107,7 @@ void Beacon::measure_tof()
         // Transmit at 100 ms into the "future"
         uint32_t tx_time_0 = m_device->getHardwareTime() + 0.1e9;
         int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
-        uint32_t status = m_device->writeStream(tx_stream,
+        uint32_t status = m_device->writeStream(m_tx_stream,
                                                 tx_buffs,
                                                 m_num_tx_samps,
                                                 tx_flags, // compare with api!
@@ -121,7 +122,7 @@ void Beacon::measure_tof()
         int rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         double tx_rx_start_delta = (((double)m_num_rx_samps/m_sample_rate) * 1e9 / 2);
         uint32_t receive_time = (uint32_t) (tx_time_0 - tx_rx_start_delta);
-        m_device->activateStream(rx_stream, rx_flags, receive_time,
+        m_device->activateStream(m_rx_stream, rx_flags, receive_time,
                                m_num_rx_samps);
 
         uint32_t rx_time_0(0);
@@ -134,7 +135,7 @@ void Beacon::measure_tof()
 
         while (true) {
                 rx_buffs[0] = rx_buff.data();
-                int32_t status = m_device->readStream(rx_stream,
+                int32_t status = m_device->readStream(m_rx_stream,
                                                     rx_buffs.data(),
                                                     buffer_length,
                                                     rx_flags,
@@ -156,10 +157,10 @@ void Beacon::measure_tof()
         }
         std::cout << rx_data(0) << std::endl;
         std::cout << "Cleanup streams" << std::endl;
-        m_device->deactivateStream(rx_stream);
-        m_device->deactivateStream(tx_stream);
-        m_device->closeStream(rx_stream);
-        m_device->closeStream(tx_stream);
+        m_device->deactivateStream(m_rx_stream);
+        m_device->deactivateStream(m_tx_stream);
+        m_device->closeStream(m_rx_stream);
+        m_device->closeStream(m_tx_stream);
         SoapySDR::Device::unmake(m_device);
 
         if (rx_buffer_index != m_num_rx_samps) {
