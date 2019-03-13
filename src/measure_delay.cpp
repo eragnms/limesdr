@@ -20,6 +20,8 @@ int main()
         Beacon beacon;
         beacon.open();
         beacon.configure();
+        beacon.configure_streams();
+        beacon.activate_streams();
         beacon.measure_tof();
         return EXIT_SUCCESS;
 }
@@ -78,16 +80,8 @@ void Beacon::configure()
         }
 }
 
-void Beacon::configure_tx_stream()
+void Beacon::configure_streams()
 {
-
-}
-
-void Beacon::measure_tof()
-{
-        const bool plot_data(false);
-
-
         std::vector<size_t> rx_channel;
         std::vector<size_t> tx_channel;
 
@@ -99,6 +93,16 @@ void Beacon::measure_tof()
                                             rx_channel);
         uint32_t microseconds(1e+6);
         usleep(microseconds);
+}
+
+void Beacon::activate_streams()
+{}
+
+void Beacon::measure_tof()
+{
+        const bool plot_data(false);
+
+
         m_device->activateStream(m_tx_stream);
 
         std::vector<double> tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5,

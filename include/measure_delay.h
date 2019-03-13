@@ -60,7 +60,8 @@ public:
         void open();
         void configure();
         void measure_tof();
-        void configure_tx_stream();
+        void configure_streams();
+        void activate_streams();
 
 private:
         SoapySDR::Device *m_device;
