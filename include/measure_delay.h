@@ -19,6 +19,8 @@
 
 #include "gnuplot_i.hpp"
 
+#define J (std::complex<double>(0,1))
+
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 /**
@@ -46,4 +48,4 @@ void plot(std::vector<double> y);
 void plot(arma::vec y);
 void wait_for_key();
 void print_vec(const std::vector<int>& vec);
-arma::vec normalize(arma::vec samps);
+arma::vec normalize(arma::cx_vec samps);

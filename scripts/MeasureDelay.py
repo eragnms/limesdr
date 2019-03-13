@@ -173,7 +173,6 @@ def measure_delay(
 
     tx_pulse_norm = normalize(tx_pulse)
     rx_buffs_norm = normalize(rx_buffs)
-
     #dump debug samples
     if dump_dir is not None:
         np.save(os.path.join(dump_dir, 'txNorm.npy'), tx_pulse_norm)
@@ -207,6 +206,13 @@ def measure_delay(
   
     print('>>> Time delta %f us'%(time_delta / 1e3))
     print("Done!")
+
+    print("tx_time_0: %d"%tx_time_0)
+    print("rx_time_0: %d"%rx_time_0)
+    print("rx_peak_time: %d"%rx_peak_time)
+    print("tx_peak_time: %d"%tx_peak_time)
+    print("tx_argmax_index: %d"%tx_argmax_index)
+    print("rx_argmax_index: %d"%rx_argmax_index)
 
 def main():
     """Parse command line arguments and perform measurement."""
