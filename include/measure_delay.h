@@ -41,10 +41,6 @@
  */
 #define MARK std::cout << TRACE << std::endl;
 
-void wait_for_key();
-void print_vec(const std::vector<int>& vec);
-arma::vec normalize(arma::cx_vec samps);
-
 class Beacon
 {
 public:
@@ -66,6 +62,9 @@ private:
                                                 double scale_factor);
         void plot(std::vector<double> y);
         void plot(arma::vec y);
+        void wait_for_key();
+        void print_vec(const std::vector<int>& vec);
+        arma::vec normalize(arma::cx_vec samps);
 
         SoapySDR::Device *m_device;
         double m_sample_rate;

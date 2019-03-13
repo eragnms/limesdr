@@ -32,7 +32,7 @@ int main()
 
 Beacon::Beacon()
 {
-        m_plot_data = true;
+        m_plot_data = false;
         m_sample_rate = 10e+6;
         m_num_tx_samps = 200;
         m_num_rx_samps = 10000;
@@ -161,6 +161,13 @@ void Beacon::read_rx_data()
                         break;
                 }
         }
+        if (m_rx_buffer_index != m_num_rx_samps) {
+                std::cerr << "Receive fail - not all samples captured"
+                          << std::endl;
+        }
+        if (m_rx_time_0 == 0) {
+                std::cerr << "Receive fail - no valid timestamp" << std::endl;
+        }
 }
 
 void Beacon::close_streams()
@@ -179,14 +186,6 @@ void Beacon::close()
 
 void Beacon::calculate_tof()
 {
-        if (m_rx_buffer_index != m_num_rx_samps) {
-                std::cerr << "Receive fail - not all samples captured"
-                          << std::endl;
-        }
-        if (m_rx_time_0 == 0) {
-                std::cerr << "Receive fail - no valid timestamp" << std::endl;
-        }
-
         std::complex<double> rx_mean = arma::mean(m_rx_data);
         size_t num_to_clear = (uint32_t) m_num_rx_samps / 100;
         for (size_t n=0; n<num_to_clear; n++) {
@@ -239,6 +238,14 @@ std::vector<double> Beacon::generate_cf32_pulse(size_t num_samps,
         return pulse;
 }
 
+arma::vec Beacon::normalize(arma::cx_vec samps)
+{
+        samps = samps - arma::mean(samps);
+        arma::vec samps_norm = arma::abs(samps);
+        samps_norm = samps_norm / arma::max(samps_norm);
+        return samps_norm;
+}
+
 /**
  * \fn plot
  * \brief Use gnuplot-cpp to plot data
@@ -262,7 +269,7 @@ void Beacon::plot(arma::vec y)
         plot(y_p);
 }
 
-void wait_for_key ()
+void Beacon::wait_for_key()
 {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
         std::cout << std::endl << "Press any key to continue..." << std::endl;
@@ -278,17 +285,10 @@ void wait_for_key ()
         return;
 }
 
-void print_vec(const std::vector<int>& vec)
+void Beacon::print_vec(const std::vector<int>& vec)
 {
         for (auto x: vec) {
                 std::cout << ' ' << x;
         }
         std::cout << std::endl;
-}
-
-arma::vec normalize(arma::cx_vec samps) {
-        samps = samps - arma::mean(samps);
-        arma::vec samps_norm = arma::abs(samps);
-        samps_norm = samps_norm / arma::max(samps_norm);
-        return samps_norm;
 }
