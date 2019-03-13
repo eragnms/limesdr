@@ -11,6 +11,7 @@
  * Copyright (C) 2019 by Wittra. All rights reserved.
  */
 // https://github.com/skylarkwireless/sklk-soapyiris/blob/master/tests/IrisFullDuplex.cpp
+// https://github.com/skylarkwireless/sklk-soapyiris/blob/master/tests/IrisFullDuplex.cpp
 
 #include "measure_delay.h"
 
@@ -53,9 +54,9 @@ int measure_delay()
         device->setSampleRate(SOAPY_SDR_RX, rx_ch, sample_rate);
         device->setSampleRate(SOAPY_SDR_TX, tx_ch, sample_rate);
         double act_sample_rate =  device->getSampleRate(SOAPY_SDR_RX, rx_ch);
-        std::cout << "Actal RX rate: " << act_sample_rate << " Msps" << std::endl;
+        std::cout << "Actual RX rate: " << act_sample_rate << " Msps" << std::endl;
         act_sample_rate =  device->getSampleRate(SOAPY_SDR_TX, tx_ch);
-        std::cout << "Actal TX rate: " << act_sample_rate << " Msps" << std::endl;
+        std::cout << "Actual TX rate: " << act_sample_rate << " Msps" << std::endl;
         device->setAntenna(SOAPY_SDR_RX, rx_ch, "LNAL");
         device->setAntenna(SOAPY_SDR_TX, tx_ch, "BAND1");
         const double rx_gain(25);
@@ -82,7 +83,7 @@ int measure_delay()
                                                           SOAPY_SDR_CF32,
                                                           tx_channel);
 
-        https://github.com/skylarkwireless/sklk-soapyiris/blob/master/tests/IrisFullDuplex.cpp
+
 
         uint32_t microseconds(1e+6);
         usleep(microseconds);
