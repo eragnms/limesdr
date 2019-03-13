@@ -17,16 +17,6 @@
 
 int main()
 {
-
-        /*
-        arma::cx_vec a ={std::complex<double>(1, 2),
-                         std::complex<double>(1, -1)};
-        a.print();
-        arma::vec b = arma::abs(a);
-        b.print();
-        std::complex<double> c = arma::mean(a);
-        */
-
         measure_delay();
         return EXIT_SUCCESS;
 }
@@ -34,7 +24,7 @@ int main()
 int measure_delay()
 {
 
-        const bool plot_data(true);
+        const bool plot_data(false);
 
         const uint32_t rate(10e6);
         const double sample_rate(10e+6);
@@ -178,34 +168,32 @@ int measure_delay()
         for (size_t n=0; n<num_tx_samps; n++){
                 tx_data(n) = (double) tx_pulse[n];
         }
-
         arma::vec tx_pulse_norm = normalize(tx_data);
         arma::vec rx_data_norm = normalize(rx_data);
-        arma::uword rx_argmax_index = rx_data_norm.index_max();
         arma::uword tx_argmax_index = tx_pulse_norm.index_max();
-        int32_t tx_peak_time = (int32_t)(tx_time_0 + ((double)tx_argmax_index / rate) * 1e9);
-        int32_t rx_peak_time = (int32_t)(rx_time_0 + ((double)rx_argmax_index / rate) * 1e9);
+        arma::vec rx_tx_corr = arma::conv(arma::flipud(tx_pulse_norm),
+                                          rx_data_norm);
+        arma::uword rx_corr_index = rx_tx_corr.index_max() - num_tx_samps / 2;
+        int32_t tx_peak_time = peak_time(tx_time_0, tx_argmax_index, rate);
+        int32_t rx_peak_time = peak_time(rx_time_0, rx_corr_index, rate);
         int32_t time_delta = (rx_peak_time - tx_peak_time) / 1e3;
 
         std::cout << "Time delta: " << time_delta << " us" << std::endl;
-
-        std::cout << "tx_time_0: " << tx_time_0 << std::endl;
-        std::cout << "rx_time_0: " << rx_time_0 << std::endl;
-        std::cout << "rx_start_shift: " << tx_rx_start_delta << std::endl;
-        std::cout << "receive_time: " << receive_time << std::endl;
-        std::cout << "rx_argmax_index: " << rx_argmax_index << std::endl;
-        std::cout << "tx_argmax_index: " << tx_argmax_index << std::endl;
-        std::cout << "rx_peak_time: " << rx_peak_time << std::endl;
-        std::cout << "tx_peak_time: " << tx_peak_time << std::endl;
-        std::cout << "Samples received: " << rx_buffer_index << std::endl;
+        std::cout << "rx_corr_index: " << rx_corr_index << std::endl;
+        std::cout << "Num samples received: " << rx_buffer_index << std::endl;
 
         if (plot_data) {
                 //plot(tx_pulse);
                 //plot(tx_pulse_norm);
-                plot(rx_data_norm);
+                plot(rx_tx_corr);
         }
 
         return EXIT_SUCCESS;
+}
+
+int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix, uint32_t rate)
+{
+        return (int32_t)(ref_time + ((double)argmax_ix / rate) * 1e9);
 }
 
 /**
@@ -232,7 +220,7 @@ std::vector<double> generate_cf32_pulse(size_t num_samps, uint32_t width,
  */
 void plot(std::vector<double> y)
 {
-        Gnuplot g1("points");
+        Gnuplot g1("lines");
         g1.reset_all();
         g1.set_title("Our data");
         g1.plot_x(y);

@@ -49,3 +49,4 @@ void plot(arma::vec y);
 void wait_for_key();
 void print_vec(const std::vector<int>& vec);
 arma::vec normalize(arma::cx_vec samps);
+int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix, uint32_t rate);

@@ -61,8 +61,10 @@ def measure_delay(
         sdr.setMasterClockRate(clock_rate)
 
     #set sample rate
-    sdr.setSampleRate(SOAPY_SDR_RX, rx_chan, rate)
-    sdr.setSampleRate(SOAPY_SDR_TX, tx_chan, rate)
+    rx_rate = rate
+    tx_rate = 10e6
+    sdr.setSampleRate(SOAPY_SDR_RX, rx_chan, rx_rate)
+    sdr.setSampleRate(SOAPY_SDR_TX, tx_chan, tx_rate)
     print("Actual Rx Rate %f Msps"%(sdr.getSampleRate(SOAPY_SDR_RX, rx_chan) / 1e6))
     print("Actual Tx Rate %f Msps"%(sdr.getSampleRate(SOAPY_SDR_TX, tx_chan) / 1e6))
 
@@ -111,33 +113,25 @@ def measure_delay(
     rx_buffs = np.array([], np.complex64)
     rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST
     #half of the samples come before the transmit time
-    receive_time = int(tx_time_0 - ((num_rx_samps)/rate) * 1e9 / 2)
+    receive_time = int(tx_time_0 - ((num_rx_samps)/rx_rate) * 1e9 / 2)
     sdr.activateStream(rx_stream, rx_flags, receive_time, num_rx_samps)
     rx_time_0 = None
 
     print("Receive time: %d"%receive_time)
 
     #accumulate receive buffer into large contiguous buffer
-    n = 0
     while True:
         rx_buff = np.array([0]*1024, np.complex64)
         timeout_us = int(5e5) #500 ms >> stream time
         status = sdr.readStream(rx_stream, [rx_buff], len(rx_buff), timeoutUs=timeout_us)
 
-        
-
         #stash time on first buffer
         if status.ret > 0 and not rx_buffs.size:
             rx_time_0 = status.timeNs
             print("rx_time_0: %d"%rx_time_0)
+            print(rx_buff.size)
             if (status.flags & SOAPY_SDR_HAS_TIME) == 0:
                 raise Exception('receive fail - no timestamp on first readStream %s'%(str(status)))
-
-        if status.ret > 0:
-            n = n + 1
-            print(n)
-            print("rx_time: %d"%status.timeNs)
-            print(status.ret)
 
         #accumulate buffer or exit loop
         if status.ret > 0:
@@ -158,8 +152,6 @@ def measure_delay(
     if rx_time_0 is None:
         raise Exception('receive fail - no valid timestamp')
 
-    print(rx_buffs[0])
-
     #clear initial samples because transients
     rx_mean = np.mean(rx_buffs)
     for i in range(len(rx_buffs) // 100):
@@ -170,11 +162,17 @@ def measure_delay(
         samps = samps - np.mean(samps) #remove dc
         samps = np.absolute(samps) #magnitude
         samps = samps / max(samps) #norm ampl to peak
-        #print (samps[:200])
         return samps
 
-    tx_pulse_norm = normalize(tx_pulse)
+    tx_pulse_corr = generate_cf32_pulse(num_tx_samps * int(rx_rate/tx_rate))
+    tx_pulse_norm = normalize(tx_pulse_corr)
     rx_buffs_norm = normalize(rx_buffs)
+
+    plt.plot(tx_pulse_norm)
+    plt.show()
+
+    rx_tx_corr = np.correlate(rx_buffs_norm, tx_pulse_norm)
+
     #dump debug samples
     if dump_dir is not None:
         np.save(os.path.join(dump_dir, 'txNorm.npy'), tx_pulse_norm)
@@ -183,11 +181,13 @@ def measure_delay(
         np.save(os.path.join(dump_dir, 'rxRawQ.npy'), np.imag(rx_buffs))
 
     if plot_pulses:
-        x = np.linspace(0, num_tx_samps, num_tx_samps, endpoint=True)
-        plt.plot(x, tx_pulse_norm)
-        plt.show()
-        x = np.linspace(0, num_rx_samps, num_rx_samps, endpoint=True)
-        plt.plot(x, rx_buffs_norm)
+        #x = np.linspace(0, num_tx_samps, num_tx_samps, endpoint=True)
+        #plt.plot(x, tx_pulse_norm)
+        #plt.show()
+        #x = np.linspace(0, num_rx_samps, num_rx_samps, endpoint=True)
+        #plt.plot(x, rx_buffs_norm)
+        #plt.show()
+        plt.plot(rx_tx_corr)
         plt.show()
 
     #look for the for peak index for time offsets
@@ -195,26 +195,19 @@ def measure_delay(
     tx_argmax_index = np.argmax(tx_pulse_norm)
 
     #check goodness of peak by comparing argmax and correlation
-    rx_coor_index = np.argmax(np.correlate(rx_buffs_norm, tx_pulse_norm)) + len(tx_pulse_norm) // 2
-    if abs(rx_coor_index-rx_argmax_index) > len(tx_pulse_norm)/4:
-        raise Exception(
-            'correlation(%d) does not match argmax(%d), probably bad data' %
-            (rx_coor_index, rx_argmax_index))
+    rx_corr_index = np.argmax(rx_tx_corr) + len(tx_pulse_norm) // 2
+    #if abs(rx_corr_index-rx_argmax_index) > len(tx_pulse_norm)/4:
+    #    raise Exception(
+    #        'correlation(%d) does not match argmax(%d), probably bad data' %
+    #        (rx_corr_index, rx_argmax_index))
 
     #calculate time offset
-    tx_peak_time = int(tx_time_0 + (tx_argmax_index / rate) * 1e9)
-    rx_peak_time = int(rx_time_0 + (rx_argmax_index / rate) * 1e9)
+    tx_peak_time = int(tx_time_0 + (tx_argmax_index / tx_rate) * 1e9)
+    rx_peak_time = int(rx_time_0 + (rx_corr_index / rx_rate) * 1e9)
     time_delta = rx_peak_time - tx_peak_time
   
     print('>>> Time delta %f us'%(time_delta / 1e3))
     print("Done!")
-
-    print("tx_time_0: %d"%tx_time_0)
-    print("rx_time_0: %d"%rx_time_0)
-    print("rx_peak_time: %d"%rx_peak_time)
-    print("tx_peak_time: %d"%tx_peak_time)
-    print("tx_argmax_index: %d"%tx_argmax_index)
-    print("rx_argmax_index: %d"%rx_argmax_index)
 
 def main():
     """Parse command line arguments and perform measurement."""
@@ -222,7 +215,7 @@ def main():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--args", type=str, help="device factor arguments", default="")
-    parser.add_argument("--rate", type=float, help="Tx and Rx sample rate", default=1e6)
+    parser.add_argument("--rate", type=float, help="Rx sample rate", default=1e6)
     parser.add_argument("--rx-ant", type=str, help="Optional Rx antenna")
     parser.add_argument("--tx-ant", type=str, help="Optional Tx antenna")
     parser.add_argument("--rx-gain", type=float, help="Optional Rx gain (dB)")
