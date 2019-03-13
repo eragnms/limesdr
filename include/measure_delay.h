@@ -54,6 +54,7 @@ public:
         void close_streams();
         void calculate_tof();
         void close();
+        int32_t get_tof();
 
 private:
         int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix);
@@ -80,4 +81,5 @@ private:
         uint32_t m_rx_time_0;
         size_t m_rx_buffer_index;
         bool m_plot_data;
+        int32_t m_time_delta;
 };

@@ -19,14 +19,22 @@ int main()
 {
         Beacon beacon;
         beacon.open();
-        beacon.configure();
-        beacon.configure_streams();
-        beacon.generate_modulation();
-        beacon.activate_streams();
-        beacon.read_rx_data();
-        beacon.close_streams();
-        beacon.calculate_tof();
+        size_t num_tofs(2);
+        arma::vec tofs(num_tofs);
+        for (size_t n=0; n<num_tofs; n++) {
+                beacon.configure();
+                beacon.configure_streams();
+                beacon.generate_modulation();
+                beacon.activate_streams();
+                beacon.read_rx_data();
+                beacon.calculate_tof();
+                tofs(n) = beacon.get_tof();
+                beacon.close_streams();
+        }
         beacon.close();
+        std::cout << "Average TOF: " << arma::mean(tofs) << std::endl;
+        std::cout << "Max TOF: " << arma::max(tofs) << std::endl;
+        std::cout << "Min TOF: " << arma::min(tofs) << std::endl;
         return EXIT_SUCCESS;
 }
 
@@ -36,6 +44,7 @@ Beacon::Beacon()
         m_sample_rate = 10e+6;
         m_num_tx_samps = 200;
         m_num_rx_samps = 10000;
+        m_time_delta = 0;
 }
 
 void Beacon::open()
@@ -205,9 +214,9 @@ void Beacon::calculate_tof()
         arma::uword rx_corr_index = rx_tx_corr.index_max() - m_num_tx_samps/2;
         int32_t tx_peak_time = peak_time(m_tx_time_0, tx_argmax_index);
         int32_t rx_peak_time = peak_time(m_rx_time_0, rx_corr_index);
-        int32_t time_delta = (rx_peak_time - tx_peak_time) / 1e3;
+        m_time_delta = (rx_peak_time - tx_peak_time) / 1e3;
 
-        std::cout << "Time delta: " << time_delta << " us" << std::endl;
+        std::cout << "Time delta: " << m_time_delta << " us" << std::endl;
         std::cout << "rx_corr_index: " << rx_corr_index << std::endl;
         std::cout << "Num samples received: "
                   << m_rx_buffer_index
@@ -216,6 +225,11 @@ void Beacon::calculate_tof()
         if (m_plot_data) {
                 plot(rx_tx_corr);
         }
+}
+
+int32_t Beacon::get_tof()
+{
+        return m_time_delta;
 }
 
 int32_t Beacon::peak_time(uint32_t ref_time, arma::uword argmax_ix)
