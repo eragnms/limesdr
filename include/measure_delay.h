@@ -74,5 +74,6 @@ private:
         std::vector<double> m_tx_pulse;
         std::vector<void *> m_tx_buffs;
         uint32_t m_tx_time_0;
-
+        int m_rx_flags;
+        arma::cx_vec m_rx_data;
 };

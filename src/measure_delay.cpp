@@ -117,6 +117,12 @@ void Beacon::activate_streams()
                 std::cerr << "Transmit failed!"
                           << std::endl;
         }
+        // Receive slightly before transmit time
+        m_rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
+        double start_delta = (((double)m_num_rx_samps/m_sample_rate)*1e9/2);
+        uint32_t receive_time = (uint32_t) (m_tx_time_0 - start_delta);
+        m_device->activateStream(m_rx_stream, m_rx_flags, receive_time,
+                                 m_num_rx_samps);
 }
 
 void Beacon::measure_tof()
@@ -125,13 +131,6 @@ void Beacon::measure_tof()
 
 
 
-        // Receive slightly before transmit time
-        arma::cx_vec rx_data(m_num_rx_samps);
-        int rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
-        double tx_rx_start_delta = (((double)m_num_rx_samps/m_sample_rate) * 1e9 / 2);
-        uint32_t receive_time = (uint32_t) (m_tx_time_0 - tx_rx_start_delta);
-        m_device->activateStream(m_rx_stream, rx_flags, receive_time,
-                               m_num_rx_samps);
 
         uint32_t rx_time_0(0);
         size_t buffer_length(1024);
@@ -140,21 +139,22 @@ void Beacon::measure_tof()
         size_t rx_buffer_index(0);
         uint32_t timeout(5e5);
         long long int rx_timestamp(0);
+        m_rx_data.set_size(m_num_rx_samps);
 
         while (true) {
                 rx_buffs[0] = rx_buff.data();
                 int32_t status = m_device->readStream(m_rx_stream,
-                                                    rx_buffs.data(),
-                                                    buffer_length,
-                                                    rx_flags,
-                                                    rx_timestamp,
-                                                    timeout);
+                                                      rx_buffs.data(),
+                                                      buffer_length,
+                                                      m_rx_flags,
+                                                      rx_timestamp,
+                                                      timeout);
                 if ((status > 0) && (rx_buffer_index == 0)) {
                         rx_time_0 = rx_timestamp;
                 }
                 if (status > 0) {
                         for (size_t n=0; n<(size_t)status; n++) {
-                                rx_data(rx_buffer_index) = rx_buff[n];
+                                m_rx_data(rx_buffer_index) = rx_buff[n];
                                 rx_buffer_index++;
                         }
 
@@ -163,7 +163,7 @@ void Beacon::measure_tof()
                         break;
                 }
         }
-        std::cout << rx_data(0) << std::endl;
+        std::cout << m_rx_data(0) << std::endl;
         std::cout << "Cleanup streams" << std::endl;
         m_device->deactivateStream(m_rx_stream);
         m_device->deactivateStream(m_tx_stream);
@@ -179,10 +179,10 @@ void Beacon::measure_tof()
                 std::cerr << "Receive fail - no valid timestamp" << std::endl;
         }
 
-        std::complex<double> rx_mean = arma::mean(rx_data);
+        std::complex<double> rx_mean = arma::mean(m_rx_data);
         size_t num_to_clear = (uint32_t) m_num_rx_samps / 100;
         for (size_t n=0; n<num_to_clear; n++) {
-                rx_data(n) = rx_mean;
+                m_rx_data(n) = rx_mean;
         }
 
         arma::cx_vec tx_data;
@@ -191,7 +191,7 @@ void Beacon::measure_tof()
                 tx_data(n) = (double) m_tx_pulse[n];
         }
         arma::vec tx_pulse_norm = normalize(tx_data);
-        arma::vec rx_data_norm = normalize(rx_data);
+        arma::vec rx_data_norm = normalize(m_rx_data);
         arma::uword tx_argmax_index = tx_pulse_norm.index_max();
         arma::vec rx_tx_corr = arma::conv(arma::flipud(tx_pulse_norm),
                                           rx_data_norm);
