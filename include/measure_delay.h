@@ -61,6 +61,7 @@ public:
         void configure();
         void measure_tof();
         void configure_streams();
+        void generate_modulation();
         void activate_streams();
 
 private:
@@ -70,4 +71,8 @@ private:
         size_t m_num_rx_samps;
         SoapySDR::Stream *m_tx_stream;
         SoapySDR::Stream *m_rx_stream;
+        std::vector<double> m_tx_pulse;
+        std::vector<void *> m_tx_buffs;
+        uint32_t m_tx_time_0;
+
 };
