@@ -35,12 +35,12 @@ int main()
         std::cout << "Average TOF: " << arma::mean(tofs) << std::endl;
         std::cout << "Max TOF: " << arma::max(tofs) << std::endl;
         std::cout << "Min TOF: " << arma::min(tofs) << std::endl;
+        beacon.plot_data();
         return EXIT_SUCCESS;
 }
 
 Beacon::Beacon()
 {
-        m_plot_data = false;
         m_sample_rate = 10e+6;
         m_num_tx_samps = 200;
         m_num_rx_samps = 10000;
@@ -209,9 +209,9 @@ void Beacon::calculate_tof()
         arma::vec tx_pulse_norm = normalize(tx_data);
         arma::vec rx_data_norm = normalize(m_rx_data);
         arma::uword tx_argmax_index = tx_pulse_norm.index_max();
-        arma::vec rx_tx_corr = arma::conv(arma::flipud(tx_pulse_norm),
-                                          rx_data_norm);
-        arma::uword rx_corr_index = rx_tx_corr.index_max() - m_num_tx_samps/2;
+        m_rx_tx_corr = arma::conv(arma::flipud(tx_pulse_norm),
+                                  rx_data_norm);
+        arma::uword rx_corr_index = m_rx_tx_corr.index_max() - m_num_tx_samps/2;
         int32_t tx_peak_time = peak_time(m_tx_time_0, tx_argmax_index);
         int32_t rx_peak_time = peak_time(m_rx_time_0, rx_corr_index);
         m_time_delta = (rx_peak_time - tx_peak_time) / 1e3;
@@ -221,10 +221,6 @@ void Beacon::calculate_tof()
         std::cout << "Num samples received: "
                   << m_rx_buffer_index
                   << std::endl;
-
-        if (m_plot_data) {
-                plot(rx_tx_corr);
-        }
 }
 
 int32_t Beacon::get_tof()
@@ -258,6 +254,11 @@ arma::vec Beacon::normalize(arma::cx_vec samps)
         arma::vec samps_norm = arma::abs(samps);
         samps_norm = samps_norm / arma::max(samps_norm);
         return samps_norm;
+}
+
+void Beacon::plot_data()
+{
+        plot(m_rx_tx_corr);
 }
 
 /**
