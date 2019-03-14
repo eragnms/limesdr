@@ -19,7 +19,7 @@ int main()
 {
         Beacon beacon;
         beacon.open();
-        size_t num_tofs(2);
+        size_t num_tofs(1);
         arma::vec tofs(num_tofs);
         for (size_t n=0; n<num_tofs; n++) {
                 beacon.configure();
@@ -246,6 +246,59 @@ std::vector<double> Beacon::generate_cf32_pulse(size_t num_samps,
         std::vector<double> pulse;
         pulse = arma::conv_to<std::vector<double>>::from(sinc_pulse);
         return pulse;
+}
+
+arma::cx_vec Beacon::generate_cdma_scr_code(size_t num_samps)
+{
+        uint16_t code_nr(0);
+        arma::cx_vec complex_code;
+        gen_scr_code(code_nr, complex_code, num_samps);
+        return arma::real(complex_code);
+}
+
+void Beacon::gen_scr_code(uint16_t code_nr, cx_vec & Z, size_t num_samps)
+{
+        arma::vec x = arma::zeros<arma::vec>(18);
+        x(0) = 1;
+        arma::vec y = arma::ones<arma::vec>(18);
+        shift_N(x,y,code_nr);
+
+        y = ones(18);
+
+        arma::vec I = arma::zeros<arma::vec>(num_samps);
+        arma::vec Q = arma::zeros<arma::vec>(num_samps);
+        for (int32_t i=0; i<num_samps; i++) {
+                int8_t tmp_I = mod_2(x(0) + y(0));
+                I(i) = 1-2*tmp_I;
+                int8_t tmp_Q_x = mod_2(x(4) + x(6) + x(15));
+                int8_t tmp_Q_y = mod_2(y(5)+ y(6) + sum(y.rows(8,15)));
+                Q(i) = 1-2*mod_2(tmp_Q_x + tmp_Q_y);
+                shift_N(x,y,1);
+        }
+
+        for (int32_t n=0; n<num_samps; n++) {
+                Z(n) = 1/sqrt(2) * complex<double>(I(n), Q(n));
+        }
+}
+
+int Beacon::shift_N(arma::vec & x, arma::vec & y, int32_t N_shifts)
+{
+        for (int32_t i=0; i<N_shifts; i++) {
+                int8_t x_tmp = mod_2(x(0) + x(7));
+                int8_t y_tmp = mod_2(y(0) + y(5) + y(7) + y(10));
+                x.rows(0,16) = x.rows(1,17);
+                x(17) = x_tmp;
+                y.rows(0,16) = y.rows(1,17);
+                y(17) = y_tmp;
+        }
+
+        return 0;
+
+}
+
+int8_t Beacon::mod_2(double x)
+{
+        return (int8_t) floor(2*(x/2-floor(x/2)));
 }
 
 arma::vec Beacon::normalize(arma::cx_vec samps)
