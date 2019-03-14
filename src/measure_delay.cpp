@@ -258,6 +258,7 @@ arma::vec Beacon::normalize(arma::cx_vec samps)
 
 void Beacon::plot_data()
 {
+        plot(m_tx_pulse);
         plot(m_rx_tx_corr);
 }
 
