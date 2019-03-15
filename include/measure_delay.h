@@ -60,7 +60,7 @@ public:
 private:
         int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix,
                           double sample_rate);
-        std::vector<std::complex<double>> generate_cf32_pulse(
+        std::vector<std::complex<float>> generate_cf32_pulse(
                 size_t num_samps,
                 uint32_t width,
                 double scale_factor);
@@ -81,7 +81,7 @@ private:
         arma::cx_vec correlate(arma::cx_vec a, arma::cx_vec b);
         void calculate_tof_sinc();
         void calculate_tof_cdma();
-        std::vector<std::complex<double>> generate_ramp(size_t num_samps);
+        std::vector<std::complex<float>> generate_ramp(size_t num_samps);
 
         SoapySDR::Device *m_device;
         double m_sample_rate_rx;
@@ -90,7 +90,7 @@ private:
         size_t m_num_rx_samps;
         SoapySDR::Stream *m_tx_stream;
         SoapySDR::Stream *m_rx_stream;
-        std::vector<std::complex<double>> m_tx_pulse;
+        std::vector<std::complex<float>> m_tx_pulse;
         std::vector<void *> m_tx_buffs;
         uint32_t m_tx_time_0;
         int m_rx_flags;

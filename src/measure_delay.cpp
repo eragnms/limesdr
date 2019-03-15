@@ -129,8 +129,8 @@ void Beacon::configure_streams()
 
 void Beacon::generate_modulation()
 {
-        m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
-        //m_tx_pulse = generate_ramp(m_num_tx_samps);
+        //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
+        m_tx_pulse = generate_ramp(m_num_tx_samps);
         //m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps);
 }
 
@@ -162,7 +162,7 @@ void Beacon::read_rx_data()
 {
         m_rx_time_0 = 0;
         size_t buffer_length(1024);
-        std::vector<std::complex<double>> rx_buff(buffer_length);
+        std::vector<std::complex<float>> rx_buff(buffer_length);
         std::vector<void *> rx_buffs(1);
         m_rx_buffer_index = 0;
         uint32_t timeout(5e5);
@@ -301,7 +301,7 @@ int32_t Beacon::peak_time(uint32_t ref_time, arma::uword argmax_ix,
 /**
  * \fn Generate a sinc pulse
  */
-std::vector<std::complex<double>> Beacon::generate_cf32_pulse(
+std::vector<std::complex<float>> Beacon::generate_cf32_pulse(
         size_t num_samps,
         uint32_t width,
         double scale_factor)
@@ -309,22 +309,22 @@ std::vector<std::complex<double>> Beacon::generate_cf32_pulse(
         arma::vec rel_time = arma::linspace(0, 2*width, num_samps) - width;
         arma::vec sinc_pulse = arma::sinc(rel_time);
         sinc_pulse = sinc_pulse * scale_factor;
-        std::vector<std::complex<double>> pulse;
+        std::vector<std::complex<float>> pulse;
         for (size_t n=0; n<num_samps; n++) {
-                pulse.push_back(std::complex<double>(sinc_pulse(n), 0));
+                pulse.push_back(std::complex<float>((float)sinc_pulse(n), 0));
         }
         return pulse;
 }
 
-std::vector<std::complex<double>> Beacon::generate_ramp(size_t num_samps)
+std::vector<std::complex<float>> Beacon::generate_ramp(size_t num_samps)
 {
-        double start_value(-127);
-        double end_value(128);
-        double delta = (end_value - start_value) / num_samps;
-        std::vector<std::complex<double>> ramp;
-        double value(start_value);
+        float start_value(-127);
+        float end_value(128);
+        float delta = (end_value - start_value) / num_samps;
+        std::vector<std::complex<float>> ramp;
+        float value(start_value);
         for (size_t n=0; n<num_samps; n++) {
-                ramp.push_back(std::complex<double>(value, 0));
+                ramp.push_back(std::complex<float>(value, 0));
                 value += delta;
         }
         return ramp;
