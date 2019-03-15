@@ -58,10 +58,12 @@ public:
         void plot_data();
 
 private:
-        int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix);
-        std::vector<double> generate_cf32_pulse(size_t num_samps,
-                                                uint32_t width,
-                                                double scale_factor);
+        int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix,
+                          double sample_rate);
+        std::vector<std::complex<double>> generate_cf32_pulse(
+                size_t num_samps,
+                uint32_t width,
+                double scale_factor);
         std::vector<double> generate_cdma_scr_code_pulse(size_t num_samps);
         void gen_scr_code(uint16_t code_nr, arma::cx_vec & Z,
                           size_t num_samps);
@@ -74,14 +76,21 @@ private:
         void wait_for_key();
         void print_vec(const std::vector<int>& vec);
         arma::vec normalize(arma::cx_vec samps);
+        arma::cx_vec repvecN(uint16_t Novs, arma::cx_vec vect);
+        arma::vec correlate(arma::vec a, arma::vec b);
+        arma::cx_vec correlate(arma::cx_vec a, arma::cx_vec b);
+        void calculate_tof_sinc();
+        void calculate_tof_cdma();
+        std::vector<std::complex<double>> generate_ramp(size_t num_samps);
 
         SoapySDR::Device *m_device;
-        double m_sample_rate;
+        double m_sample_rate_rx;
+        double m_sample_rate_tx;
         size_t m_num_tx_samps;
         size_t m_num_rx_samps;
         SoapySDR::Stream *m_tx_stream;
         SoapySDR::Stream *m_rx_stream;
-        std::vector<double> m_tx_pulse;
+        std::vector<std::complex<double>> m_tx_pulse;
         std::vector<void *> m_tx_buffs;
         uint32_t m_tx_time_0;
         int m_rx_flags;
@@ -90,4 +99,8 @@ private:
         size_t m_rx_buffer_index;
         int32_t m_time_delta;
         arma::vec m_rx_tx_corr;
+        arma::cx_vec m_rx_tx_corr_complex;
+        uint32_t m_tx_bw;
+        uint32_t m_novs_tx;
+        uint32_t m_novs_rx;
 };
