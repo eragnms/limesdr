@@ -39,6 +39,12 @@ int main()
         return EXIT_SUCCESS;
 }
 
+void Beacon::plot_data()
+{
+        //plot(m_tx_pulse, "tx pulse");
+        plot(m_rx_tx_corr, "correlation result");
+}
+
 Beacon::Beacon()
 {
         m_sample_rate = 10e+6;
@@ -111,7 +117,9 @@ void Beacon::configure_streams()
 
 void Beacon::generate_modulation()
 {
-        m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
+        //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
+        m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps);
+        MARK;
 }
 
 void Beacon::activate_streams()
@@ -248,26 +256,28 @@ std::vector<double> Beacon::generate_cf32_pulse(size_t num_samps,
         return pulse;
 }
 
-arma::cx_vec Beacon::generate_cdma_scr_code(size_t num_samps)
+std::vector<double> Beacon::generate_cdma_scr_code_pulse(size_t num_samps)
 {
         uint16_t code_nr(0);
-        arma::cx_vec complex_code;
+        arma::cx_vec complex_code(num_samps);
         gen_scr_code(code_nr, complex_code, num_samps);
-        return arma::real(complex_code);
+        arma::vec real_code = arma::real(complex_code);
+        std::vector<double> v = arma::conv_to<std::vector<double>>::from(real_code);
+        return v;
 }
 
-void Beacon::gen_scr_code(uint16_t code_nr, cx_vec & Z, size_t num_samps)
+void Beacon::gen_scr_code(uint16_t code_nr, arma::cx_vec & Z, size_t num_samps)
 {
         arma::vec x = arma::zeros<arma::vec>(18);
         x(0) = 1;
         arma::vec y = arma::ones<arma::vec>(18);
         shift_N(x,y,code_nr);
 
-        y = ones(18);
+        y = arma::ones(18);
 
         arma::vec I = arma::zeros<arma::vec>(num_samps);
         arma::vec Q = arma::zeros<arma::vec>(num_samps);
-        for (int32_t i=0; i<num_samps; i++) {
+        for (size_t i=0; i<num_samps; i++) {
                 int8_t tmp_I = mod_2(x(0) + y(0));
                 I(i) = 1-2*tmp_I;
                 int8_t tmp_Q_x = mod_2(x(4) + x(6) + x(15));
@@ -276,8 +286,8 @@ void Beacon::gen_scr_code(uint16_t code_nr, cx_vec & Z, size_t num_samps)
                 shift_N(x,y,1);
         }
 
-        for (int32_t n=0; n<num_samps; n++) {
-                Z(n) = 1/sqrt(2) * complex<double>(I(n), Q(n));
+        for (size_t n=0; n<num_samps; n++) {
+                Z(n) = 1/sqrt(2) * std::complex<double>(I(n), Q(n));
         }
 }
 
@@ -309,12 +319,6 @@ arma::vec Beacon::normalize(arma::cx_vec samps)
         return samps_norm;
 }
 
-void Beacon::plot_data()
-{
-        plot(m_tx_pulse);
-        plot(m_rx_tx_corr);
-}
-
 /**
  * \fn plot
  * \brief Use gnuplot-cpp to plot data
@@ -323,19 +327,29 @@ void Beacon::plot_data()
  * examples on how to use the library.
  *
  */
-void Beacon::plot(std::vector<double> y)
+void Beacon::plot(std::vector<double> y, std::string title)
 {
         Gnuplot g1("lines");
         g1.reset_all();
-        g1.set_title("Our data");
+        g1.set_title(title);
         g1.plot_x(y);
         wait_for_key();
 }
 
-void Beacon::plot(arma::vec y)
+void Beacon::plot(std::vector<double> y)
+{
+        plot(y, "");
+}
+
+void Beacon::plot(arma::vec y, std::string title)
 {
         std::vector<double> y_p = arma::conv_to<std::vector<double>>::from(y);
-        plot(y_p);
+        plot(y_p, title);
+}
+
+void Beacon::plot(arma::vec y)
+{
+        plot(y);
 }
 
 void Beacon::wait_for_key()

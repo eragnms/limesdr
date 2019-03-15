@@ -62,19 +62,18 @@ private:
         std::vector<double> generate_cf32_pulse(size_t num_samps,
                                                 uint32_t width,
                                                 double scale_factor);
-        arma::cx_vec generate_cdma_scr_code(size_t num_samps);
-        void gen_scr_code(uint16_t code_nr, cx_vec & Z, size_t num_samps);
+        std::vector<double> generate_cdma_scr_code_pulse(size_t num_samps);
+        void gen_scr_code(uint16_t code_nr, arma::cx_vec & Z,
+                          size_t num_samps);
         int shift_N(arma::vec & x, arma::vec & y, int32_t N_shifts);
         int8_t mod_2(double x);
-
+        void plot(std::vector<double> y, std::string title);
         void plot(std::vector<double> y);
+        void plot(arma::vec y, std::string title);
         void plot(arma::vec y);
         void wait_for_key();
         void print_vec(const std::vector<int>& vec);
         arma::vec normalize(arma::cx_vec samps);
-        int shift_N(arma::vec & x, arma::vec & y, int32_t N_shifts);
-        int8_t mod_2(double x);
-
 
         SoapySDR::Device *m_device;
         double m_sample_rate;
