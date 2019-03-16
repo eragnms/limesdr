@@ -154,6 +154,8 @@ def measure_delay(
 
     #clear initial samples because transients
     rx_mean = np.mean(rx_buffs)
+    print("rx mean")
+    print(rx_mean)
     for i in range(len(rx_buffs) // 100):
         rx_buffs[i] = rx_mean
 
@@ -161,14 +163,18 @@ def measure_delay(
     def normalize(samps):
         samps = samps - np.mean(samps) #remove dc
         samps = np.absolute(samps) #magnitude
-        samps = samps / max(samps) #norm ampl to peak
+        #samps = samps / max(samps) #norm ampl to peak
         return samps
 
     tx_pulse_corr = generate_cf32_pulse(num_tx_samps * int(rx_rate/tx_rate))
     tx_pulse_norm = normalize(tx_pulse_corr)
     rx_buffs_norm = normalize(rx_buffs)
 
-    plt.plot(tx_pulse_norm)
+    plt.plot(tx_pulse)
+    plt.show()
+    plt.plot(np.real(rx_buffs))
+    plt.show()
+    plt.plot(np.imag(rx_buffs))
     plt.show()
 
     rx_tx_corr = np.correlate(rx_buffs_norm, tx_pulse_norm)
@@ -184,11 +190,11 @@ def measure_delay(
         #x = np.linspace(0, num_tx_samps, num_tx_samps, endpoint=True)
         #plt.plot(x, tx_pulse_norm)
         #plt.show()
-        #x = np.linspace(0, num_rx_samps, num_rx_samps, endpoint=True)
-        #plt.plot(x, rx_buffs_norm)
-        #plt.show()
-        plt.plot(rx_tx_corr)
+        x = np.linspace(0, num_rx_samps, num_rx_samps, endpoint=True)
+        plt.plot(x, rx_buffs_norm)
         plt.show()
+        #plt.plot(rx_tx_corr)
+        #plt.show()
 
     #look for the for peak index for time offsets
     rx_argmax_index = np.argmax(rx_buffs_norm)

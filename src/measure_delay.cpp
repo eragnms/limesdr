@@ -43,8 +43,12 @@ void Beacon::plot_data()
 {
         arma::cx_vec tmp = arma::conv_to<arma::cx_vec>::from(m_tx_pulse);
         plot(arma::real(tmp), "tx pulse");
-        plot(arma::real(m_rx_data), "rx data");
-        plot(arma::imag(m_rx_data), "rx data");
+        plot(arma::real(m_rx_data), "rx data real");
+        plot(arma::imag(m_rx_data), "rx data imag");
+        std::complex<double> m = arma::mean(m_rx_data);
+        tmp = m_rx_data + m;
+        std::cout << "rx mean: " << m << std::endl;
+        plot(arma::abs(m_rx_data), "rx data norm");
         plot(m_rx_tx_corr, "correlation result");
 }
 
@@ -57,7 +61,7 @@ Beacon::Beacon()
 {
         m_tx_bw = 5e6;
         m_novs_tx = 1;
-        m_num_tx_samps = 256 * m_tx_bw / 5e6;
+        m_num_tx_samps = 200 * m_tx_bw / 5e6;
         m_sample_rate_rx = 10e+6;
         //m_sample_rate_tx = m_novs_tx * m_tx_bw;
         m_sample_rate_tx = m_sample_rate_rx;
@@ -129,8 +133,8 @@ void Beacon::configure_streams()
 
 void Beacon::generate_modulation()
 {
-        //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
-        m_tx_pulse = generate_ramp(m_num_tx_samps);
+        m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
+        //m_tx_pulse = generate_ramp(m_num_tx_samps);
         //m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps);
 }
 
