@@ -15,10 +15,13 @@
 
 #include "measure_delay.h"
 
+It looks like soapysdr do calibration! What calibration does it perform?
+
 int main()
 {
         Beacon beacon;
-        beacon.open();
+        beacon.calibrate();
+        //beacon.open();
         size_t num_tofs(1);
         arma::vec tofs(num_tofs);
         for (size_t n=0; n<num_tofs; n++) {
@@ -46,15 +49,10 @@ void Beacon::plot_data()
         plot(arma::real(m_rx_data), "rx data real");
         plot(arma::imag(m_rx_data), "rx data imag");
         std::complex<double> m = arma::mean(m_rx_data);
-        tmp = m_rx_data + m;
+        tmp = m_rx_data - m;
         std::cout << "rx mean: " << m << std::endl;
         plot(arma::abs(m_rx_data), "rx data norm");
         plot(m_rx_tx_corr, "correlation result");
-}
-
-void Beacon::calculate_tof()
-{
-        calculate_tof_sinc();
 }
 
 Beacon::Beacon()
@@ -67,6 +65,18 @@ Beacon::Beacon()
         m_sample_rate_tx = m_sample_rate_rx;
         m_num_rx_samps = 10000;
         m_time_delta = 0;
+}
+
+void Beacon::generate_modulation()
+{
+        //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
+        m_tx_pulse = generate_ramp(m_num_tx_samps);
+        //m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps);
+}
+
+void Beacon::calculate_tof()
+{
+        calculate_tof_sinc();
 }
 
 void Beacon::open()
@@ -129,13 +139,6 @@ void Beacon::configure_streams()
                                             rx_channel);
         uint32_t microseconds(1e+6);
         usleep(microseconds);
-}
-
-void Beacon::generate_modulation()
-{
-        m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
-        //m_tx_pulse = generate_ramp(m_num_tx_samps);
-        //m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps);
 }
 
 void Beacon::activate_streams()
@@ -322,8 +325,8 @@ std::vector<std::complex<float>> Beacon::generate_cf32_pulse(
 
 std::vector<std::complex<float>> Beacon::generate_ramp(size_t num_samps)
 {
-        float start_value(-127);
-        float end_value(128);
+        float start_value(128);
+        float end_value(-127);
         float delta = (end_value - start_value) / num_samps;
         std::vector<std::complex<float>> ramp;
         float value(start_value);
@@ -465,4 +468,68 @@ void Beacon::print_vec(const std::vector<int>& vec)
                 std::cout << ' ' << x;
         }
         std::cout << std::endl;
+}
+
+
+#include "lime/LimeSuite.h"
+void Beacon::calibrate()
+{
+        //Find devices
+        //First we find number of devices, then allocate large enough list,
+        // and then populate the list
+        int n;
+        //Pass NULL to only obtain number of devices
+        if ((n = LMS_GetDeviceList(NULL)) < 0) {
+                std::cout << "Error!" << std::endl;
+        }
+
+        std::cout << "Devices found: " << n << std::endl;
+        if (n < 1) {
+                std::cout << "Error!" << std::endl;
+        }
+
+        lms_info_str_t* list = new lms_info_str_t[n]; //allocate device list
+        if (LMS_GetDeviceList(list) < 0) {
+                std::cout << "Error!" << std::endl;
+        }
+
+        for (int i = 0; i < n; i++) //print device list
+                std::cout << i << ": " << list[i] << std::endl;
+        std::cout << std::endl;
+
+        //Open the first device
+        //lms_device_t *device;
+        if (LMS_Open(&m_device, list[0], NULL)) {
+                std::cout << "Error!" << std::endl;
+        }
+        delete [] list; //free device list
+
+        //Initialize device with default configuration
+        //Do not use if you want to keep existing configuration
+        //Use LMS_LoadConfig(device, "/path/to/file.ini") to load config
+        //from INI
+        if (LMS_Init(m_device) != 0) {
+                std::cout << "Error!" << std::endl;
+        }
+
+        //Get allowed LPF bandwidth range
+        lms_range_t range;
+        if (LMS_GetLPFBWRange(m_device,LMS_CH_RX,&range)!=0) {
+                std::cout << "Error!" << std::endl;
+        }
+        std::cout << "RX LPF bandwitdh range: "
+                  << range.min / 1e6
+                  << " - "
+                  << range.max / 1e6
+                  << " MHz\n\n";
+
+        //Configure Receiver LPF, channel A, bandwidth 8 MHz
+        if (LMS_SetLPFBW(m_device, LMS_CH_RX, 0, 8e6) != 0) {
+                std::cout << "Error!" << std::endl;
+        }
+
+        //Calibrate Receiver, channel A, using 8 MHz Tx/Rx separation
+        if (LMS_Calibrate(m_device, LMS_CH_RX, 0, 8e6, 0) != 0) {
+                std::cout << "Error!" << std::endl;
+        }
 }

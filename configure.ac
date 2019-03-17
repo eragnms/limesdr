@@ -43,5 +43,6 @@ CXXFLAGS="$CXXFLAGS \
 -fvisibility=default \
 -lSoapySDR \
 -larmadillo \
--lstdc++ "
+-lstdc++ \
+-lLimeSuite "
 AC_OUTPUT

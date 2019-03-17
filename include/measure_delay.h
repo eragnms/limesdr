@@ -56,6 +56,7 @@ public:
         void close();
         int32_t get_tof();
         void plot_data();
+        void calibrate();
 
 private:
         int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix,
