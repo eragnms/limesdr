@@ -15,13 +15,13 @@
 
 #include "measure_delay.h"
 
-It looks like soapysdr do calibration! What calibration does it perform?
+//It looks like soapysdr do calibration! What calibration does it perform?
 
 int main()
 {
         Beacon beacon;
-        beacon.calibrate();
-        //beacon.open();
+        //beacon.calibrate();
+        beacon.open();
         size_t num_tofs(1);
         arma::vec tofs(num_tofs);
         for (size_t n=0; n<num_tofs; n++) {
@@ -81,7 +81,7 @@ void Beacon::calculate_tof()
 
 void Beacon::open()
 {
-        std::string args = "driver lime";
+        std::string args = "driver bladerf";
         m_device = SoapySDR::Device::make(args);
         if (m_device == nullptr)
         {
@@ -498,8 +498,8 @@ void Beacon::calibrate()
         std::cout << std::endl;
 
         //Open the first device
-        //lms_device_t *device;
-        if (LMS_Open(&m_device, list[0], NULL)) {
+        lms_device_t *device;
+        if (LMS_Open(&device, list[0], NULL)) {
                 std::cout << "Error!" << std::endl;
         }
         delete [] list; //free device list
@@ -508,7 +508,7 @@ void Beacon::calibrate()
         //Do not use if you want to keep existing configuration
         //Use LMS_LoadConfig(device, "/path/to/file.ini") to load config
         //from INI
-        if (LMS_Init(m_device) != 0) {
+        if (LMS_Init(device) != 0) {
                 std::cout << "Error!" << std::endl;
         }
 
@@ -524,12 +524,12 @@ void Beacon::calibrate()
                   << " MHz\n\n";
 
         //Configure Receiver LPF, channel A, bandwidth 8 MHz
-        if (LMS_SetLPFBW(m_device, LMS_CH_RX, 0, 8e6) != 0) {
+        if (LMS_SetLPFBW(device, LMS_CH_RX, 0, 8e6) != 0) {
                 std::cout << "Error!" << std::endl;
         }
 
         //Calibrate Receiver, channel A, using 8 MHz Tx/Rx separation
-        if (LMS_Calibrate(m_device, LMS_CH_RX, 0, 8e6, 0) != 0) {
+        if (LMS_Calibrate(device, LMS_CH_RX, 0, 8e6, 0) != 0) {
                 std::cout << "Error!" << std::endl;
         }
 }
