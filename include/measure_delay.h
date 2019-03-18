@@ -57,6 +57,7 @@ public:
         int32_t get_tof();
         void plot_data();
         void calibrate();
+        void save_data();
 
 private:
         int32_t peak_time(uint32_t ref_time, arma::uword argmax_ix,
@@ -83,6 +84,10 @@ private:
         void calculate_tof_sinc();
         void calculate_tof_cdma();
         std::vector<std::complex<float>> generate_ramp(size_t num_samps);
+        void save(arma::vec data, std::string filename);
+        void save_with_header(arma::vec data, std::string filename);
+        void save(arma::vec data);
+        void save(arma::cx_vec data);
 
         SoapySDR::Device *m_device;
         double m_sample_rate_rx;

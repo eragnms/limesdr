@@ -39,7 +39,13 @@ int main()
         std::cout << "Max TOF: " << arma::max(tofs) << std::endl;
         std::cout << "Min TOF: " << arma::min(tofs) << std::endl;
         beacon.plot_data();
+        beacon.save_data();
         return EXIT_SUCCESS;
+}
+
+void Beacon::save_data()
+{
+        save(m_rx_data);
 }
 
 void Beacon::plot_data()
@@ -69,8 +75,8 @@ Beacon::Beacon()
 
 void Beacon::generate_modulation()
 {
-        //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
-        m_tx_pulse = generate_ramp(m_num_tx_samps);
+        m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
+        //m_tx_pulse = generate_ramp(m_num_tx_samps);
         //m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps);
 }
 
@@ -81,8 +87,10 @@ void Beacon::calculate_tof()
 
 void Beacon::open()
 {
-        std::string args = "driver bladerf";
-        m_device = SoapySDR::Device::make(args);
+        //std::string args = "driver bladerf";
+        //std::string args = "driver lime";
+        //m_device = SoapySDR::Device::make(args);
+        m_device = SoapySDR::Device::make();
         if (m_device == nullptr)
         {
                 std::cerr << "No device!" << std::endl;
@@ -470,6 +478,34 @@ void Beacon::print_vec(const std::vector<int>& vec)
         std::cout << std::endl;
 }
 
+void Beacon::save(arma::vec data, std::string filename)
+{
+        std::string file;
+        file = filename + ".arm";
+        data.save(file, arma::raw_ascii);
+}
+
+void Beacon::save_with_header(arma::vec data, std::string filename)
+{
+        std::string file;
+        file = filename + ".arm";
+        data.save(file, arma::arma_ascii);
+}
+
+void Beacon::save(arma::vec data)
+{
+        save(data, "data");
+}
+
+void Beacon::save(arma::cx_vec data)
+{
+        arma::vec i_data(data.n_rows);
+        arma::vec q_data(data.n_rows);
+        i_data = arma::real(data);
+        q_data = arma::imag(data);
+        save(i_data, "i_data");
+        save(q_data, "q_data");
+}
 
 #include "lime/LimeSuite.h"
 void Beacon::calibrate()

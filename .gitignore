@@ -87,3 +87,4 @@ valgrind/*.core.*
 test-driver
 src/rx_tx_test
 src/measure_delay
+*.arm
