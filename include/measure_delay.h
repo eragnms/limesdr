@@ -66,7 +66,8 @@ private:
                 size_t num_samps,
                 uint32_t width,
                 double scale_factor);
-        std::vector<double> generate_cdma_scr_code_pulse(size_t num_samps);
+        std::vector<std::complex<float>> generate_cdma_scr_code_pulse(size_t num_samps);
+        std::vector<std::complex<float>> generate_ramp(size_t num_samps);
         void gen_scr_code(uint16_t code_nr, arma::cx_vec & Z,
                           size_t num_samps);
         int shift_N(arma::vec & x, arma::vec & y, int32_t N_shifts);
@@ -83,7 +84,6 @@ private:
         arma::cx_vec correlate(arma::cx_vec a, arma::cx_vec b);
         void calculate_tof_sinc();
         void calculate_tof_cdma();
-        std::vector<std::complex<float>> generate_ramp(size_t num_samps);
         void save(arma::vec data, std::string filename);
         void save_with_header(arma::vec data, std::string filename);
         void save(arma::vec data);

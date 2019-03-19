@@ -64,20 +64,28 @@ void Beacon::plot_data()
 Beacon::Beacon()
 {
         m_tx_bw = 5e6;
+
         m_novs_tx = 1;
         m_num_tx_samps = 200 * m_tx_bw / 5e6;
         m_sample_rate_rx = 10e+6;
-        //m_sample_rate_tx = m_novs_tx * m_tx_bw;
         m_sample_rate_tx = m_sample_rate_rx;
+
+        // CDMA pulse settings
+        //m_novs_tx = 2;
+        //m_num_tx_samps = (size_t) (256 * m_tx_bw / 5e6);
+        //m_sample_rate_rx = 10e+6;
+        //m_sample_rate_tx = m_novs_tx * m_tx_bw;
+
         m_num_rx_samps = 10000;
         m_time_delta = 0;
 }
 
 void Beacon::generate_modulation()
 {
-        m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
+        //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
         //m_tx_pulse = generate_ramp(m_num_tx_samps);
-        //m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps);
+        m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps);
+        std::cout << "Pulse length: " << m_tx_pulse.size() << std::endl;
 }
 
 void Beacon::calculate_tof()
@@ -345,14 +353,17 @@ std::vector<std::complex<float>> Beacon::generate_ramp(size_t num_samps)
         return ramp;
 }
 
-std::vector<double> Beacon::generate_cdma_scr_code_pulse(size_t num_samps)
+std::vector<std::complex<float>> Beacon::generate_cdma_scr_code_pulse(
+        size_t num_samps)
 {
         uint16_t code_nr(0);
-        arma::cx_vec complex_code(num_samps);
-        gen_scr_code(code_nr, complex_code, num_samps);
-        arma::cx_vec tmp = repvecN(m_novs_tx, complex_code);
-        arma::vec real_code = arma::real(tmp);
-        std::vector<double> v = arma::conv_to<std::vector<double>>::from(real_code);
+        arma::cx_vec scr_code(num_samps);
+        gen_scr_code(code_nr, scr_code, num_samps);
+        arma::cx_vec scr_code_ovs = repvecN(m_novs_tx, scr_code);
+        std::vector<std::complex<float>> v;
+        for (size_t n=0; n<scr_code_ovs.n_rows; n++) {
+                v.push_back((std::complex<float>)scr_code_ovs(n));
+        }
         return v;
 }
 
