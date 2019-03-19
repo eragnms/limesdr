@@ -66,8 +66,15 @@ private:
                 size_t num_samps,
                 uint32_t width,
                 double scale_factor);
-        std::vector<std::complex<float>> generate_cdma_scr_code_pulse(size_t num_samps);
-        std::vector<std::complex<float>> generate_ramp(size_t num_samps);
+        std::vector<std::complex<float>> generate_cf32_pulses_with_zeros(
+                size_t num_samps,
+                uint32_t width,
+                double scale_factor);
+        std::vector<std::complex<float>> generate_cdma_scr_code_pulse(
+                size_t num_samps,
+                double scale_factor);
+        std::vector<std::complex<float>> generate_ramp(size_t num_samps,
+                                                       double scale_factor);
         void gen_scr_code(uint16_t code_nr, arma::cx_vec & Z,
                           size_t num_samps);
         int shift_N(arma::vec & x, arma::vec & y, int32_t N_shifts);

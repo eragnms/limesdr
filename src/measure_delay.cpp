@@ -65,16 +65,16 @@ Beacon::Beacon()
 {
         m_tx_bw = 5e6;
 
-        m_novs_tx = 1;
-        m_num_tx_samps = 200 * m_tx_bw / 5e6;
-        m_sample_rate_rx = 10e+6;
-        m_sample_rate_tx = m_sample_rate_rx;
+        //m_novs_tx = 1;
+        //m_num_tx_samps = 200 * m_tx_bw / 5e6;
+        //m_sample_rate_rx = 10e+6;
+        //m_sample_rate_tx = m_sample_rate_rx;
 
         // CDMA pulse settings
-        //m_novs_tx = 2;
-        //m_num_tx_samps = (size_t) (256 * m_tx_bw / 5e6);
-        //m_sample_rate_rx = 10e+6;
-        //m_sample_rate_tx = m_novs_tx * m_tx_bw;
+        m_novs_tx = 2;
+        m_num_tx_samps = (size_t) (256 * m_tx_bw / 5e6);
+        m_sample_rate_rx = 10e+6;
+        m_sample_rate_tx = m_novs_tx * m_tx_bw;
 
         m_num_rx_samps = 10000;
         m_time_delta = 0;
@@ -83,8 +83,9 @@ Beacon::Beacon()
 void Beacon::generate_modulation()
 {
         //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
-        //m_tx_pulse = generate_ramp(m_num_tx_samps);
-        m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps);
+        //m_tx_pulse = generate_cf32_pulses_with_zeros(m_num_tx_samps, 5, 0.3);
+        //m_tx_pulse = generate_ramp(m_num_tx_samps, 0.9);
+        m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps, 0.9);
         std::cout << "Pulse length: " << m_tx_pulse.size() << std::endl;
 }
 
@@ -339,22 +340,55 @@ std::vector<std::complex<float>> Beacon::generate_cf32_pulse(
         return pulse;
 }
 
-std::vector<std::complex<float>> Beacon::generate_ramp(size_t num_samps)
+std::vector<std::complex<float>> Beacon::generate_cf32_pulses_with_zeros(
+        size_t num_samps,
+        uint32_t width,
+        double scale_factor)
 {
-        float start_value(128);
-        float end_value(-127);
-        float delta = (end_value - start_value) / num_samps;
+        size_t n_samples = (size_t) num_samps/3;
+        arma::vec rel_time = arma::linspace(0, 2*width, n_samples) - width;
+        arma::vec sinc_pulse = arma::sinc(rel_time);
+        sinc_pulse = sinc_pulse * scale_factor;
+        std::vector<std::complex<float>> pulse;
+        for (size_t n=0; n<n_samples; n++) {
+                pulse.push_back(std::complex<float>((float)sinc_pulse(n), 0));
+        }
+        for (size_t n=0; n<n_samples; n++) {
+                pulse.push_back(std::complex<float>(0, 0));
+        }
+        for (size_t n=0; n<n_samples; n++) {
+                pulse.push_back(std::complex<float>((float)sinc_pulse(n), 0));
+        }
+        return pulse;
+}
+
+std::vector<std::complex<float>> Beacon::generate_ramp(size_t num_samps,
+                                                       double scale_factor)
+{
+        float start_value(0);
+        float end_value(256);
+        size_t num_pre_0(10);
+        size_t num_post_0(10);
+        size_t num_ramp_samps = num_samps-num_pre_0-num_post_0;
+        float delta = (end_value - start_value) / num_ramp_samps;
         std::vector<std::complex<float>> ramp;
         float value(start_value);
-        for (size_t n=0; n<num_samps; n++) {
-                ramp.push_back(std::complex<float>(value, 0));
+        for (size_t n=0; n<num_pre_0; n++) {
+                ramp.push_back(std::complex<float>(0, 0));
+        }
+        for (size_t n=0; n<num_ramp_samps; n++) {
+                ramp.push_back(std::complex<float>(value*scale_factor/256,0));
                 value += delta;
+        }
+        for (size_t n=0; n<num_post_0; n++) {
+                ramp.push_back(std::complex<float>(0, 0));
         }
         return ramp;
 }
 
 std::vector<std::complex<float>> Beacon::generate_cdma_scr_code_pulse(
-        size_t num_samps)
+        size_t num_samps,
+        double scale_factor)
 {
         uint16_t code_nr(0);
         arma::cx_vec scr_code(num_samps);
@@ -362,7 +396,7 @@ std::vector<std::complex<float>> Beacon::generate_cdma_scr_code_pulse(
         arma::cx_vec scr_code_ovs = repvecN(m_novs_tx, scr_code);
         std::vector<std::complex<float>> v;
         for (size_t n=0; n<scr_code_ovs.n_rows; n++) {
-                v.push_back((std::complex<float>)scr_code_ovs(n));
+                v.push_back((std::complex<float>)scr_code_ovs(n)*(float)scale_factor);
         }
         return v;
 }
