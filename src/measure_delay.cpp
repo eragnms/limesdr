@@ -367,6 +367,8 @@ std::vector<std::complex<float>> Beacon::generate_cdma_scr_code_pulse(
         return v;
 }
 
+
+
 void Beacon::gen_scr_code(uint16_t code_nr, arma::cx_vec & Z, size_t num_samps)
 {
         arma::vec x = arma::zeros<arma::vec>(18);
