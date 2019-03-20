@@ -34,7 +34,7 @@ int main()
                 tofs(n) = beacon.get_tof();
                 beacon.close_streams();
                 beacon.close();
-                //beacon.plot_data();
+                beacon.plot_data();
         }
         std::cout << "Average TOF: " << arma::mean(tofs) << std::endl;
         std::cout << "Max TOF: " << arma::max(tofs) << std::endl;
@@ -173,7 +173,7 @@ void Beacon::activate_streams()
                                                 m_num_tx_samps*m_novs_tx,
                                                 tx_flags, // compare with api!
                                                 m_tx_time_0);
-        if (status != m_num_tx_samps) {
+        if (status != (m_num_tx_samps*m_novs_tx)) {
                 std::cerr << "Transmit failed!"
                           << std::endl;
         }
