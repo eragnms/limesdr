@@ -73,6 +73,9 @@ private:
         std::vector<std::complex<float>> generate_cdma_scr_code_pulse(
                 size_t num_samps,
                 double scale_factor);
+        std::vector<std::complex<float>> generate_cdma_scr_code_pulse_const(
+                size_t num_samps,
+                double scale_factor);
         std::vector<std::complex<float>> generate_ramp(size_t num_samps,
                                                        double scale_factor);
         void gen_scr_code(uint16_t code_nr, arma::cx_vec & Z,

@@ -21,10 +21,10 @@ int main()
 {
         Beacon beacon;
         //beacon.calibrate();
-        beacon.open();
         size_t num_tofs(1);
         arma::vec tofs(num_tofs);
         for (size_t n=0; n<num_tofs; n++) {
+                beacon.open();
                 beacon.configure();
                 beacon.configure_streams();
                 beacon.generate_modulation();
@@ -33,13 +33,14 @@ int main()
                 beacon.calculate_tof();
                 tofs(n) = beacon.get_tof();
                 beacon.close_streams();
+                beacon.close();
+                //beacon.plot_data();
         }
-        beacon.close();
         std::cout << "Average TOF: " << arma::mean(tofs) << std::endl;
         std::cout << "Max TOF: " << arma::max(tofs) << std::endl;
         std::cout << "Min TOF: " << arma::min(tofs) << std::endl;
-        beacon.plot_data();
-        beacon.save_data();
+
+        //beacon.save_data();
         return EXIT_SUCCESS;
 }
 
@@ -50,48 +51,50 @@ void Beacon::save_data()
 
 void Beacon::plot_data()
 {
-        arma::cx_vec tmp = arma::conv_to<arma::cx_vec>::from(m_tx_pulse);
+        /*arma::cx_vec tmp = arma::conv_to<arma::cx_vec>::from(m_tx_pulse);
         plot(arma::real(tmp), "tx pulse");
         plot(arma::real(m_rx_data), "rx data real");
         plot(arma::imag(m_rx_data), "rx data imag");
         std::complex<double> m = arma::mean(m_rx_data);
         tmp = m_rx_data - m;
         std::cout << "rx mean: " << m << std::endl;
-        plot(arma::abs(m_rx_data), "rx data norm");
+        plot(arma::abs(m_rx_data), "rx data norm");*/
         plot(m_rx_tx_corr, "correlation result");
 }
 
 Beacon::Beacon()
 {
-        m_tx_bw = 5e6;
+        m_tx_bw = 6.00e6;
 
-        //m_novs_tx = 1;
-        //m_num_tx_samps = 200 * m_tx_bw / 5e6;
-        //m_sample_rate_rx = 10e+6;
-        //m_sample_rate_tx = m_sample_rate_rx;
+        /*m_novs_tx = 1;
+        m_num_tx_samps = 200 * m_tx_bw / 3.84e6;
+        m_sample_rate_rx = 10e+6;
+        m_sample_rate_tx = m_sample_rate_rx;*/
 
         // CDMA pulse settings
-        m_novs_tx = 4;
-        m_num_tx_samps = (size_t) (256 * m_tx_bw / 5e6);
-        m_sample_rate_rx = 40e+6;
+        m_novs_tx = 2;
+        m_num_tx_samps = (size_t) (256);
+        m_sample_rate_rx = 48.00e+6;
         m_sample_rate_tx = m_novs_tx * m_tx_bw;
 
-        m_num_rx_samps = 10000;
+        m_num_rx_samps = 20000;
         m_time_delta = 0;
 }
 
 void Beacon::generate_modulation()
 {
-        //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
+        //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.9);
         //m_tx_pulse = generate_cf32_pulses_with_zeros(m_num_tx_samps, 5, 0.3);
         //m_tx_pulse = generate_ramp(m_num_tx_samps, 0.9);
         m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps, 0.9);
+        //m_tx_pulse = generate_cdma_scr_code_pulse_const(m_num_tx_samps, 0.9);
         std::cout << "Pulse length: " << m_tx_pulse.size() << std::endl;
 }
 
 void Beacon::calculate_tof()
 {
-        calculate_tof_sinc();
+        //calculate_tof_sinc();
+        calculate_tof_cdma();
 }
 
 void Beacon::open()
@@ -126,8 +129,8 @@ void Beacon::configure()
         std::cout << "Actual TX rate: " << act_sample_rate << " Msps" << std::endl;
         m_device->setAntenna(SOAPY_SDR_RX, rx_ch, "LNAL");
         m_device->setAntenna(SOAPY_SDR_TX, tx_ch, "BAND1");
-        const double rx_gain(25);
-        const double tx_gain(30);
+        const double rx_gain(20);
+        const double tx_gain(40);
         m_device->setGain(SOAPY_SDR_RX, rx_ch, rx_gain);
         m_device->setGain(SOAPY_SDR_TX, tx_ch, tx_gain);
         const double freq(1e+9);
@@ -167,7 +170,7 @@ void Beacon::activate_streams()
         int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         uint32_t status = m_device->writeStream(m_tx_stream,
                                                 m_tx_buffs.data(),
-                                                m_num_tx_samps,
+                                                m_num_tx_samps*m_novs_tx,
                                                 tx_flags, // compare with api!
                                                 m_tx_time_0);
         if (status != m_num_tx_samps) {
@@ -277,19 +280,38 @@ void Beacon::calculate_tof_cdma()
         }
 
         arma::cx_vec tx_data;
-        tx_data.set_size(m_num_tx_samps);
-        for (size_t n=0; n<m_num_tx_samps; n++){
+        tx_data.set_size(m_num_tx_samps*m_novs_tx);
+        for (size_t n=0; n<tx_data.n_rows; n++){
                 tx_data(n) = m_tx_pulse[n];
         }
 
-        m_rx_tx_corr_complex = correlate(tx_data, m_rx_data);
+        arma::cx_vec tx_data_ref = repvecN(
+          (uint16_t)(m_sample_rate_rx/m_sample_rate_tx),
+          tx_data);
+        //arma::cx_vec tx_data_ref = repvecN(4, tx_data);
+
+        std::cout << "TX ref length: " << tx_data_ref.n_rows << std::endl;
+        std::cout << "RX data length: " << m_rx_data.n_rows << std::endl;
+
+        m_rx_tx_corr_complex = correlate(m_rx_data, tx_data_ref);
         m_rx_tx_corr = arma::abs(m_rx_tx_corr_complex);
-        arma::uword rx_corr_index = m_rx_tx_corr.index_max()-m_num_tx_samps/2;
+        arma::uword rx_corr_index = m_rx_tx_corr.index_max();
 
         std::cout << "rx_corr_index: " << rx_corr_index << std::endl;
         std::cout << "Num samples received: "
                   << m_rx_buffer_index
                   << std::endl;
+
+        double tmp1(0);
+        double tmp2(0);
+        for (int16_t n=-6; n<=6; n++) {
+                tmp1 = tmp1 + (rx_corr_index + n)*m_rx_tx_corr(rx_corr_index+n);
+                tmp2 = tmp2 + m_rx_tx_corr(rx_corr_index+n);
+        }
+        double cog = tmp1/tmp2;
+        std::cout << "CoG: " << cog << std::endl;
+
+        m_time_delta = (int32_t)cog;
 }
 
 arma::vec Beacon::correlate(arma::vec a, arma::vec b)
@@ -401,6 +423,19 @@ std::vector<std::complex<float>> Beacon::generate_cdma_scr_code_pulse(
         return v;
 }
 
+std::vector<std::complex<float>> Beacon::generate_cdma_scr_code_pulse_const(
+        size_t num_samps,
+        double scale_factor)
+{
+        arma::cx_vec scr_code(1);
+        scr_code(0) = std::complex<double>(1, 1);
+        arma::cx_vec scr_code_ovs = repvecN(num_samps, scr_code);
+        std::vector<std::complex<float>> v;
+        for (size_t n=0; n<scr_code_ovs.n_rows; n++) {
+                v.push_back((std::complex<float>)scr_code_ovs(n)*(float)scale_factor);
+        }
+        return v;
+}
 
 
 void Beacon::gen_scr_code(uint16_t code_nr, arma::cx_vec & Z, size_t num_samps)
@@ -479,7 +514,7 @@ arma::vec Beacon::normalize(arma::cx_vec samps)
 void Beacon::plot(std::vector<double> y, std::string title)
 {
         Gnuplot g1("lines");
-        g1.reset_all();
+        //g1.reset_all();
         g1.set_title(title);
         g1.plot_x(y);
         wait_for_key();
