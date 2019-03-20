@@ -71,9 +71,9 @@ Beacon::Beacon()
         //m_sample_rate_tx = m_sample_rate_rx;
 
         // CDMA pulse settings
-        m_novs_tx = 2;
+        m_novs_tx = 4;
         m_num_tx_samps = (size_t) (256 * m_tx_bw / 5e6);
-        m_sample_rate_rx = 10e+6;
+        m_sample_rate_rx = 40e+6;
         m_sample_rate_tx = m_novs_tx * m_tx_bw;
 
         m_num_rx_samps = 10000;
