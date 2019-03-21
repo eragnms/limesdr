@@ -35,18 +35,18 @@ Beacon::Beacon()
 {
         m_tx_bw = 6.00e6;
 
-        m_novs_tx = 1;
+        /*m_novs_tx = 1;
         m_num_tx_samps = 200 * m_tx_bw / 3.84e6;
         m_sample_rate_rx = 10e+6;
-        m_sample_rate_tx = m_sample_rate_rx;
+        m_sample_rate_tx = m_sample_rate_rx;*/
 
         // CDMA pulse settings
-        /*m_novs_tx = 2;
+        m_novs_tx = 2;
         m_num_tx_samps = (size_t) (256);
         m_sample_rate_rx = 48.00e+6;
-        m_sample_rate_tx = m_novs_tx * m_tx_bw;*/
+        m_sample_rate_tx = m_novs_tx * m_tx_bw;
 
-        m_num_rx_samps = 60000;
+        m_num_rx_samps = 20000;
         m_time_delta = 0;
 }
 
