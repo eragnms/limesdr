@@ -42,12 +42,14 @@ void run_beacon(bool plot_data)
         beacon.configure_streams();
         beacon.generate_modulation();
         beacon.activate_tx_stream();
-        uint32_t tx_time = 0.1e9;
-        for (size_t n=0; n<5; n++) {
-                beacon.send_tx_pulse(tx_time);
-                tx_time += 0.00025e9;
-        }
         beacon.activate_rx_stream(0.1e9);
+        unsigned int microseconds(100000);
+        usleep(microseconds);
+        uint32_t tx_time = 0.1e9;
+        for (size_t n=0; n<1; n++) {
+                beacon.send_tx_pulse(tx_time);
+                //usleep(10);
+        }
         beacon.read_rx_data();
         beacon.calculate_tof();
         beacon.close_streams();
