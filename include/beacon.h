@@ -48,7 +48,8 @@ private:
                 double scale_factor);
         std::vector<std::complex<float>> generate_cdma_scr_code_pulse(
                 size_t num_samps,
-                double scale_factor);
+                double scale_factor,
+                uint16_t code_nr);
         std::vector<std::complex<float>> generate_cdma_scr_code_pulse_const(
                 size_t num_samps,
                 double scale_factor);
@@ -83,6 +84,7 @@ private:
         SoapySDR::Stream *m_tx_stream;
         SoapySDR::Stream *m_rx_stream;
         std::vector<std::complex<float>> m_tx_pulse;
+        std::vector<std::complex<float>> m_tx_pulse_ref;
         std::vector<void *> m_tx_buffs;
         uint32_t m_tx_time_0;
         int m_rx_flags;

@@ -23,36 +23,32 @@ int main(int argc, char** argv)
                 TCLAP::SwitchArg plot_switch("p","plot-data",
                                              "Plot data",
                                              cmd, false);
-
                 cmd.parse(argc, argv);
                 bool plot_data = plot_switch.getValue();
-
-                Beacon beacon;
-                size_t num_tofs(1);
-                arma::vec tofs(num_tofs);
-                for (size_t n=0; n<num_tofs; n++) {
-                        beacon.open();
-                        beacon.configure();
-                        beacon.configure_streams();
-                        beacon.generate_modulation();
-                        beacon.activate_streams();
-                        beacon.read_rx_data();
-                        beacon.calculate_tof();
-                        tofs(n) = beacon.get_tof();
-                        beacon.close_streams();
-                        beacon.close();
-                        if (plot_data) {
-                                beacon.plot_data();
-                        }
-                }
-                std::cout << "Average TOF: " << arma::mean(tofs) << std::endl;
-                std::cout << "Max TOF: " << arma::max(tofs) << std::endl;
-                std::cout << "Min TOF: " << arma::min(tofs) << std::endl;
-                //beacon.save_data();
+                run_beacon(plot_data);
         }
         catch (TCLAP::ArgException &e) {
                 std::cerr << "error: " << e.error()
                           << " for arg " << e.argId() << std::endl;
         }
         return EXIT_SUCCESS;
+}
+
+void run_beacon(bool plot_data)
+{
+        Beacon beacon;
+        beacon.open();
+        beacon.configure();
+        beacon.configure_streams();
+        beacon.generate_modulation();
+        beacon.activate_streams();
+        beacon.read_rx_data();
+        beacon.calculate_tof();
+        beacon.close_streams();
+        beacon.close();
+        if (plot_data) {
+                beacon.plot_data();
+        }
+        //beacon.save_data();
+
 }

@@ -12,3 +12,6 @@
 #include <tclap/CmdLine.h>
 
 #include "beacon.h"
+
+
+void run_beacon(bool plot_data);
