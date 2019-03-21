@@ -59,6 +59,7 @@ void Beacon::generate_modulation()
         m_tx_pulse_ref = generate_cdma_scr_code_pulse(m_num_tx_samps, 0.9, 2);
         //m_tx_pulse = generate_cdma_scr_code_pulse_const(m_num_tx_samps, 0.9);
         std::cout << "Pulse length: " << m_tx_pulse.size() << std::endl;
+        m_tx_buffs.push_back(m_tx_pulse.data());
 }
 
 void Beacon::calculate_tof()
@@ -131,23 +132,28 @@ void Beacon::configure_streams()
         usleep(microseconds);
 }
 
-void Beacon::activate_streams()
+void Beacon::activate_tx_stream()
 {
         m_device->activateStream(m_tx_stream);
-        m_tx_buffs.push_back(m_tx_pulse.data());
+        m_tx_time_0 = m_device->getHardwareTime();
+}
+
+void Beacon::send_tx_pulse(uint32_t tx_delta_time)
+{
         // Transmit at 100 ms into the "future"
-        m_tx_time_0 = m_device->getHardwareTime() + 0.1e9;
+        //m_tx_time_0 = m_device->getHardwareTime() + 0.1e9;
+        uint32_t tx_time_0 = m_tx_time_0 + tx_delta_time;
         int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         uint32_t status = m_device->writeStream(m_tx_stream,
                                                 m_tx_buffs.data(),
                                                 m_num_tx_samps*m_novs_tx,
                                                 tx_flags, // compare with api!
-                                                m_tx_time_0);
+                                                tx_time_0);
         if (status != (m_num_tx_samps*m_novs_tx)) {
                 std::cerr << "Transmit failed!"
                           << std::endl;
         }
-        uint32_t m_tx_time_1 = m_tx_time_0 + 0.001e9;
+        /*uint32_t m_tx_time_1 = m_tx_time_0 + 0.001e9;
         status = m_device->writeStream(m_tx_stream,
                                        m_tx_buffs.data(),
                                        m_num_tx_samps*m_novs_tx,
@@ -156,11 +162,15 @@ void Beacon::activate_streams()
         if (status != (m_num_tx_samps*m_novs_tx)) {
                 std::cerr << "Transmit failed!"
                           << std::endl;
-        }
+                          }*/
+}
+
+void Beacon::activate_rx_stream(uint32_t tx_start_time)
+{
         // Receive slightly before transmit time
         m_rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         double start_delta = (((double)m_num_rx_samps/m_sample_rate_rx)*1e9/2);
-        uint32_t receive_time = (uint32_t) (m_tx_time_0 - start_delta);
+        uint32_t receive_time = (uint32_t) (m_tx_time_0 + tx_start_time - start_delta);
         std::cout << "TX time: " << m_tx_time_0 << std::endl;
         std::cout << "RX time: " << receive_time << std::endl;
         std::cout << "Delta: " << start_delta << std::endl;

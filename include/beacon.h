@@ -26,7 +26,9 @@ public:
         void configure();
         void configure_streams();
         void generate_modulation();
-        void activate_streams();
+        void activate_tx_stream();
+        void send_tx_pulse(uint32_t tx_delta_time);
+        void activate_rx_stream(uint32_t tx_start_time);
         void read_rx_data();
         void close_streams();
         void calculate_tof();
