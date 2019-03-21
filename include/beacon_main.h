@@ -9,4 +9,6 @@
  */
 #pragma once
 
+#include <tclap/CmdLine.h>
+
 #include "beacon.h"

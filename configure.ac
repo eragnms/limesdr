@@ -23,6 +23,8 @@ AC_LTDL_DLLIB
 AC_CONFIG_FILES([
 			Makefile
             src/Makefile
+            include/Makefile
+            include/tclap/Makefile
             ])
 PKG_CHECK_MODULES([LIMESUITE], [LimeSuite])
 CXXFLAGS="$CXXFLAGS \
