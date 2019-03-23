@@ -141,22 +141,24 @@ void Beacon::configure_tx_stream()
 void Beacon::activate_tx_stream()
 {
         m_device->activateStream(m_tx_stream);
-        m_tx_time_0 = m_device->getHardwareTime();
+        m_tx_time_0 = m_device->getHardwareTime() + 1e9;
 }
 
 void Beacon::send_tx_pulse(uint32_t tx_delta_time)
 {
-        uint32_t tx_time_0 = m_tx_time_0 + tx_delta_time;
         int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         uint32_t status = m_device->writeStream(m_tx_stream,
                                                 m_tx_buffs.data(),
                                                 m_num_tx_samps*m_novs_tx,
                                                 tx_flags, // compare with api!
-                                                tx_time_0);
+                                                m_tx_time_0);
         if (status != (m_num_tx_samps*m_novs_tx)) {
                 std::cerr << "Transmit failed!"
                           << std::endl;
+        } else {
+                std::cout << "m_tx_time_0: " << m_tx_time_0 << std::endl;
         }
+        m_tx_time_0 += tx_delta_time + 0.001e9;
 }
 
 void Beacon::activate_rx_stream(uint32_t tx_start_time)

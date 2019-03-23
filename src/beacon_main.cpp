@@ -37,31 +37,25 @@ int main(int argc, char** argv)
 void run_beacon(bool plot_data)
 {
         Beacon beacon;
-        for (size_t m=0; m<4; m++) {
-                beacon.open();
-                beacon.configure();
-                beacon.configure_rx_stream();
-                beacon.configure_tx_stream();
-                beacon.generate_modulation();
-                beacon.activate_tx_stream();
+        beacon.open();
+        beacon.configure();
+        beacon.configure_rx_stream();
+        beacon.configure_tx_stream();
+        beacon.generate_modulation();
+        beacon.activate_tx_stream();
+        beacon.activate_rx_stream(0.1e9);
+        uint32_t tx_time(0);
+        for (size_t m=0; m<20; m++) {
                 std::cout << "Loop: " << m << std::endl;
-                beacon.activate_rx_stream(0.1e9);
-                //unsigned int microseconds(100000);
-                //usleep(microseconds);
-                uint32_t tx_time = 0.1e9;
-                for (size_t n=0; n<1; n++) {
-                        beacon.send_tx_pulse(tx_time);
-                }
-                beacon.read_rx_data();
-                beacon.calculate_tof();
-                beacon.close_rx_stream();
-                if (plot_data) {
-                        beacon.plot_data();
-                }
-                beacon.close_tx_stream();
-                beacon.close();
+                beacon.send_tx_pulse(tx_time);
+                usleep(100);
         }
-
+        beacon.close_rx_stream();
+        beacon.close_tx_stream();
+        beacon.close();
+        if (plot_data) {
+                beacon.plot_data();
+        }
         //beacon.save_data();
 
 }
