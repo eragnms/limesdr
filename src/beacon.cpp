@@ -117,17 +117,23 @@ void Beacon::configure()
         }
 }
 
-void Beacon::configure_streams()
+void Beacon::configure_rx_stream()
 {
         std::vector<size_t> rx_channel;
+        m_rx_stream = m_device->setupStream(SOAPY_SDR_RX,
+                                            SOAPY_SDR_CF32,
+                                            rx_channel);
+        uint32_t microseconds(1e+6);
+        usleep(microseconds);
+}
+
+void Beacon::configure_tx_stream()
+{
         std::vector<size_t> tx_channel;
 
         m_tx_stream = m_device->setupStream(SOAPY_SDR_TX,
                                             SOAPY_SDR_CF32,
                                             tx_channel);
-        m_rx_stream = m_device->setupStream(SOAPY_SDR_RX,
-                                            SOAPY_SDR_CF32,
-                                            rx_channel);
         uint32_t microseconds(1e+6);
         usleep(microseconds);
 }
@@ -141,7 +147,6 @@ void Beacon::activate_tx_stream()
 void Beacon::send_tx_pulse(uint32_t tx_delta_time)
 {
         uint32_t tx_time_0 = m_tx_time_0 + tx_delta_time;
-        //uint32_t tx_time_0 = m_device->getHardwareTime() + tx_delta_time;
         int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         uint32_t status = m_device->writeStream(m_tx_stream,
                                                 m_tx_buffs.data(),
@@ -156,8 +161,12 @@ void Beacon::send_tx_pulse(uint32_t tx_delta_time)
 
 void Beacon::activate_rx_stream(uint32_t tx_start_time)
 {
+        m_rx_tx_corr.clear();
+        m_rx_data.clear();
+
+
         m_rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
-        double start_delta = (((double)m_num_rx_samps/m_sample_rate_rx)*1e9/2);
+        double start_delta = (((double)m_num_rx_samps/m_sample_rate_rx)*1e9/0.5);
         uint32_t receive_time = (uint32_t) (m_tx_time_0 + tx_start_time - start_delta);
         std::cout << "TX time: " << m_tx_time_0 << std::endl;
         std::cout << "RX time: " << receive_time << std::endl;
@@ -207,12 +216,15 @@ void Beacon::read_rx_data()
         }
 }
 
-void Beacon::close_streams()
+void Beacon::close_rx_stream()
 {
-        std::cout << "Cleanup streams" << std::endl;
         m_device->deactivateStream(m_rx_stream);
-        m_device->deactivateStream(m_tx_stream);
         m_device->closeStream(m_rx_stream);
+}
+
+void Beacon::close_tx_stream()
+{
+        m_device->deactivateStream(m_tx_stream);
         m_device->closeStream(m_tx_stream);
 }
 
@@ -498,7 +510,8 @@ void Beacon::plot(std::vector<double> y, std::string title)
         //g1.reset_all();
         g1.set_title(title);
         g1.plot_x(y);
-        wait_for_key();
+        usleep(1000000);
+        //wait_for_key();
 }
 
 void Beacon::plot(std::vector<double> y)

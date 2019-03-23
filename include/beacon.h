@@ -24,13 +24,15 @@ public:
         Beacon();
         void open();
         void configure();
-        void configure_streams();
+        void configure_rx_stream();
+        void configure_tx_stream();
         void generate_modulation();
         void activate_tx_stream();
         void send_tx_pulse(uint32_t tx_delta_time);
         void activate_rx_stream(uint32_t tx_start_time);
         void read_rx_data();
-        void close_streams();
+        void close_rx_stream();
+        void close_tx_stream();
         void calculate_tof();
         void close();
         int32_t get_tof();
