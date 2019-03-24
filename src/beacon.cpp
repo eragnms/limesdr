@@ -45,7 +45,6 @@ Beacon::Beacon(uint32_t num_rx_samps)
         m_num_tx_samps = (size_t) (256);
         m_sample_rate_rx = 48.00e+6;
         m_sample_rate_tx = m_novs_tx * m_tx_bw;
-
         m_num_rx_samps = num_rx_samps;
         m_time_delta = 0;
 }
@@ -146,16 +145,93 @@ void Beacon::activate_tx_stream(uint64_t time_before_start)
 
 void Beacon::send_tx_pulse(uint32_t tx_delta_time)
 {
-        int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
+        //int64_t tick(10);
+        //long long int burst_time = SoapySDR::ticksToTimeNs(tick, 133e6);
+        //std::cout << burst_time << std::endl;
+        int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST | SOAPY_SDR_ONE_PACKET;
         uint32_t status = m_device->writeStream(m_tx_stream,
                                                 m_tx_buffs.data(),
                                                 m_num_tx_samps*m_novs_tx,
                                                 tx_flags, // compare with api!
-                                                m_tx_time_0);
+                                                m_tx_time_0,
+                                                2e6);
         if (status != (m_num_tx_samps*m_novs_tx)) {
-                std::cerr << "Transmit failed!"
+                std::string tx_verbose_msg = "Transmit failed: ";
+                switch (status) {
+                        case SOAPY_SDR_TIMEOUT:
+                                tx_verbose_msg += "SOAPY_SDR_TIMEOUT";
+                                break;
+                        case SOAPY_SDR_STREAM_ERROR:
+                                tx_verbose_msg += "SOAPY_SDR_STREAM_ERROR";
+                                break;
+                        case SOAPY_SDR_CORRUPTION:
+                                tx_verbose_msg += "SOAPY_SDR_CORRUPTION";
+                                break;
+                        case SOAPY_SDR_OVERFLOW:
+                                tx_verbose_msg += "SOAPY_SDR_OVERFLOW";
+                                break;
+                        case SOAPY_SDR_NOT_SUPPORTED:
+                                tx_verbose_msg += "SOAPY_SDR_NOT_SUPPORTED";
+                                break;
+                        case SOAPY_SDR_END_BURST:
+                                tx_verbose_msg += "SOAPY_SDR_END_BURST";
+                                break;
+                        case SOAPY_SDR_TIME_ERROR:
+                                tx_verbose_msg += "SOAPY_SDR_TIME_ERROR";
+                                break;
+                        case SOAPY_SDR_UNDERFLOW:
+                                tx_verbose_msg += "SOAPY_SDR_UNDERFLOW";
+                                break;
+                }
+                std::cerr << tx_verbose_msg
                           << std::endl;
         } else {
+                /*std::string tx_verbose_msg = "Ack_code: ";
+                size_t chan_mask = 0;
+                int stream_status = m_device->readStreamStatus(
+                        m_tx_stream,
+                        chan_mask,
+                        tx_flags,
+                        m_tx_time_0,
+                        1e6 * 2);
+
+                switch(stream_status)
+                {
+                case SOAPY_SDR_TIMEOUT:
+                        tx_verbose_msg += "SOAPY_SDR_TIMEOUT";
+                        break;
+                case SOAPY_SDR_STREAM_ERROR:
+                        tx_verbose_msg += "SOAPY_SDR_STREAM_ERROR";
+                        break;
+                case SOAPY_SDR_CORRUPTION:
+                        tx_verbose_msg += "SOAPY_SDR_CORRUPTION";
+                        break;
+                case SOAPY_SDR_OVERFLOW:
+                        tx_verbose_msg += "SOAPY_SDR_OVERFLOW";
+                        break;
+                case SOAPY_SDR_NOT_SUPPORTED:
+                        tx_verbose_msg += "SOAPY_SDR_NOT_SUPPORTED";
+                        break;
+                case SOAPY_SDR_END_BURST:
+                        tx_verbose_msg += "SOAPY_SDR_END_BURST";
+                        break;
+                case SOAPY_SDR_TIME_ERROR:
+                        tx_verbose_msg += "SOAPY_SDR_TIME_ERROR";
+                        break;
+                case SOAPY_SDR_UNDERFLOW:
+                        tx_verbose_msg += "SOAPY_SDR_UNDERFLOW";
+                        break;
+                default:
+                        tx_verbose_msg += "NO_ERROR";
+                        break;
+                }
+
+                if ((stream_status == 0) && (status == (m_num_tx_samps*m_novs_tx))) {
+                        std::cout << tx_verbose_msg << std::endl;
+                } else {
+                        std::cout << "WARNING: " << tx_verbose_msg << std::endl;
+                }
+                */
                 //std::cout << "m_tx_time_0: " << m_tx_time_0 << std::endl;
         }
         m_tx_time_0 += tx_delta_time;

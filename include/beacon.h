@@ -90,7 +90,7 @@ private:
         std::vector<std::complex<float>> m_tx_pulse;
         std::vector<std::complex<float>> m_tx_pulse_ref;
         std::vector<void *> m_tx_buffs;
-        uint32_t m_tx_time_0;
+        long long m_tx_time_0;
         int m_rx_flags;
         arma::cx_vec m_rx_data;
         uint32_t m_rx_time_0;

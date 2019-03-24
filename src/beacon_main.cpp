@@ -44,17 +44,19 @@ void run_beacon(bool plot_data)
         beacon.configure_tx_stream();
         beacon.generate_modulation();
         uint64_t time_before_tx_start(1e9);
-        beacon.activate_tx_stream(time_before_tx_start);
         beacon.activate_rx_stream();
+        beacon.activate_tx_stream(time_before_tx_start);
         uint32_t time_between_pulses(0.01e9); // [ns]
-        uint32_t transmit_time(10); // [s]
+        uint32_t transmit_time(20); // [s]
         size_t num_pulses(transmit_time*1e9/time_between_pulses);
         std::cout << "Number of TX pulses: " << num_pulses << std::endl;
         for (size_t m=0; m<num_pulses; m++) {
+        //while (true) {
                 beacon.send_tx_pulse(time_between_pulses);
                 //usleep(time_between_pulses/1e3); // [us]
         }
-        usleep(transmit_time * 1e6);
+        std::cout << "cleaning up!" << std::endl;
+        usleep(num_pulses * time_between_pulses / 1e3);
         beacon.close_rx_stream();
         beacon.close_tx_stream();
         beacon.close();
