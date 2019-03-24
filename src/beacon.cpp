@@ -100,10 +100,10 @@ void Beacon::configure()
         m_device->setAntenna(SOAPY_SDR_RX, rx_ch, "LNAL");
         m_device->setAntenna(SOAPY_SDR_TX, tx_ch, "BAND1");
         const double rx_gain(20);
-        const double tx_gain(40);
+        const double tx_gain(10);
         m_device->setGain(SOAPY_SDR_RX, rx_ch, rx_gain);
         m_device->setGain(SOAPY_SDR_TX, tx_ch, tx_gain);
-        const double freq(1e+9);
+        const double freq(0.8e+9);
         m_device->setFrequency(SOAPY_SDR_RX, rx_ch, freq);
         m_device->setFrequency(SOAPY_SDR_TX, tx_ch, freq);
         const double rx_bw(0);
