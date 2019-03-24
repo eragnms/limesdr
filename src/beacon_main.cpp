@@ -47,7 +47,7 @@ void run_beacon(bool plot_data)
         beacon.activate_tx_stream(time_before_tx_start);
         beacon.activate_rx_stream();
         uint32_t time_between_pulses(0.01e9); // [ns]
-        uint32_t transmit_time(30); // [s]
+        uint32_t transmit_time(10); // [s]
         size_t num_pulses(transmit_time*1e9/time_between_pulses);
         std::cout << "Number of TX pulses: " << num_pulses << std::endl;
         for (size_t m=0; m<num_pulses; m++) {
