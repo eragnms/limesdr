@@ -21,15 +21,15 @@
 class Beacon
 {
 public:
-        Beacon();
+        Beacon(uint32_t num_rx_samps);
         void open();
         void configure();
         void configure_rx_stream();
         void configure_tx_stream();
         void generate_modulation();
-        void activate_tx_stream();
+        void activate_tx_stream(uint64_t time_before_start);
         void send_tx_pulse(uint32_t tx_delta_time);
-        void activate_rx_stream(uint32_t tx_start_time);
+        void activate_rx_stream();
         void read_rx_data();
         void close_rx_stream();
         void close_tx_stream();

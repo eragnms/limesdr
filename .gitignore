@@ -85,7 +85,8 @@ build
 patches
 valgrind/*.core.*
 test-driver
+*.arm
 src/rx_tx_test
 src/measure_delay
 src/beacon_main
-*.arm
+src/tag_main

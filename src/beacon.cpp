@@ -31,7 +31,7 @@ void Beacon::plot_data()
         plot(m_rx_tx_corr, "correlation result");
 }
 
-Beacon::Beacon()
+Beacon::Beacon(uint32_t num_rx_samps)
 {
         m_tx_bw = 6.00e6;
 
@@ -46,7 +46,7 @@ Beacon::Beacon()
         m_sample_rate_rx = 48.00e+6;
         m_sample_rate_tx = m_novs_tx * m_tx_bw;
 
-        m_num_rx_samps = 200000;
+        m_num_rx_samps = num_rx_samps;
         m_time_delta = 0;
 }
 
@@ -138,10 +138,10 @@ void Beacon::configure_tx_stream()
         usleep(microseconds);
 }
 
-void Beacon::activate_tx_stream()
+void Beacon::activate_tx_stream(uint64_t time_before_start)
 {
         m_device->activateStream(m_tx_stream);
-        m_tx_time_0 = m_device->getHardwareTime() + 1e9;
+        m_tx_time_0 = m_device->getHardwareTime() + time_before_start;
 }
 
 void Beacon::send_tx_pulse(uint32_t tx_delta_time)
@@ -156,20 +156,18 @@ void Beacon::send_tx_pulse(uint32_t tx_delta_time)
                 std::cerr << "Transmit failed!"
                           << std::endl;
         } else {
-                std::cout << "m_tx_time_0: " << m_tx_time_0 << std::endl;
+                //std::cout << "m_tx_time_0: " << m_tx_time_0 << std::endl;
         }
-        m_tx_time_0 += tx_delta_time + 0.001e9;
+        m_tx_time_0 += tx_delta_time;
 }
 
-void Beacon::activate_rx_stream(uint32_t tx_start_time)
+void Beacon::activate_rx_stream()
 {
         m_rx_tx_corr.clear();
         m_rx_data.clear();
-
-
         m_rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
         double start_delta = (((double)m_num_rx_samps/m_sample_rate_rx)*1e9/0.5);
-        uint32_t receive_time = (uint32_t) (m_tx_time_0 + tx_start_time - start_delta);
+        uint32_t receive_time = (uint32_t) (m_tx_time_0 - start_delta);
         std::cout << "TX time: " << m_tx_time_0 << std::endl;
         std::cout << "RX time: " << receive_time << std::endl;
         std::cout << "Delta: " << start_delta << std::endl;
@@ -512,8 +510,8 @@ void Beacon::plot(std::vector<double> y, std::string title)
         //g1.reset_all();
         g1.set_title(title);
         g1.plot_x(y);
-        usleep(1000000);
-        //wait_for_key();
+        //usleep(1000000);
+        wait_for_key();
 }
 
 void Beacon::plot(std::vector<double> y)

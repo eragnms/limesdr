@@ -10,7 +10,7 @@
  * Copyright (C) 2019 by Wittra. All rights reserved.
  */
 
-#include "beacon_main.h"
+#include "tag_main.h"
 
 int main(int argc, char** argv)
 {
@@ -36,31 +36,22 @@ int main(int argc, char** argv)
 
 void run_beacon(bool plot_data)
 {
-        uint32_t num_rx_samps(200000);
+        uint32_t num_rx_samps(4.8e6);
         Beacon beacon(num_rx_samps);
         beacon.open();
         beacon.configure();
         beacon.configure_rx_stream();
-        beacon.configure_tx_stream();
         beacon.generate_modulation();
-        uint64_t time_before_tx_start(1e9);
-        beacon.activate_tx_stream(time_before_tx_start);
+        //uint64_t time_before_tx_start(1e9);
         beacon.activate_rx_stream();
-        uint32_t time_between_pulses(0.01e9); // [ns]
-        uint32_t transmit_time(30); // [s]
-        size_t num_pulses(transmit_time*1e9/time_between_pulses);
-        std::cout << "Number of TX pulses: " << num_pulses << std::endl;
-        for (size_t m=0; m<num_pulses; m++) {
-                beacon.send_tx_pulse(time_between_pulses);
-                //usleep(time_between_pulses/1e3); // [us]
-        }
-        usleep(transmit_time * 1e6);
+        beacon.read_rx_data();
         beacon.close_rx_stream();
-        beacon.close_tx_stream();
         beacon.close();
+        std::cout << "Analyzing received data..." << std::endl;
+        beacon.calculate_tof();
+        std::cout << "Analyze done!" << std::endl;
         if (plot_data) {
                 beacon.plot_data();
         }
         //beacon.save_data();
-
 }
