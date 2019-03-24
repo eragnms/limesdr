@@ -35,27 +35,28 @@ Beacon::Beacon(uint32_t num_rx_samps)
 {
         m_tx_bw = 6.00e6;
 
-        /*m_novs_tx = 1;
+        m_novs_tx = 1;
         m_num_tx_samps = 200 * m_tx_bw / 3.84e6;
         m_sample_rate_rx = 10e+6;
-        m_sample_rate_tx = m_sample_rate_rx;*/
+        m_sample_rate_tx = m_sample_rate_rx;
 
         // CDMA pulse settings
-        m_novs_tx = 2;
+        /*m_novs_tx = 2;
         m_num_tx_samps = (size_t) (256);
         m_sample_rate_rx = 48.00e+6;
-        m_sample_rate_tx = m_novs_tx * m_tx_bw;
+        m_sample_rate_tx = m_novs_tx * m_tx_bw;*/
+
         m_num_rx_samps = num_rx_samps;
         m_time_delta = 0;
 }
 
 void Beacon::generate_modulation()
 {
-        //m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
+        m_tx_pulse = generate_cf32_pulse(m_num_tx_samps, 5, 0.3);
         //m_tx_pulse = generate_cf32_pulses_with_zeros(m_num_tx_samps, 5, 0.3);
         //m_tx_pulse = generate_ramp(m_num_tx_samps, 0.9);
-        m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps, 0.9, 2);
-        m_tx_pulse_ref = generate_cdma_scr_code_pulse(m_num_tx_samps, 0.9, 2);
+        //m_tx_pulse = generate_cdma_scr_code_pulse(m_num_tx_samps, 0.9, 2);
+        //m_tx_pulse_ref = generate_cdma_scr_code_pulse(m_num_tx_samps, 0.9, 2);
         //m_tx_pulse = generate_cdma_scr_code_pulse_const(m_num_tx_samps, 0.9);
         std::cout << "Pulse length: " << m_tx_pulse.size() << std::endl;
         m_tx_buffs.push_back(m_tx_pulse.data());
