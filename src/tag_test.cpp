@@ -62,19 +62,21 @@ void run_tag(bool plot_data)
                 error();
         if (LMS_EnableChannel(device, LMS_CH_RX, 0, true) != 0)
                 error();
-        if (LMS_SetLOFrequency(device, LMS_CH_RX, 0, 800e6) != 0)
+        if (LMS_SetLOFrequency(device, LMS_CH_RX, 0, 500e6) != 0)
                 error();
         //Set sample rate to 8 MHz, ask to use 2x oversampling in RF
         //This set sampling rate for all channels
-        if (LMS_SetSampleRate(device, 8e6, 2) != 0)
+        int sample_rate(8e6);
+        int ovs(2);
+        if (LMS_SetSampleRate(device, sample_rate, ovs) != 0)
                 error();
         //Enable test signal generation
         //To receive data from RF, remove this line or change signal
         // to LMS_TESTSIG_NONE
-        if (LMS_SetTestSignal(device, LMS_CH_RX, 0,
-                              LMS_TESTSIG_NCODIV8,
-                              0, 0) != 0)
-                error();
+        //if (LMS_SetTestSignal(device, LMS_CH_RX, 0,
+        //                      LMS_TESTSIG_NCODIV8,
+        //                      0, 0) != 0)
+        //        error();
         lms_stream_t streamId;
         streamId.channel = 0;
         streamId.fifoSize = 1024 * 1024;
@@ -83,12 +85,14 @@ void run_tag(bool plot_data)
         streamId.dataFmt = lms_stream_t::LMS_FMT_I12;
         if (LMS_SetupStream(device, &streamId) != 0)
                 error();
+        //const int sample_time(0.5e-3);
+        //const int sampleCnt = (int)(sample_rate * sample_time);
         const int sampleCnt = 5000;
         int16_t buffer[sampleCnt * 2];
         LMS_StartStream(&streamId);
         int samplesRead(0);
         auto t1 = std::chrono::high_resolution_clock::now();
-        while (std::chrono::high_resolution_clock::now() - t1 < std::chrono::seconds(20))
+        while (std::chrono::high_resolution_clock::now() - t1 < std::chrono::seconds(2))
         {
                 samplesRead = LMS_RecvStream(&streamId, buffer, sampleCnt,
                                              NULL, 1000);
