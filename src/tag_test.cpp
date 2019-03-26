@@ -66,7 +66,7 @@ void run_tag(bool plot_data)
                 error();
         //Set sample rate to 8 MHz, ask to use 2x oversampling in RF
         //This set sampling rate for all channels
-        int sample_rate(8e6);
+        int sample_rate(32e6);
         int ovs(2);
         if (LMS_SetSampleRate(device, sample_rate, ovs) != 0)
                 error();
