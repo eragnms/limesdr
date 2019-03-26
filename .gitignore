@@ -90,3 +90,4 @@ src/rx_tx_test
 src/measure_delay
 src/beacon_main
 src/tag_main
+src/beacon_test
