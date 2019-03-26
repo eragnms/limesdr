@@ -43,7 +43,7 @@ void run_beacon()
 {
         const double frequency = 500e6;  //center frequency to 500 MHz
         const double sample_rate = 5e6;    //sample rate to 5 MHz
-        const double tone_freq = 1e6; //tone frequency
+        const double tone_freq = 2e6; //tone frequency
         const double f_ratio = tone_freq/sample_rate;
         //Find devices
         int n;
@@ -105,7 +105,7 @@ void run_beacon()
         //Streaming
         auto t1 = std::chrono::high_resolution_clock::now();
         auto t2 = t1;
-        while (std::chrono::high_resolution_clock::now() - t1<std::chrono::seconds(10))
+        while (std::chrono::high_resolution_clock::now() - t1<std::chrono::seconds(30))
         {
                 int ret = LMS_SendStream(&tx_stream, tx_buffer, send_cnt,
                                          nullptr, 1000);
