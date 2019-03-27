@@ -12,7 +12,13 @@
 
 #include "tag_main.h"
 
-SoapySDR::Device *device;
+SoapySDR::Device *device(nullptr);
+
+static sig_atomic_t loopDone = false;
+void sigIntHandler(const int)
+{
+    loopDone = true;
+}
 
 int main(int argc, char** argv)
 {
@@ -44,79 +50,118 @@ int main(int argc, char** argv)
 
 void run_tag(bool plot_data)
 {
-        const double frequency = 500e6;  //center frequency to 500 MHz
+        const std::string &channelStr = "0";
+
+        //const double frequency = 500e6;  //center frequency to 500 MHz
         const double sample_rate = 32e6;
-        const double rx_gain(20);
-        const double clock_rate(-1);
-        const double rx_bw(-1);
+        //const double rx_gain(20);
+        //const double clock_rate(-1);
+        //const double rx_bw(-1);
 
-        SoapySDR::KwargsList results = SoapySDR::Device::enumerate();
-        if (results.size() > 0) {
-                std::cout << "Found Device!" << std::endl;
-        } else {
-                throw std::runtime_error("Found no device!");
-        }
+        int direction = SOAPY_SDR_RX;
+
         device = SoapySDR::Device::make();
-        if (device == nullptr) {
-                throw std::runtime_error("Could not open device!");
+        //build channels list, using KwargsFromString is a easy parsing hack
+        std::vector<size_t> channels;
+        for (const auto &pair : SoapySDR::KwargsFromString(channelStr)) {
+            channels.push_back(std::stoi(pair.first));
         }
-        if (!device->hasHardwareTime()) {
-                throw std::runtime_error("This device does not support timed streaming!");
+        if (channels.empty()) channels.push_back(0);
+        //initialize the sample rate for all channels
+        for (const auto &chan : channels) {
+            device->setSampleRate(direction, chan, sample_rate);
         }
-        if (clock_rate != -1) {
-                device->setMasterClockRate(clock_rate);
-        }
-        const size_t rx_ch(0);
-        device->setSampleRate(SOAPY_SDR_RX, rx_ch, sample_rate);
-        double act_sample_rate = device->getSampleRate(SOAPY_SDR_RX, rx_ch);
-        std::cout << "Actual RX rate: " << act_sample_rate << " Msps" << std::endl;
-        device->setAntenna(SOAPY_SDR_RX, rx_ch, "LNAL");
-        device->setGain(SOAPY_SDR_RX, rx_ch, rx_gain);
-        device->setFrequency(SOAPY_SDR_RX, rx_ch, frequency);
-        if (rx_bw != -1) {
-                device->setBandwidth(SOAPY_SDR_RX, rx_ch, rx_bw);
-        }
-        std::vector<size_t> rx_channel;
-        SoapySDR::Stream *rx_stream;
-        rx_stream = device->setupStream(SOAPY_SDR_RX,
-                                        SOAPY_SDR_CF32,
-                                        rx_channel);
-        uint32_t microseconds(1e+6);
-        usleep(microseconds);
 
-        //rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
-        int rx_flags = SOAPY_SDR_END_BURST;
-        uint32_t receive_time(0);
-        const int sampleCnt = 5000;
-        device->activateStream(rx_stream, rx_flags, receive_time,
-                               sampleCnt);
-        //std::vector<std::complex<float>> buffer(sampleCnt);
-        uint32_t numChans(1);
-        const size_t numElems = device->getStreamMTU(rx_stream);
-        const size_t elemSize(sampleCnt);
-        std::vector<std::vector<char>> buffer(numChans, std::vector<char>(elemSize*numElems));
-        std::vector<void *> rx_buffs(numChans);
-        for (size_t i = 0; i < numChans; i++) rx_buffs[i] = buffer[i].data();
-        int samplesRead(0);
-        uint32_t timeout(1e3);
-        long long int rx_timestamp(0);
-        //auto t1 = std::chrono::high_resolution_clock::now();
-        //while (std::chrono::high_resolution_clock::now() - t1 < std::chrono::seconds(2)) {
+        //create the stream, use the native format
+        double fullScale(0.0);
+        const auto format = device->getNativeStreamFormat(direction, channels.front(), fullScale);
+        const size_t elemSize = SoapySDR::formatToSize(format);
+        auto stream = device->setupStream(direction, format, channels);
 
-        for (size_t n=0; n<2; n++) {
-                samplesRead = device->readStream(rx_stream,
-                                                 rx_buffs.data(),
-                                                 sampleCnt,
-                                                 rx_flags,
-                                                 rx_timestamp,
-                                                 timeout);
+        std::cout << "Stream format: " << format << std::endl;
+        std::cout << "Num channels: " << channels.size() << std::endl;
+        std::cout << "Element size: " << elemSize << " bytes" << std::endl;
+        std::cout << "Begin "  << (sample_rate/1e6) << " Msps" << std::endl;
 
-                //I and Q samples are interleaved in buffer: IQIQIQ...
-                printf("Received %d samples\n", samplesRead);
-                /*
-                  INSERT CODE FOR PROCESSING RECEIVED SAMPLES
-                */
+        //allocate buffers for the stream read/write
+        const size_t numChans = channels.size();
+        const size_t numElems = device->getStreamMTU(stream);
+        std::vector<std::vector<char>> buffMem(numChans, std::vector<char>(elemSize*numElems));
+        std::vector<void *> buffs(numChans);
+        for (size_t i = 0; i < numChans; i++) buffs[i] = buffMem[i].data();
+
+        //state collected in this loop
+        unsigned int overflows(0);
+        unsigned int underflows(0);
+        unsigned long long totalSamples(0);
+        const auto startTime = std::chrono::high_resolution_clock::now();
+        auto timeLastPrint = std::chrono::high_resolution_clock::now();
+        auto timeLastSpin = std::chrono::high_resolution_clock::now();
+        auto timeLastStatus = std::chrono::high_resolution_clock::now();
+        int spinIndex(0);
+
+        std::cout << "Starting stream loop, press Ctrl+C to exit..." << std::endl;
+        device->activateStream(stream);
+        signal(SIGINT, sigIntHandler);
+
+        size_t numElems2 = 5000;
+
+        while (not loopDone) {
+                int ret(0);
+                int flags(0);
+                long long timeNs(0);
+                ret = device->readStream(stream, buffs.data(), numElems2, flags, timeNs);
+                if (ret == SOAPY_SDR_TIMEOUT) continue;
+                if (ret == SOAPY_SDR_OVERFLOW) {
+                        overflows++;
+                        continue;
+                }
+                if (ret == SOAPY_SDR_UNDERFLOW) {
+                        underflows++;
+                        continue;
+                }
+                if (ret < 0) {
+                        std::cerr << "Unexpected stream error " << SoapySDR::errToStr(ret) << std::endl;
+                        break;
+                }
+                std::cout << ret << std::endl;
+                totalSamples += ret;
+                const auto now = std::chrono::high_resolution_clock::now();
+                if (timeLastSpin + std::chrono::milliseconds(300) < now) {
+                        timeLastSpin = now;
+                        static const char spin[] = {"|/-\\"};
+                        printf("\b%c", spin[(spinIndex++)%4]);
+                        fflush(stdout);
+                }
+                //occasionally read out the stream status (non blocking)
+                if (timeLastStatus + std::chrono::seconds(1) < now) {
+                        timeLastStatus = now;
+                        while (true) {
+                                size_t chanMask; int flags; long long timeNs;
+                                ret = device->readStreamStatus(stream, chanMask, flags, timeNs, 0);
+                                if (ret == SOAPY_SDR_OVERFLOW) overflows++;
+                                else if (ret == SOAPY_SDR_UNDERFLOW) underflows++;
+                                else if (ret == SOAPY_SDR_TIME_ERROR) {}
+                                else break;
+                        }
+                }
+                if (timeLastPrint + std::chrono::seconds(5) < now) {
+                        timeLastPrint = now;
+                        const auto timePassed = std::chrono::duration_cast<std::chrono::microseconds>(now - startTime);
+                        const auto sampleRate = double(totalSamples)/timePassed.count();
+                        printf("\b%g Msps\t%g MBps", sampleRate, sampleRate*numChans*elemSize);
+                        if (overflows != 0) printf("\tOverflows %u", overflows);
+                        if (underflows != 0) printf("\tUnderflows %u", underflows);
+                        printf("\n ");
+                }
         }
+        device->deactivateStream(stream);
+        //cleanup stream and device
+        device->closeStream(stream);
+        SoapySDR::Device::unmake(device);
+
+
+
         if (plot_data) {
         }
         /*if (plot_data) {
@@ -128,9 +173,6 @@ void run_tag(bool plot_data)
                 }
                 plot(y_re);
                 }*/
-        device->deactivateStream(rx_stream);
-        device->closeStream(rx_stream);
-        SoapySDR::Device::unmake(device);
 
 
 
