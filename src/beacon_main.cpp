@@ -88,22 +88,30 @@ void run_beacon()
         uint32_t microseconds(1e+6);
         usleep(microseconds);
 
-        const int buffer_size = 1024*8;
-        std::vector<float> tx_buffer(2*buffer_size);
+        const int buffer_size = 256*8;
+        std::vector<float> tx_buff_data(2*buffer_size);
         for (int i = 0; i <buffer_size; i++) {
                 const double pi = acos(-1);
                 double w = 2*pi*i*f_ratio;
-                tx_buffer[2*i] = cos(w);
-                tx_buffer[2*i+1] = sin(w);
+                tx_buff_data[2*i] = cos(w);
+                tx_buff_data[2*i+1] = sin(w);
         }
-        std::vector<void *> tx_buffs;
-        tx_buffs.push_back(tx_buffer.data());
-        device->activateStream(tx_stream);
+        std::vector<void *> tx_buffs_data;
+        tx_buffs_data.push_back(tx_buff_data.data());
 
+        device->activateStream(tx_stream);
         const int send_cnt = int(buffer_size*f_ratio) / f_ratio;
         std::cout << "sample count per send call: " << send_cnt << std::endl;
 
-        long long tx_time_0(0);
+        // Start rx to get timestmap running
+        std::vector<size_t> rx_channel;
+        SoapySDR::Stream *rx_stream;
+        rx_stream = device->setupStream(SOAPY_SDR_RX,
+                                        SOAPY_SDR_CF32,
+                                        rx_channel);
+        device->activateStream(rx_stream);
+
+        long long tx_time_0 = device->getHardwareTime() + 0.1e9;
 
         auto t1 = std::chrono::high_resolution_clock::now();
         auto t2 = t1;
@@ -111,14 +119,21 @@ void run_beacon()
                   << std::endl;
         signal(SIGINT, sigIntHandler);
         while (not loopDone) {
-                int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST | SOAPY_SDR_ONE_PACKET;
-                tx_flags = 0;
-                uint32_t status = device->writeStream(tx_stream,
-                                                      tx_buffs.data(),
-                                                      send_cnt,
-                                                      tx_flags,
-                                                      tx_time_0);
-
+                //int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST | SOAPY_SDR_ONE_PACKET;
+                int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
+                //tx_flags = 0;
+                uint32_t status;
+                status = device->writeStream(tx_stream,
+                                             tx_buffs_data.data(),
+                                             send_cnt,
+                                             tx_flags,
+                                             tx_time_0,
+                                             1e6*4);
+                tx_time_0 += 0.1e9;
+                usleep(100000);
+                std::cout << "**********" << std::endl;
+                std::cout << tx_time_0 << std::endl;
+                std::cout << device->getHardwareTime() << std::endl;
                 if (status != send_cnt) {
                         std::string tx_verbose_msg = "Transmit failed: ";
                         switch (status) {
@@ -195,6 +210,8 @@ void run_beacon()
         }
         device->deactivateStream(tx_stream);
         device->closeStream(tx_stream);
+        device->deactivateStream(rx_stream);
+        device->closeStream(rx_stream);
         SoapySDR::Device::unmake(device);
 
 
