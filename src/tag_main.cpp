@@ -54,11 +54,11 @@ void run_tag(bool plot_data)
 {
         const std::string &channelStr = "0";
 
-        //const double frequency = 500e6;  //center frequency to 500 MHz
+        const double frequency = 500e6;  //center frequency to 500 MHz
         const double sample_rate = 32e6;
-        //const double rx_gain(20);
-        //const double clock_rate(-1);
-        //const double rx_bw(-1);
+        const double rx_gain(20);
+        const double clock_rate(-1);
+        const double rx_bw(-1);
 
         int direction = SOAPY_SDR_RX;
 
@@ -71,7 +71,16 @@ void run_tag(bool plot_data)
         if (channels.empty()) channels.push_back(0);
         //initialize the sample rate for all channels
         for (const auto &chan : channels) {
-            device->setSampleRate(direction, chan, sample_rate);
+                if (clock_rate != -1) {
+                        device->setMasterClockRate(clock_rate);
+                }
+                device->setSampleRate(direction, chan, sample_rate);
+                device->setAntenna(SOAPY_SDR_RX, chan, "LNAL");
+                device->setGain(SOAPY_SDR_RX, chan, rx_gain);
+                device->setFrequency(SOAPY_SDR_RX, chan, frequency);
+                if (rx_bw != -1) {
+                        device->setBandwidth(SOAPY_SDR_RX, chan, rx_bw);
+                }
         }
 
         //create the stream, use the native format
@@ -110,7 +119,6 @@ void run_tag(bool plot_data)
         signal(SIGINT, sigIntHandler);
 
         size_t numElems2 = numElems;
-        //size_t n(0);
 
         while (not loopDone) {
                 int ret(0);
