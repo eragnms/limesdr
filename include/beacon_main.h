@@ -10,8 +10,13 @@
 #pragma once
 
 #include <tclap/CmdLine.h>
+#include <iostream>
+#include <SoapySDR/Device.hpp>
+#include <SoapySDR/Formats.hpp>
+#include <SoapySDR/Errors.hpp>
+#include <SoapySDR/Time.hpp>
+#include <unistd.h>
+#include <chrono>
+#include <math.h>
 
-#include "beacon.h"
-
-
-void run_beacon(bool plot_data);
+void run_beacon();
