@@ -4,6 +4,8 @@
  * \brief Tag functionality
  *
  * The main functionality for the tag.
+ * Based on
+ * https://github.com/pothosware/SoapySDR/blob/master/apps/SoapyRateTest.cpp
  *
  * \author Mats Gustafsson
  *
@@ -160,19 +162,15 @@ void run_tag(bool plot_data)
         device->closeStream(stream);
         SoapySDR::Device::unmake(device);
 
-
-
         if (plot_data) {
-        }
-        /*if (plot_data) {
-                arma::vec y_re(samplesRead);
-                arma::vec y_im(samplesRead);
-                for (int j = 0; j < samplesRead; ++j) {
-                        y_re(j) = buffer[2 * j];
-                        y_im(j) = buffer[2 * j + 1];
+                arma::vec y_re(numElems2);
+                //arma::vec y_im(numElems2);
+                for (size_t j = 0; j < numElems2; ++j) {
+                        y_re(j) = buffMem[0][j];
+                        //y_im(j) = buffMem[1][2 * j + 1];
                 }
                 plot(y_re);
-                }*/
+        }
 
 
 
