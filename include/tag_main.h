@@ -22,6 +22,9 @@
 #include <signal.h>
 #include "gnuplot_i.hpp"
 
+#include "lime/LimeSuite.h"
+#include "macros.h"
+
 void run_tag(bool plot_data);
 void plot(std::vector<double> y, std::string title);
 void plot(std::vector<double> y);

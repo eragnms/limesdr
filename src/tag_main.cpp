@@ -83,12 +83,15 @@ void run_tag(bool plot_data)
         std::cout << "Stream format: " << format << std::endl;
         std::cout << "Num channels: " << channels.size() << std::endl;
         std::cout << "Element size: " << elemSize << " bytes" << std::endl;
-        std::cout << "Begin "  << (sample_rate/1e6) << " Msps" << std::endl;
+        std::cout << "Sample rate: "  << (sample_rate/1e6) << " Msps" << std::endl;
 
         //allocate buffers for the stream read/write
         const size_t numChans = channels.size();
         const size_t numElems = device->getStreamMTU(stream);
-        std::vector<std::vector<char>> buffMem(numChans, std::vector<char>(elemSize*numElems));
+        std::cout << "Num elems: " << numElems << std::endl;
+        std::vector<std::vector<std::complex<int16_t>>> buffMem(
+                numChans,
+                std::vector<std::complex<int16_t >>(elemSize*numElems));
         std::vector<void *> buffs(numChans);
         for (size_t i = 0; i < numChans; i++) buffs[i] = buffMem[i].data();
 
@@ -106,14 +109,17 @@ void run_tag(bool plot_data)
         device->activateStream(stream);
         signal(SIGINT, sigIntHandler);
 
-        size_t numElems2 = 5000;
+        size_t numElems2 = numElems;
+        //size_t n(0);
 
         while (not loopDone) {
                 int ret(0);
                 int flags(0);
                 long long timeNs(0);
                 ret = device->readStream(stream, buffs.data(), numElems2, flags, timeNs);
-                if (ret == SOAPY_SDR_TIMEOUT) continue;
+                if (ret == SOAPY_SDR_TIMEOUT) {
+                        continue;
+                }
                 if (ret == SOAPY_SDR_OVERFLOW) {
                         overflows++;
                         continue;
@@ -126,7 +132,6 @@ void run_tag(bool plot_data)
                         std::cerr << "Unexpected stream error " << SoapySDR::errToStr(ret) << std::endl;
                         break;
                 }
-                std::cout << ret << std::endl;
                 totalSamples += ret;
                 const auto now = std::chrono::high_resolution_clock::now();
                 if (timeLastSpin + std::chrono::milliseconds(300) < now) {
@@ -156,6 +161,10 @@ void run_tag(bool plot_data)
                         if (underflows != 0) printf("\tUnderflows %u", underflows);
                         printf("\n ");
                 }
+                //n++;
+                //loopDone = (n > 100);
+                //std::cout << n << std::endl;
+
         }
         device->deactivateStream(stream);
         //cleanup stream and device
@@ -166,7 +175,8 @@ void run_tag(bool plot_data)
                 arma::vec y_re(numElems2);
                 //arma::vec y_im(numElems2);
                 for (size_t j = 0; j < numElems2; ++j) {
-                        y_re(j) = buffMem[0][j];
+                        y_re(j) = (double)std::imag(buffMem[0][j]);
+                        //y_re(j) = buffer[2 * j];
                         //y_im(j) = buffMem[1][2 * j + 1];
                 }
                 plot(y_re);
