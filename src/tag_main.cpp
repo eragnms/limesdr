@@ -114,12 +114,12 @@ void run_tag(bool plot_data)
         auto timeLastStatus = std::chrono::high_resolution_clock::now();
         int spinIndex(0);
 
-        std::cout << "Starting stream loop, press Ctrl+C to exit..." << std::endl;
         device->activateStream(stream);
-        signal(SIGINT, sigIntHandler);
-
         size_t numElems2 = numElems;
 
+        std::cout << "Starting stream loop, press Ctrl+C to exit..."
+                  << std::endl;
+        signal(SIGINT, sigIntHandler);
         while (not loopDone) {
                 int ret(0);
                 int flags(0);

@@ -18,5 +18,7 @@
 #include <unistd.h>
 #include <chrono>
 #include <math.h>
+#include <signal.h>
 
 void run_beacon();
+void sigIntHandler(const int);

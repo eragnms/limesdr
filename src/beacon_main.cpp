@@ -14,6 +14,12 @@
 
 SoapySDR::Device *device;
 
+static sig_atomic_t loopDone = false;
+void sigIntHandler(const int)
+{
+        loopDone = true;
+}
+
 int main(int argc, char** argv)
 {
         try {
@@ -101,7 +107,10 @@ void run_beacon()
 
         auto t1 = std::chrono::high_resolution_clock::now();
         auto t2 = t1;
-        while (std::chrono::high_resolution_clock::now() - t1<std::chrono::seconds(10)) {
+        std::cout << "Starting stream loop, press Ctrl+C to exit..."
+                  << std::endl;
+        signal(SIGINT, sigIntHandler);
+        while (not loopDone) {
                 int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST | SOAPY_SDR_ONE_PACKET;
                 tx_flags = 0;
                 uint32_t status = device->writeStream(tx_stream,
