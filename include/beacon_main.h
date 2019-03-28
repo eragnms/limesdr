@@ -15,6 +15,7 @@
 #include <SoapySDR/Formats.hpp>
 #include <SoapySDR/Errors.hpp>
 #include <SoapySDR/Time.hpp>
+#include <SoapySDR/Logger.hpp>
 #include <unistd.h>
 #include <chrono>
 #include <math.h>
