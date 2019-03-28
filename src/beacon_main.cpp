@@ -47,21 +47,23 @@ int main(int argc, char** argv)
 void run_beacon()
 {
         const double frequency(500e6);
-        const double sampling_rate(5e6);
+        double f_clk(133.333333e6);
+        uint16_t D_tx = 8;
+        const double sampling_rate(f_clk / D_tx);
         const double tone_freq(2e4);
         const double f_ratio = tone_freq/sampling_rate;
         const double tx_gain(40);
         const double tx_bw(-1);
         std::string clock_source = "";
 		std::string time_source = "";
-		double f_clk(133.333333e6);
         double T_timeout(2);
-		uint16_t D_tx = 8;
 		//uint16_t D_rx = D_tx;
-        double tx_burst_length(5e-3);
-        double burst_period(100e-3);
         double time_in_future(1);
+        double burst_period(100e-3);
+        double tx_burst_length(5e-3);
         double rx_tx_separation(1e-3);
+        const bool ack(true);
+
         SoapySDR::setLogLevel(SoapySDR::LogLevel::SOAPY_SDR_INFO);
 
         SoapySDR::KwargsList results = SoapySDR::Device::enumerate();
@@ -208,8 +210,6 @@ void run_beacon()
         usleep((int)(1e6*0.5*T_timeout));
 
         int64_t tx_tick = tx_start_tick;
-        auto t1 = std::chrono::high_resolution_clock::now();
-        auto t2 = t1;
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
@@ -259,47 +259,55 @@ void run_beacon()
                         std::cout << "WARNING: "
                                   << tx_verbose_msg
                                   << std::endl;
-                }
-                if (std::chrono::high_resolution_clock::now() - t2>std::chrono::seconds(1)) {
-                        t2 = std::chrono::high_resolution_clock::now();
-                        size_t chan_mask = 0;
-                        int stream_status = device->readStreamStatus(
-                                tx_stream,
-                                chan_mask,
-                                tx_flags,
-                                burst_time,
-                                1e6*T_timeout);
-                        std::string verbose_msg = "Stream no_of_transmitted_samples: ";
-                        switch(stream_status) {
-                        case SOAPY_SDR_TIMEOUT:
-                                verbose_msg += "SOAPY_SDR_TIMEOUT";
+                } else {
+                        if (not ack) {
+
+                        } else {
+                                size_t chan_mask = 0;
+                                int stream_status = device->readStreamStatus(
+                                        tx_stream,
+                                        chan_mask,
+                                        tx_flags,
+                                        burst_time,
+                                        1e6*T_timeout);
+                                std::string tx_verbose_msg = "Stream no_of_transmitted_samples: ";
+                                switch(stream_status) {
+                                case SOAPY_SDR_TIMEOUT:
+                                        tx_verbose_msg += "SOAPY_SDR_TIMEOUT";
+                                        break;
+                                case SOAPY_SDR_STREAM_ERROR:
+                                        tx_verbose_msg += "SOAPY_SDR_STREAM_ERROR";
+                                        break;
+                                case SOAPY_SDR_CORRUPTION:
+                                        tx_verbose_msg += "SOAPY_SDR_CORRUPTION";
+                                        break;
+                                case SOAPY_SDR_OVERFLOW:
+                                        tx_verbose_msg += "SOAPY_SDR_OVERFLOW";
+                                        break;
+                                case SOAPY_SDR_NOT_SUPPORTED:
+                                        tx_verbose_msg += "SOAPY_SDR_NOT_SUPPORTED";
+                                        break;
+                                case SOAPY_SDR_END_BURST:
+                                        tx_verbose_msg += "SOAPY_SDR_END_BURST";
+                                        break;
+                                case SOAPY_SDR_TIME_ERROR:
+                                        tx_verbose_msg += "SOAPY_SDR_TIME_ERROR";
+                                        break;
+                                case SOAPY_SDR_UNDERFLOW:
+                                        tx_verbose_msg += "SOAPY_SDR_UNDERFLOW";
                                 break;
-                        case SOAPY_SDR_STREAM_ERROR:
-                                verbose_msg += "SOAPY_SDR_STREAM_ERROR";
-                                break;
-                        case SOAPY_SDR_CORRUPTION:
-                                verbose_msg += "SOAPY_SDR_CORRUPTION";
-                                break;
-                        case SOAPY_SDR_OVERFLOW:
-                                verbose_msg += "SOAPY_SDR_OVERFLOW";
-                                break;
-                        case SOAPY_SDR_NOT_SUPPORTED:
-                                verbose_msg += "SOAPY_SDR_NOT_SUPPORTED";
-                                break;
-                        case SOAPY_SDR_END_BURST:
-                                verbose_msg += "SOAPY_SDR_END_BURST";
-                                break;
-                        case SOAPY_SDR_TIME_ERROR:
-                                verbose_msg += "SOAPY_SDR_TIME_ERROR";
-                                break;
-                        case SOAPY_SDR_UNDERFLOW:
-                                verbose_msg += "SOAPY_SDR_UNDERFLOW";
-                                break;
-                        default:
-                                verbose_msg += "NO_ERROR";
-                                break;
+                                default:
+                                        tx_verbose_msg += "NO_ERROR";
+                                        break;
+                                }
+                                tx_verbose_msg += ", no_of_transmitted_samples: ";
+                                if ((stream_status == 0) && (no_of_transmitted_samples == no_of_tx_samples)) {
+                                        tx_verbose_msg += " OK";
+                                } else {
+                                        tx_verbose_msg += " WARNING";
+                                }
+                                std::cout << tx_verbose_msg << std::endl;
                         }
-                        std::cout << verbose_msg << std::endl;
                 }
         }
         device->deactivateStream(tx_stream);
