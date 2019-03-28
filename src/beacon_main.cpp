@@ -164,12 +164,14 @@ void run_beacon()
         int64_t no_of_ticks_per_bursts_period = tmp;
         size_t no_of_tx_samples = buffer_size_tx;
 
-        std::vector<std::complex<float>> tx_buff_data(no_of_tx_samples);
+        std::vector<std::complex<float>> tx_buff_data(no_of_tx_samples,
+                                                      std::complex<float>(1.0f, 0.0f));
         for (size_t i = 0; i<no_of_tx_samples; i++) {
                 const double pi = acos(-1);
                 double w = 2*pi*i*f_ratio;
                 tx_buff_data[i] = std::complex<float>(cos(w), sin(w));
         }
+
         /*
           for (int i = 0; i <buffer_size; i++) {
           const double pi = acos(-1);
