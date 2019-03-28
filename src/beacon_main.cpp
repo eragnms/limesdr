@@ -50,7 +50,7 @@ void run_beacon()
         double f_clk(133.333333e6);
         uint16_t D_tx = 8;
         const double sampling_rate(f_clk / D_tx);
-        const double tone_freq(2e4);
+        const double tone_freq(2e3);
         const double f_ratio = tone_freq/sampling_rate;
         const double tx_gain(40);
         const double tx_bw(-1);
@@ -59,8 +59,8 @@ void run_beacon()
         double T_timeout(2);
 		//uint16_t D_rx = D_tx;
         double time_in_future(1);
-        double burst_period(100e-3);
-        double tx_burst_length(5e-3);
+        double burst_period(10e-3);
+        double tx_burst_length(2e-3);
         double rx_tx_separation(1e-3);
         const bool ack(true);
 
@@ -209,7 +209,7 @@ void run_beacon()
 
         //make sure that RX loop will start first
         //(fix for LimeSDR)
-        usleep((int)(1e6*0.5*T_timeout));
+        //usleep((int)(1e6*0.5*T_timeout));
 
         int64_t tx_tick = tx_start_tick;
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
@@ -218,6 +218,12 @@ void run_beacon()
         while (not stop) {
                 long long int burst_time = SoapySDR::ticksToTimeNs(tx_tick,
                                                                    f_clk);
+                current_hardware_time = device->getHardwareTime();
+                burst_time = current_hardware_time + 0.1e9;
+                std::cout << "burst_time: " << burst_time
+                          << " current time:  " << current_hardware_time
+                          << " diff: " << burst_time - current_hardware_time
+                          << std::endl;
                 int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST | SOAPY_SDR_ONE_PACKET;
                 //int tx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST;
                 //tx_flags = 0;
