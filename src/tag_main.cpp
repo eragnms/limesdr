@@ -55,7 +55,7 @@ void run_tag(bool plot_data)
         const std::string &channelStr = "0";
 
         const double frequency = 500e6;  //center frequency to 500 MHz
-        const double sample_rate = 32e6;
+        const double sample_rate = 50e3;
         const double rx_gain(20);
         const double clock_rate(-1);
         const double rx_bw(-1);
@@ -96,7 +96,8 @@ void run_tag(bool plot_data)
 
         //allocate buffers for the stream read/write
         const size_t numChans = channels.size();
-        const size_t numElems = device->getStreamMTU(stream);
+        //const size_t numElems = device->getStreamMTU(stream);
+        const size_t numElems = 1500;
         std::cout << "Num elems: " << numElems << std::endl;
         std::vector<std::vector<std::complex<int16_t>>> buffMem(
                 numChans,
