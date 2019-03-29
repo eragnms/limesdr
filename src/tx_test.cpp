@@ -15,19 +15,19 @@ int main()
 void run_test()
 {
         const double frequency(500e6);
-        double f_clk(189e6);
+        double f_clk(37.8e6);
         uint16_t D_tx = 8;
         const double sampling_rate(f_clk / D_tx);
-        const double tone_freq(2e3);
+        const double tone_freq(8e3);
         const double f_ratio = tone_freq/sampling_rate;
-        const double tx_gain(40);
+        const double tx_gain(50);
         const double tx_bw(-1);
         std::string clock_source = "";
 		std::string time_source = "";
         double T_timeout(2);
         double time_in_future(1);
-        double burst_period(100e-3);
-        double tx_burst_length(4.2e-5);
+        double burst_period(10e-3);
+        double tx_burst_length(0.5e-3);
         SoapySDR::setLogLevel(SoapySDR::LogLevel::SOAPY_SDR_DEBUG);
         SoapySDR::KwargsList results = SoapySDR::Device::enumerate();
         if (results.size() > 0) {
@@ -60,6 +60,7 @@ void run_test()
         device->setGain(SOAPY_SDR_TX, tx_ch, tx_gain);
         device->setAntenna(SOAPY_SDR_TX, tx_ch, "BAND1");
         device->setFrequency(SOAPY_SDR_TX, tx_ch, frequency);
+        /*
         bool tx_lo_locked = false;
         while (!(stop || tx_lo_locked)) {
                 std::string tx_locked = device->readSensor(SOAPY_SDR_TX,
@@ -70,6 +71,7 @@ void run_test()
                 }
                 usleep(100);
         }
+        */
         std::cout << "sdr: TX LO lock detected on channel "
                   << std::to_string(tx_ch) << std::endl;
         std::cout << "sdr: Actual TX frequency on channel "
@@ -205,6 +207,9 @@ void run_test()
                         case SOAPY_SDR_UNDERFLOW:
                                 tx_verbose_msg += "SOAPY_SDR_UNDERFLOW";
                                 break;
+                        default:
+                                tx_verbose_msg += "Num of transmitted samps: ";
+                                tx_verbose_msg += std::to_string(no_of_transmitted_samples);
                         }
                         std::cout << tx_verbose_msg << std::endl;
                 } else {
