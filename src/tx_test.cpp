@@ -1,3 +1,5 @@
+// https://discourse.myriadrf.org/t/tx-bursts-with-timestamps/4457
+
 #include "tx_test.h"
 SoapySDR::Device *device;
 static sig_atomic_t stop = false;
