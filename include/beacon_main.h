@@ -21,5 +21,8 @@
 #include <math.h>
 #include <signal.h>
 
+#include "sdr_config.h"
+#include "sdr.h"
+
 void run_beacon();
 void sigIntHandler(const int);
