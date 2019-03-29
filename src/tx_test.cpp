@@ -20,7 +20,7 @@ void run_test()
         const double sampling_rate(f_clk / D_tx);
         const double tone_freq(8e3);
         const double f_ratio = tone_freq/sampling_rate;
-        const double tx_gain(50);
+        const double tx_gain(60);
         const double tx_bw(-1);
         std::string clock_source = "";
 		std::string time_source = "";
