@@ -92,3 +92,4 @@ src/beacon_main
 src/tag_main
 src/beacon_test
 src/tag_test
+src/tx_test

@@ -1,19 +1,15 @@
 #include "tx_test.h"
-
 SoapySDR::Device *device;
-
 static sig_atomic_t stop = false;
 void sigIntHandler(const int)
 {
         stop = true;
 }
-
 int main()
 {
         run_test();
         return EXIT_SUCCESS;
 }
-
 void run_test()
 {
         const double frequency(500e6);
@@ -30,9 +26,7 @@ void run_test()
         double time_in_future(1);
         double burst_period(100e-3);
         double tx_burst_length(4.2e-5);
-
         SoapySDR::setLogLevel(SoapySDR::LogLevel::SOAPY_SDR_DEBUG);
-
         SoapySDR::KwargsList results = SoapySDR::Device::enumerate();
         if (results.size() > 0) {
                 std::cout << "Found Device!" << std::endl;
@@ -53,7 +47,6 @@ void run_test()
                 device->setTimeSource(time_source);
         }
         device->setMasterClockRate(f_clk);
-
         const size_t tx_ch(0);
         const size_t rx_ch(0);
         device->setSampleRate(SOAPY_SDR_TX, tx_ch, sampling_rate);
@@ -82,12 +75,10 @@ void run_test()
                   << std::to_string(device->getFrequency(SOAPY_SDR_TX,
                                                          tx_ch)/1e6)
                   << " [MHz]" << std::endl;
-
         SoapySDR::Stream *tx_stream;
         tx_stream = device->setupStream(SOAPY_SDR_TX,
                                         SOAPY_SDR_CF32,
                                         std::vector<size_t>{(size_t)tx_ch});
-
         if (tx_stream == nullptr) {
                 throw std::runtime_error("Unable to setup TX stream!");
         } else {
@@ -114,7 +105,6 @@ void run_test()
                 std::cout << "sdr: TX stream has been successfully activated!"
                           << std::endl;
         }
-
         int mtu_tx = device->getStreamMTU(tx_stream);
         int mtu_rx = device->getStreamMTU(rx_stream);
         std::cout << "sdr: mtu_tx="
@@ -122,14 +112,11 @@ void run_test()
                   << " [Sa], mtu_rx="
                   << std::to_string(mtu_rx) + " [Sa]"
                   << std::endl;
-
         device->setHardwareTime(0);
-
         size_t buffer_size_tx = tx_burst_length * sampling_rate;
         size_t no_of_tx_samples = buffer_size_tx;
         int64_t tmp = D_tx * burst_period * sampling_rate;
         int64_t no_of_ticks_per_bursts_period = tmp;
-
         std::vector<std::complex<float>> tx_buff_data(no_of_tx_samples,
                                                       std::complex<float>(1.0f, 0.0f));
         for (size_t i = 0; i<no_of_tx_samples; i++) {
@@ -137,13 +124,11 @@ void run_test()
                 double w = 2*pi*i*f_ratio;
                 tx_buff_data[i] = std::complex<float>(cos(w), sin(w));
         }
-
         std::vector<void *> tx_buffs_data;
         tx_buffs_data.push_back(tx_buff_data.data());
 
         std::cout << "sample count per send call: "
                   << no_of_tx_samples << std::endl;
-
         int64_t current_hardware_time = device->getHardwareTime();
         int64_t now_tick = SoapySDR::timeNsToTicks(current_hardware_time,
                                                    f_clk);
@@ -153,7 +138,6 @@ void run_test()
         int64_t tx_start_tick = now_tick;
         int64_t tx_future = time_in_future + 2 * burst_period;
         tx_start_tick += SoapySDR::timeNsToTicks((tx_future) * 1e9, f_clk);
-
         int64_t burst_time = SoapySDR::ticksToTimeNs(rx_start_tick, f_clk);
         int rx_flags = SOAPY_SDR_HAS_TIME | SOAPY_SDR_END_BURST | SOAPY_SDR_ONE_PACKET;
         size_t no_of_requested_samples(100);
@@ -170,8 +154,6 @@ void run_test()
                 std::cout << "sdr: RX stream has been successfully activated!"
                           << std::endl;
         }
-
-
         int64_t tx_tick = tx_start_tick;
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
