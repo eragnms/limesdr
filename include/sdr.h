@@ -23,7 +23,12 @@
 class SDR
 {
 public:
-        SDR(SDR_Device_Config dev_cfg);
+        SDR();
+        void connect();
+        void configure(SDR_Device_Config dev_cfg);
+        void start();
+        void write(std::vector<std::complex<float>> data);
+        std::vector<std::vector<std::complex<int16_t>>> read();
 private:
         SDR_Device_Config m_dev_cfg;
 };

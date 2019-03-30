@@ -12,7 +12,28 @@
 
 #include "sdr.h"
 
-SDR::SDR(SDR_Device_Config dev_cfg)
+SDR::SDR()
+{}
+
+void SDR::connect()
+{}
+
+void SDR::configure(SDR_Device_Config dev_cfg)
 {
         m_dev_cfg = dev_cfg;
+}
+
+void SDR::start()
+{}
+
+void SDR::write(std::vector<std::complex<float>> data)
+{
+        size_t a = data.size();
+        a++;
+}
+
+std::vector<std::vector<std::complex<int16_t>>> SDR::read()
+{
+        std::vector<std::vector<std::complex<int16_t>>> a;
+        return a;
 }

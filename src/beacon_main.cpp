@@ -64,7 +64,7 @@ void run_beacon()
         const double tone_freq(8e3);
         const double f_ratio = tone_freq/sampling_rate;
 
-        SDR sdr(dev_cfg);
+        SDR sdr();
 
         SoapySDR::setLogLevel(SoapySDR::LogLevel::SOAPY_SDR_DEBUG);
         SoapySDR::KwargsList results = SoapySDR::Device::enumerate();
