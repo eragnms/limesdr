@@ -49,11 +49,11 @@ void run_beacon()
 {
         SDR_Device_Config dev_cfg;
 
-        const double frequency = dev_cfg.frequency;
+
         double f_clk = dev_cfg.f_clk;
         uint16_t D_tx = dev_cfg.D_tx;
-        const double tx_gain = dev_cfg.tx_gain;
-        const double tx_bw = dev_cfg.tx_bw;
+
+
         std::string clock_source = dev_cfg.clock_source;
         std::string time_source = dev_cfg.time_source;
         double T_timeout = dev_cfg.timeout;
@@ -65,69 +65,15 @@ void run_beacon()
         const double tone_freq(8e3);
         const double f_ratio = tone_freq/sampling_rate;
 
-        SDR sdr();
+        SDR sdr;
+        SoapySDR::setLogLevel(dev_cfg.log_level);
+        sdr.connect();
+        sdr.configure(dev_cfg);
 
-        SoapySDR::setLogLevel(SoapySDR::LogLevel::SOAPY_SDR_DEBUG);
-        SoapySDR::KwargsList results = SoapySDR::Device::enumerate();
-        if (results.size() > 0) {
-                std::cout << "Found Device!" << std::endl;
-        } else {
-                throw std::runtime_error("Found no device!");
-        }
-        device = SoapySDR::Device::make();
-        if (device == nullptr) {
-                throw std::runtime_error("Could not open device!");
-        }
-        if (!device->hasHardwareTime()) {
-                throw std::runtime_error("This device does not support timed streaming!");
-        }
-        if (clock_source != "") {
-                device->setClockSource(clock_source);
-        }
-        if (time_source != "") {
-                device->setTimeSource(time_source);
-        }
-        device->setMasterClockRate(f_clk);
-        const size_t tx_ch(0);
+
         const size_t rx_ch(0);
-        device->setSampleRate(SOAPY_SDR_TX, tx_ch, sampling_rate);
-        double act_sample_rate = device->getSampleRate(SOAPY_SDR_TX, tx_ch);
-        std::cout << "Actual TX rate: " << act_sample_rate << " Msps" << std::endl;
-        if (tx_bw != -1) {
-                device->setBandwidth(SOAPY_SDR_TX, tx_ch, tx_bw);
-        }
-        device->setGain(SOAPY_SDR_TX, tx_ch, tx_gain);
-        device->setAntenna(SOAPY_SDR_TX, tx_ch, "BAND1");
-        device->setFrequency(SOAPY_SDR_TX, tx_ch, frequency);
-        /*
-          bool tx_lo_locked = false;
-          while (!(stop || tx_lo_locked)) {
-          std::string tx_locked = device->readSensor(SOAPY_SDR_TX,
-          tx_ch,
-          "lo_locked");
-          if (tx_locked == "true") {
-          tx_lo_locked = true;
-          }
-          usleep(100);
-          }
-        */
-        std::cout << "sdr: TX LO lock detected on channel "
-                  << std::to_string(tx_ch) << std::endl;
-        std::cout << "sdr: Actual TX frequency on channel "
-                  << std::to_string(tx_ch) << ": "
-                  << std::to_string(device->getFrequency(SOAPY_SDR_TX,
-                                                         tx_ch)/1e6)
-                  << " [MHz]" << std::endl;
+
         SoapySDR::Stream *tx_stream;
-        tx_stream = device->setupStream(SOAPY_SDR_TX,
-                                        SOAPY_SDR_CF32,
-                                        std::vector<size_t>{(size_t)tx_ch});
-        if (tx_stream == nullptr) {
-                throw std::runtime_error("Unable to setup TX stream!");
-        } else {
-                std::cout << "sdr: TX stream has been successfully set up!"
-                          << std::endl;
-        }
         SoapySDR::Stream *rx_stream;
         rx_stream = device->setupStream(SOAPY_SDR_RX,
                                         "CF32",

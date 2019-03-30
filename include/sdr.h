@@ -65,4 +65,6 @@ public:
         std::vector<std::vector<std::complex<int16_t>>> read();
 private:
         SDR_Device_Config m_dev_cfg;
+        SoapySDR::Device *m_device;
+
 };

@@ -17,15 +17,26 @@
  * Configuration parameters for the SDR. Set the parameters either in this
  * file, or change them in the file configuring the SDR.
  */
+#include <SoapySDR/Logger.hpp>
+
 struct SDR_Device_Config
 {
-		std::string args = "";
-		std::string clock_source = "";
-		std::string time_source = "";
+        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_FATAL;
+        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_CRITICAL;
+        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_ERROR;
+        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_WARNING;
+        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_NOTICE;
+        SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_INFO;
+        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_DEBUG;
+        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_TRACE;
+        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_SSI;
+        std::string args = ""; //!< Not used if ""
+		std::string clock_source = ""; //!< Not used if ""
+		std::string time_source = ""; //!< Not used if ""
 
-        double frequency = 500e6; /**< The center frequency */
-        double tx_gain = 60;
-        double tx_bw = -1;
+        double frequency = 500e6; //!< Center frequency [Hz]
+        double tx_gain = 60; //!< 60 dB is about 0 dBm
+        double tx_bw = -1; //!< Not used if -1
 
         double time_in_future = 1;
         double burst_period = 10e-3;
@@ -36,6 +47,7 @@ struct SDR_Device_Config
 		short channel_rx = 0;
 		uint16_t D_tx = 8;
 		uint16_t D_rx = D_tx;
+        double sampling_rate = f_clk / D_tx;
 		std::string antenna_tx = "BAND1";
 		std::string antenna_rx = "LNAL";
 		double timeout = 2;
