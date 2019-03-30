@@ -9,13 +9,21 @@
  */
 #pragma once
 
+/**
+ * \struct SDR_Device_Config
+ *
+ * \brief SDR device configuration parameters
+ *
+ * Configuration parameters for the SDR. Set the parameters either in this
+ * file, or change them in the file configuring the SDR.
+ */
 struct SDR_Device_Config
 {
 		std::string args = "";
 		std::string clock_source = "";
 		std::string time_source = "";
 
-        double frequency = 500e6;
+        double frequency = 500e6; /**< The center frequency */
         double tx_gain = 60;
         double tx_bw = -1;
 

@@ -4,8 +4,7 @@
  * \brief Tag functionality
  *
  * The main functionality for the tag.
- * Based on
- * https://github.com/pothosware/SoapySDR/blob/master/apps/SoapyRateTest.cpp
+ * Run from the commandline with -h for a list of options.
  *
  * \author Mats Gustafsson
  *

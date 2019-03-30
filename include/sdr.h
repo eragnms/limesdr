@@ -20,14 +20,48 @@
 #include "macros.h"
 #include "sdr_config.h"
 
+/**
+ * \class SDR
+ *
+ * \brief A class for SDRs
+ *
+ * Connecting, configuring and running SDRs. The class uses
+ * SoapySDR, so it should work for a number of different SDRs.
+ *
+ */
 class SDR
 {
 public:
         SDR();
+        /**
+         * \brief Connect to the SDR
+         *
+         * Will connect to an attached SDR.
+         */
         void connect();
+        /**
+         * \brief Configure the SDR
+         *
+         * \param[in] dev_cfg A struct carrying the configuration
+         */
         void configure(SDR_Device_Config dev_cfg);
+        /**
+         * \brief Start the SDR
+         *
+         * setup and activate the streams.
+         */
         void start();
+        /**
+         * \brief Transmit data in the air
+         *
+         * param[in] data the data to be transmitted
+         */
         void write(std::vector<std::complex<float>> data);
+        /**
+         * \brief Read data from the air
+         *
+         * \return a vector of data read
+         */
         std::vector<std::vector<std::complex<int16_t>>> read();
 private:
         SDR_Device_Config m_dev_cfg;

@@ -4,6 +4,7 @@
  * \brief Beacon functionality
  *
  * The main functionality for the beacon.
+ * Run from the commandline with -h for a list of options.
  *
  * \author Mats Gustafsson
  *
