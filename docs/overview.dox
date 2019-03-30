@@ -1,0 +1,45 @@
+/**
+ * \mainpage Wittra Beacon Tag Baseline
+ *
+ * \section sec_Contents Contents
+ *
+ * \li \ref sec_Overview
+ * \li \ref sec_Detail
+ * \li \ref sec_Install
+ * \li \ref sec_Usage
+ * \li \ref sec_SeeAlso
+ *
+ * \section sec_Overview Overview
+ *
+ * Code for beacon and tag
+ *
+ * \section sec_Detail Detailed Description
+ *
+ * A more detailed description
+ *
+ * \section sec_Install Installation
+ *
+ * To install the application do:
+ *
+ *     $ tar zxf libcsc-x.y.z.tar.gz
+ *     $ cd libcsc-x.y.z
+ *     $ ...
+ *
+ * \section sec_Usage Usage
+ *
+ * To run the application do...
+ *
+ * \section sec_SeeAlso See Also
+ *
+ * \li \ref page_Versioning
+ *
+ * \page page_Versioning API Versioning
+ *
+ * Overview of API Versioning
+ *
+ * \link group_Versioning View All Versioning Classes \endlink
+ *
+ * \defgroup group_Versioning Versioning System
+ * See \ref page_Versioning for a detailed description.
+ *
+ */

@@ -1,0 +1,15 @@
+PROJECT_NAME           = @PACKAGE_NAME@
+PROJECT_NUMBER         = @PACKAGE_VERSION@
+PROJECT_BRIEF          = "A library of classes common to all cell scanner projects"
+INPUT                  = @top_srcdir@
+FULL_PATH_NAMES        = NO
+TAB_SIZE               = 4
+FILE_PATTERNS          = sdr.h sdr.cpp beacon_main.cpp beacon_main.h tag_main.h tag_main.cpp *.dox
+RECURSIVE              = YES
+HTML_OUTPUT            = apidocs
+GENERATE_LATEX         = YES
+LATEX_OUTPUT           = latex
+PDF_HYPERLINKS         = YES
+USE_PDFLATEX           = YES
+EXAMPLE_PATH           = @top_srcdir@/docs/examples
+GENERATE_TREEVIEW      = YES

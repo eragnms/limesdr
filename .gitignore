@@ -93,3 +93,7 @@ src/tag_main
 src/beacon_test
 src/tag_test
 src/tx_test
+docs/apidocs
+docs/latex
+docs/*.stamp
+docs/Doxyfile

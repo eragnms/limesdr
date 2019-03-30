@@ -20,12 +20,27 @@ AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 AC_LTDL_DLLIB
+AC_CHECK_PROGS([DOXYGEN], [doxygen])
+if test -z "$DOXYGEN"; then
+AC_MSG_WARN([Doxygen not found - continue without Doxygen support])
+fi
+AC_CHECK_PROGS([DOT], [dot])
+if test -z "$DOT"; then
+AC_MSG_ERROR([Doxygen needs dot, please install dot first (On Arch install graphviz)])
+fi
+AC_CHECK_PROGS([PDFLATEX], [pdflatex])
+if test -z "$PDFLATEX"; then
+AC_MSG_ERROR([Doxygen needs pdflatex program, it is part of TeX http://www.tug.org/texlive/acquire-netinstall.html])
+fi
 AC_CONFIG_FILES([
 			Makefile
             src/Makefile
             include/Makefile
             include/tclap/Makefile
             ])
+AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
+AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([docs/Doxyfile])])
+AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([docs/Makefile])])
 PKG_CHECK_MODULES([LIMESUITE], [LimeSuite])
 CXXFLAGS="$CXXFLAGS \
 -std=c++11 \
