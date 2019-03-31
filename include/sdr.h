@@ -63,7 +63,18 @@ public:
          * \return a vector of data read
          */
         std::vector<std::vector<std::complex<int16_t>>> read();
+        /**
+         * \brief Check if a limesdr is conected
+         *
+         * \return true if the first attached device is a LimeSDR
+         */
         bool is_limesdr();
+        /**
+         * \brief Check if a bladerf is conected
+         *
+         * \return true if the first attached device is BladeRF
+         */
+        bool is_bladerf();
 private:
         SDR_Device_Config m_dev_cfg;
         SoapySDR::Device *m_device;

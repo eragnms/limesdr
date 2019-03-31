@@ -73,6 +73,9 @@ void run_beacon()
         if (sdr.is_limesdr()) {
                 std::cout << "this is a limesdr" << std::endl;
         }
+        if (sdr.is_bladerf()) {
+                std::cout << "this is a bladerf" << std::endl;
+        }
 
         return;
 

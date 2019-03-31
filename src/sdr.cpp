@@ -115,5 +115,11 @@ std::vector<std::vector<std::complex<int16_t>>> SDR::read()
 bool SDR::is_limesdr()
 {
         SoapySDR::KwargsList result = m_device-> enumerate();
-        return (result[0]["name"] == "LimeSDR-USB");
+        return (result[0]["driver"] == "lime");
+}
+
+bool SDR::is_bladerf()
+{
+        SoapySDR::KwargsList result = m_device-> enumerate();
+        return (result[0]["driver"] == "bladerf");
 }
