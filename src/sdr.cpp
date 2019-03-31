@@ -124,3 +124,14 @@ bool SDR::is_bladerf()
         SoapySDR::KwargsList result = m_device-> enumerate();
         return (result[0]["driver"] == "bladerf");
 }
+
+void SDR::list_hw_info()
+{
+        SoapySDR::KwargsList result = m_device-> enumerate();
+        for (size_t n=0; n<result.size(); n++){
+                SoapySDR::Kwargs::iterator it;
+                for (it=result[n].begin(); it!=result[n].end(); ++it)
+                        std::cout << it->first << " => "
+                                  << it->second << std::endl;
+        }
+}

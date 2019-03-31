@@ -75,6 +75,12 @@ public:
          * \return true if the first attached device is BladeRF
          */
         bool is_bladerf();
+        /**
+         * \brief List HW info for attached devices
+         *
+         * HW info will be printed on the screen.
+         */
+        void list_hw_info();
 private:
         SDR_Device_Config m_dev_cfg;
         SoapySDR::Device *m_device;

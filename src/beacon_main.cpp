@@ -70,12 +70,7 @@ void run_beacon()
         sdr.connect();
         sdr.configure(dev_cfg);
 
-        if (sdr.is_limesdr()) {
-                std::cout << "this is a limesdr" << std::endl;
-        }
-        if (sdr.is_bladerf()) {
-                std::cout << "this is a bladerf" << std::endl;
-        }
+
 
         return;
 
