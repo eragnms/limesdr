@@ -78,5 +78,4 @@ public:
 private:
         SDR_Device_Config m_dev_cfg;
         SoapySDR::Device *m_device;
-
 };

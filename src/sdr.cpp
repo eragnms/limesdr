@@ -63,21 +63,22 @@ void SDR::configure(SDR_Device_Config dev_cfg)
         m_device->setFrequency(SOAPY_SDR_TX, dev_cfg.channel_tx,
                                m_dev_cfg.frequency);
 
-        // TODO: run the below in case of LimeSDR, but not BladeRF
-         /*
-          bool tx_lo_locked = false;
-          while (!(stop || tx_lo_locked)) {
-          std::string tx_locked = device->readSensor(SOAPY_SDR_TX,
-          dev_cfg.channel_tx,
-          "lo_locked");
-          if (tx_locked == "true") {
-          tx_lo_locked = true;
-          }
-          usleep(100);
-          }
-        */
-        std::cout << "sdr: TX LO lock detected on channel "
-                  << std::to_string(dev_cfg.channel_tx) << std::endl;
+        if (is_limesdr()) {
+                bool tx_lo_locked = false;
+                while (not tx_lo_locked) {
+                        std::string tx_locked = m_device->readSensor(
+                                SOAPY_SDR_TX,
+                                dev_cfg.channel_tx,
+                                "lo_locked");
+                        if (tx_locked == "true") {
+                                tx_lo_locked = true;
+                        }
+                        usleep(100);
+                }
+                std::cout << "sdr: TX LO lock detected on channel "
+                          << std::to_string(dev_cfg.channel_tx)
+                          << std::endl;
+        }
         std::cout << "sdr: Actual TX frequency on channel "
                   << std::to_string(dev_cfg.channel_tx) << ": "
                   << std::to_string(m_device->getFrequency(

@@ -68,7 +68,7 @@ void run_beacon()
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
         sdr.connect();
-        //sdr.configure(dev_cfg);
+        sdr.configure(dev_cfg);
 
         if (sdr.is_limesdr()) {
                 std::cout << "this is a limesdr" << std::endl;
