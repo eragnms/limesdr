@@ -49,14 +49,20 @@ public:
          * \brief Start the SDR
          *
          * setup and activate the streams.
+         *
+         * \return the timestamp at start
          */
-        void start();
+        int64_t start();
         /**
          * \brief Transmit data in the air
          *
-         * param[in] data the data to be transmitted
+         * \param[in] data the data to be transmitted
+         * \param[in] no_of_samples the number of tx samples
+         * \param[in] burst_time the timestamp of transmission [ns]
+         * \return the number of transmitted samples
          */
-        void write(std::vector<std::complex<float>> data);
+        uint32_t write(std::vector<void *> data, size_t no_of_samples,
+                            long long int burst_time);
         /**
          * \brief Read data from the air
          *
@@ -68,6 +74,11 @@ public:
          *
          * \return true if the first attached device is a LimeSDR
          */
+        /**
+         * \brief Close streams and disconnect device
+         *
+         */
+        void close();
         bool is_limesdr();
         /**
          * \brief Check if a bladerf is conected
@@ -81,7 +92,18 @@ public:
          * HW info will be printed on the screen.
          */
         void list_hw_info();
+        /**
+         * \brief Print a warning if burst_time is strange
+         *
+         */
+        void check_burst_time(long long int burst_time);
 private:
+        std::string get_device_driver();
+
         SDR_Device_Config m_dev_cfg;
         SoapySDR::Device *m_device;
+        SoapySDR::Stream *m_tx_stream;
+        SoapySDR::Stream *m_rx_stream;
+        int64_t m_tx_start_tick;
+        int64_t m_rx_start_tick;
 };
