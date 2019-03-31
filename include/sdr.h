@@ -63,6 +63,7 @@ public:
          * \return a vector of data read
          */
         std::vector<std::vector<std::complex<int16_t>>> read();
+        bool is_limesdr();
 private:
         SDR_Device_Config m_dev_cfg;
         SoapySDR::Device *m_device;

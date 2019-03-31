@@ -68,12 +68,18 @@ void run_beacon()
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
         sdr.connect();
-        sdr.configure(dev_cfg);
+        //sdr.configure(dev_cfg);
+
+        if (sdr.is_limesdr()) {
+                std::cout << "this is a limesdr" << std::endl;
+        }
+
+        return;
 
 
         const size_t rx_ch(0);
 
-        SoapySDR::Stream *tx_stream;
+        SoapySDR::Stream *tx_stream(NULL);
         SoapySDR::Stream *rx_stream;
         rx_stream = device->setupStream(SOAPY_SDR_RX,
                                         "CF32",

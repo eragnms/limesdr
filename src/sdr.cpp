@@ -111,3 +111,9 @@ std::vector<std::vector<std::complex<int16_t>>> SDR::read()
         std::vector<std::vector<std::complex<int16_t>>> a;
         return a;
 }
+
+bool SDR::is_limesdr()
+{
+        SoapySDR::KwargsList result = m_device-> enumerate();
+        return (result[0]["name"] == "LimeSDR-USB");
+}
