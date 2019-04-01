@@ -28,12 +28,37 @@ class Modulation
 public:
         /**
          * \brief Modulation constructor
+         *
+         * \param[in] no_of_samples the number of samples to be generated
+         * \param[in] scale_factor scales the amplitude of the generated data
+         * \param[in] Novs over sampling factor, each sample will be repeated
+         * (Novs-1) number of times, i.e. Novs=1 will have no impact on the
+         * data
          */
         Modulation(size_t no_of_samples,
                    double scale_factor,
                    uint16_t Novs);
+        /**
+         * \brief Generate a sine
+         *
+         * \param[in] tone_freq the frequency of the sine
+         * \param[in] sampling_rate the sampling rate of the tx transmission
+         */
         void generate_sine(double tone_freq, double sampling_rate);
+        /**
+         * \brief Generate CDMA sequence
+         *
+         * Will generate a CDMA scrambling code, as specified in the 3GPP
+         * specifications
+         *
+         * \param[in] code_nr the code number to generate
+         */
         void generate_cdma(uint16_t code_nr);
+        /**
+         * \brief Get generated data
+         *
+         * \return the generated data
+         */
         std::vector<std::complex<float>> get_data();
 private:
         void gen_scr_code(uint16_t code_nr, arma::cx_vec & Z);
