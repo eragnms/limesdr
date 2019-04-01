@@ -70,15 +70,15 @@ public:
          */
         std::vector<std::vector<std::complex<int16_t>>> read();
         /**
-         * \brief Check if a limesdr is conected
-         *
-         * \return true if the first attached device is a LimeSDR
-         */
-        /**
          * \brief Close streams and disconnect device
          *
          */
         void close();
+        /**
+         * \brief Check if a limesdr is conected
+         *
+         * \return true if the first attached device is a LimeSDR
+         */
         bool is_limesdr();
         /**
          * \brief Check if a bladerf is conected
@@ -95,6 +95,10 @@ public:
         /**
          * \brief Print a warning if burst_time is strange
          *
+         * The burst_time will be considered strange if the current
+         * harware has passed it in time.
+         *
+         * \param[in] burst_time the time to check
          */
         void check_burst_time(long long int burst_time);
 private:
