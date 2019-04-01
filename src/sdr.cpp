@@ -321,12 +321,14 @@ size_t SDR::write(std::vector<void *> data, size_t no_of_samples,
 
 }
 
-std::vector<std::complex<int16_t>> SDR::read(size_t no_of_samples)
+int32_t SDR::read(size_t no_of_samples)
 {
-        size_t num_channels(1);
         int32_t no_of_received_samples(0);
         int flags(0);
         long long time_ns(0);
+
+        /*
+        size_t num_channels(1);
         std::vector<std::vector<std::complex<int16_t>>> buff_mem(
                 num_channels,
                 std::vector<std::complex<int16_t>>(no_of_samples));
@@ -334,13 +336,21 @@ std::vector<std::complex<int16_t>> SDR::read(size_t no_of_samples)
         for (size_t i = 0; i < num_channels; i++) {
                 buffs[i] = buff_mem[i].data();
         }
+        */
+
+        std::vector<std::complex<int16_t>> buff_data(no_of_samples);
+        std::vector<void *> buffs_data;
+        buffs_data.push_back(buff_data.data());
+
+
+
         no_of_received_samples = m_device->readStream(m_rx_stream,
-                                                      buffs.data(),
+                                                      buffs_data.data(),
                                                       no_of_samples,
                                                       flags,
                                                       time_ns);
-        std::cout << "num rec data: " << no_of_received_samples << std::endl;
-        return buff_mem[0];
+        //std::cout << "num rec data: " << no_of_received_samples << std::endl;
+        return no_of_received_samples;
 }
 
 void SDR::close()
