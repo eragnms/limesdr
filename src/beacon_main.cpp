@@ -48,29 +48,21 @@ int main(int argc, char** argv)
 void run_beacon()
 {
         SDR_Device_Config dev_cfg;
-
         double f_clk = dev_cfg.f_clk;
         uint16_t D_tx = dev_cfg.D_tx;
-
-        std::string clock_source = dev_cfg.clock_source;
-        std::string time_source = dev_cfg.time_source;
         double burst_period = dev_cfg.burst_period;
         double tx_burst_length = dev_cfg.tx_burst_length;
-
         const double sampling_rate(f_clk / D_tx);
-        const double tone_freq(8e3);
-        const double f_ratio = tone_freq/sampling_rate;
-
+        //const double tone_freq(16e3);
         size_t buffer_size_tx = tx_burst_length * sampling_rate;
         size_t no_of_tx_samples = buffer_size_tx;
-        std::vector<std::complex<float>> tx_buff_data(
-                no_of_tx_samples,
-                std::complex<float>(1.0f, 0.0f));
-        for (size_t i = 0; i < no_of_tx_samples; i++) {
-                const double pi = acos(-1);
-                double w = 2*pi*i*f_ratio;
-                tx_buff_data[i] = std::complex<float>(cos(w), sin(w));
-        }
+
+        double scale_factor(1.0);
+        uint16_t Novs(1);
+        Modulation modulation(no_of_tx_samples, scale_factor, Novs);
+        //modulation.generate_sine(tone_freq, sampling_rate);
+        modulation.generate_cdma(0);
+        std::vector<std::complex<float>> tx_buff_data = modulation.get_data();
         std::vector<void *> tx_buffs_data;
         tx_buffs_data.push_back(tx_buff_data.data());
         std::cout << "sample count per send call: "
@@ -80,16 +72,17 @@ void run_beacon()
         SoapySDR::setLogLevel(dev_cfg.log_level);
         sdr.connect();
         sdr.configure(dev_cfg);
+
         int64_t now_tick = sdr.start();
         int64_t tx_start_tick = now_tick;
         int64_t tx_future = dev_cfg.time_in_future;
         tx_future += 2 * dev_cfg.burst_period;
         tx_start_tick += SoapySDR::timeNsToTicks((tx_future) * 1e9,
                                                    dev_cfg.f_clk);
-
         int64_t tx_tick = tx_start_tick;
         int64_t tmp = D_tx * burst_period * sampling_rate;
         int64_t no_of_ticks_per_bursts_period = tmp;
+
         auto timeLastSpin = std::chrono::high_resolution_clock::now();
         int spinIndex(0);
         std::cout << "Starting stream loop, press Ctrl+C to exit..."

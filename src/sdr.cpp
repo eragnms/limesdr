@@ -3,8 +3,6 @@
  *
  * \brief SDR class
  *
- * Class for the SDR
- *
  * \author Mats Gustafsson
  *
  * Copyright (C) 2019 by Wittra. All rights reserved.
