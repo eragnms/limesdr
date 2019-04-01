@@ -51,15 +51,35 @@ void SDR::configure(SDR_Device_Config dev_cfg)
         std::cout << "Actual TX rate: "
                   << act_sample_rate
                   << " Msps" << std::endl;
+        m_device->setSampleRate(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
+                                m_dev_cfg.sampling_rate);
+        act_sample_rate = m_device->getSampleRate(
+                SOAPY_SDR_RX,
+                m_dev_cfg.channel_rx);
+        std::cout << "Actual RX rate: "
+                  << act_sample_rate
+                  << " Msps" << std::endl;
+
         if (m_dev_cfg.tx_bw != -1) {
                 m_device->setBandwidth(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                                        m_dev_cfg.tx_bw);
         }
+        if (m_dev_cfg.rx_bw != -1) {
+                m_device->setBandwidth(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
+                                       m_dev_cfg.rx_bw);
+        }
+
         m_device->setGain(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                           m_dev_cfg.tx_gain);
+        m_device->setGain(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
+                          m_dev_cfg.rx_gain);
         m_device->setAntenna(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                              m_dev_cfg.antenna_tx);
+        m_device->setAntenna(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
+                             m_dev_cfg.antenna_rx);
         m_device->setFrequency(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
+                               m_dev_cfg.frequency);
+        m_device->setFrequency(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
                                m_dev_cfg.frequency);
 
         if (is_limesdr()) {
@@ -77,12 +97,32 @@ void SDR::configure(SDR_Device_Config dev_cfg)
                 std::cout << "sdr: TX LO lock detected on channel "
                           << std::to_string(m_dev_cfg.channel_tx)
                           << std::endl;
+                bool rx_lo_locked = false;
+                while (not rx_lo_locked) {
+                        std::string tx_locked = m_device->readSensor(
+                                SOAPY_SDR_RX,
+                                m_dev_cfg.channel_rx,
+                                "lo_locked");
+                        if (rx_locked == "true") {
+                                rx_lo_locked = true;
+                        }
+                        usleep(100);
+                }
+                std::cout << "sdr: RX LO lock detected on channel "
+                          << std::to_string(m_dev_cfg.channel_rx)
+                          << std::endl;
         }
         std::cout << "sdr: Actual TX frequency on channel "
                   << std::to_string(m_dev_cfg.channel_tx) << ": "
                   << std::to_string(m_device->getFrequency(
                                             SOAPY_SDR_TX,
                                             m_dev_cfg.channel_tx)/1e6)
+                  << " [MHz]" << std::endl;
+        std::cout << "sdr: Actual RX frequency on channel "
+                  << std::to_string(m_dev_cfg.channel_rx) << ": "
+                  << std::to_string(m_device->getFrequency(
+                                            SOAPY_SDR_RX,
+                                            m_dev_cfg.channel_rx)/1e6)
                   << " [MHz]" << std::endl;
 }
 

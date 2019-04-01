@@ -36,11 +36,14 @@ struct SDR_Device_Config
 
         double frequency = 500e6; //!< Center frequency [Hz]
         double tx_gain = 60; //!< 60 dB is about 0 dBm
+        double rx_gain = 20;
         double tx_bw = -1; //!< Not used if -1
+        double rx_bw = -1; //!< Not used if -1
 
         double time_in_future = 1;
         double burst_period = 10e-3;
         double tx_burst_length = 0.5e-3;
+        size_t no_of_rx_samples = 1500;
 
 		double f_clk = 37.8e6;
 		short channel_tx = 0;

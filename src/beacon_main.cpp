@@ -13,8 +13,6 @@
 
 #include "beacon_main.h"
 
-SoapySDR::Device *device;
-
 static sig_atomic_t stop = false;
 void sigIntHandler(const int)
 {

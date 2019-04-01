@@ -15,10 +15,10 @@
 
 SoapySDR::Device *device(nullptr);
 
-static sig_atomic_t loopDone = false;
+static sig_atomic_t stop = false;
 void sigIntHandler(const int)
 {
-    loopDone = true;
+    stop = true;
 }
 
 int main(int argc, char** argv)
@@ -51,52 +51,17 @@ int main(int argc, char** argv)
 
 void run_tag(bool plot_data)
 {
-        const std::string &channelStr = "0";
+        SDR_Device_Config dev_cfg;
+        dev_cfg.sampling_rate = 50e3;
 
-        const double frequency = 500e6;  //center frequency to 500 MHz
-        const double sample_rate = 50e3;
-        const double rx_gain(20);
-        const double clock_rate(-1);
-        const double rx_bw(-1);
+        SDR sdr;
+        SoapySDR::setLogLevel(dev_cfg.log_level);
+        sdr.connect();
+        sdr.configure(dev_cfg);
 
-        int direction = SOAPY_SDR_RX;
+        sdr.start();
 
-        device = SoapySDR::Device::make();
-        //build channels list, using KwargsFromString is a easy parsing hack
-        std::vector<size_t> channels;
-        for (const auto &pair : SoapySDR::KwargsFromString(channelStr)) {
-            channels.push_back(std::stoi(pair.first));
-        }
-        if (channels.empty()) channels.push_back(0);
-        //initialize the sample rate for all channels
-        for (const auto &chan : channels) {
-                if (clock_rate != -1) {
-                        device->setMasterClockRate(clock_rate);
-                }
-                device->setSampleRate(direction, chan, sample_rate);
-                device->setAntenna(SOAPY_SDR_RX, chan, "LNAL");
-                device->setGain(SOAPY_SDR_RX, chan, rx_gain);
-                device->setFrequency(SOAPY_SDR_RX, chan, frequency);
-                if (rx_bw != -1) {
-                        device->setBandwidth(SOAPY_SDR_RX, chan, rx_bw);
-                }
-        }
-
-        //create the stream, use the native format
-        double fullScale(0.0);
-        const auto format = device->getNativeStreamFormat(direction, channels.front(), fullScale);
-        const size_t elemSize = SoapySDR::formatToSize(format);
-        auto stream = device->setupStream(direction, format, channels);
-
-        std::cout << "Stream format: " << format << std::endl;
-        std::cout << "Num channels: " << channels.size() << std::endl;
-        std::cout << "Element size: " << elemSize << " bytes" << std::endl;
-        std::cout << "Sample rate: "  << (sample_rate/1e6) << " Msps" << std::endl;
-
-        //allocate buffers for the stream read/write
-        const size_t numChans = channels.size();
-        //const size_t numElems = device->getStreamMTU(stream);
-        const size_t numElems = 1500;
+        const size_t numElems = dev_cfg.no_of_rx_samples;
         std::cout << "Num elems: " << numElems << std::endl;
         std::vector<std::vector<std::complex<int16_t>>> buffMem(
                 numChans,
@@ -114,17 +79,17 @@ void run_tag(bool plot_data)
         auto timeLastStatus = std::chrono::high_resolution_clock::now();
         int spinIndex(0);
 
-        device->activateStream(stream);
         size_t numElems2 = numElems;
 
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
-        while (not loopDone) {
+        while (not stop) {
                 int ret(0);
                 int flags(0);
                 long long timeNs(0);
-                ret = device->readStream(stream, buffs.data(), numElems2, flags, timeNs);
+                ret = device->readStream(stream, buffs.data(), numElems2,
+                                         flags, timeNs);
                 if (ret == SOAPY_SDR_TIMEOUT) {
                         continue;
                 }
@@ -169,10 +134,6 @@ void run_tag(bool plot_data)
                         if (underflows != 0) printf("\tUnderflows %u", underflows);
                         printf("\n ");
                 }
-                //n++;
-                //loopDone = (n > 100);
-                //std::cout << n << std::endl;
-
         }
         device->deactivateStream(stream);
         //cleanup stream and device
