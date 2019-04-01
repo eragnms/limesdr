@@ -210,7 +210,7 @@ uint32_t SDR::write(std::vector<void *> data, size_t no_of_samples,
                         tx_flags,
                         burst_time,
                         1e6*m_dev_cfg.timeout);
-                std::string tx_verbose_msg = "Stream status: ";
+                std::string tx_verbose_msg = "";
                 switch(stream_status) {
                 case SOAPY_SDR_TIMEOUT:
                         tx_verbose_msg += "SOAPY_SDR_TIMEOUT";
@@ -237,10 +237,14 @@ uint32_t SDR::write(std::vector<void *> data, size_t no_of_samples,
                         tx_verbose_msg += "SOAPY_SDR_UNDERFLOW";
                         break;
                 default:
-                        tx_verbose_msg += "NO_ERROR";
+                        // No ERROR
                         break;
                 }
-                std::cout << tx_verbose_msg << std::endl;
+                if (tx_verbose_msg != "") {
+                        std::cout << "Stream status: "
+                                  << tx_verbose_msg
+                                  << std::endl;
+                }
         }
 
 

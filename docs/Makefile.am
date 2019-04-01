@@ -3,9 +3,9 @@ directory = $(top_srcdir)/docs
 
 $(directory): doxyfile.stamp
 
+#cd latex && $(MAKE), removed
 doxyfile.stamp: Doxyfile Doxyfile.in overview.dox
 	$(DOXYGEN) $^
-	cd latex && $(MAKE)
 	echo Timestamp > $@
 
 all-local: doxyfile.stamp

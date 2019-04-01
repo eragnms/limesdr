@@ -90,6 +90,8 @@ void run_beacon()
         int64_t tx_tick = tx_start_tick;
         int64_t tmp = D_tx * burst_period * sampling_rate;
         int64_t no_of_ticks_per_bursts_period = tmp;
+        auto timeLastSpin = std::chrono::high_resolution_clock::now();
+        int spinIndex(0);
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
@@ -99,6 +101,15 @@ void run_beacon()
                 sdr.check_burst_time(burst_time);
                 sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
                 tx_tick += no_of_ticks_per_bursts_period;
+
+                const auto now = std::chrono::high_resolution_clock::now();
+                if (timeLastSpin + std::chrono::milliseconds(300) < now) {
+                        timeLastSpin = now;
+                        static const char spin[] = {"|/-\\"};
+                        printf("\b%c", spin[(spinIndex++)%4]);
+                        fflush(stdout);
+                }
+
         }
         sdr.close();
 }
