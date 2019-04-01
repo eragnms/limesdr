@@ -17,13 +17,15 @@ Analysis::Analysis()
 void Analysis::add_data(std::vector<std::complex<float>> data)
 {
         m_data.clear();
+        m_data.set_size(data.size());
         m_data = arma::conv_to<arma::cx_vec>::from(data);
 }
 
 void Analysis::add_data(std::vector<std::complex<int16_t>> data)
 {
         m_data.clear();
-        for (size_t n=0; n<data.size(); n++) {
+        m_data.set_size(data.size());
+        for (size_t n=0; n<data.size()-1; n++) {
                 int16_t re = std::real(data[n]);
                 int16_t im = std::imag(data[n]);
                 m_data(n) = std::complex<double>((double)re, (double)im);

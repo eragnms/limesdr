@@ -13,6 +13,8 @@
 #include <complex>
 #include <armadillo>
 
+#include "macros.h"
+
 /**
  * \class Analysis
  *

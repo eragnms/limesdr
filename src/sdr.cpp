@@ -144,6 +144,12 @@ void SDR::configure_rx()
 int64_t SDR::start()
 {
         int64_t now_tick(-1);
+        if (m_dev_cfg.rx_active) {
+                now_tick = start_rx();
+        }
+        if (m_dev_cfg.tx_active) {
+                start_tx();
+        }
         int mtu_tx = m_device->getStreamMTU(m_tx_stream);
         int mtu_rx = m_device->getStreamMTU(m_rx_stream);
         std::cout << "sdr: mtu_tx="
@@ -151,12 +157,6 @@ int64_t SDR::start()
                   << " [Sa], mtu_rx="
                   << std::to_string(mtu_rx) + " [Sa]"
                   << std::endl;
-        if (m_dev_cfg.rx_active) {
-                now_tick = start_rx();
-        }
-        if (m_dev_cfg.tx_active) {
-                start_tx();
-        }
         return now_tick;
 }
 
@@ -211,11 +211,10 @@ int64_t SDR::start_rx()
         int rx_flags = SOAPY_SDR_HAS_TIME;
         rx_flags |= SOAPY_SDR_END_BURST;
         rx_flags |= SOAPY_SDR_ONE_PACKET;
-        size_t no_of_requested_samples(100);
+        //size_t no_of_requested_samples(100);
         int ret = m_device->activateStream(m_rx_stream,
                                            rx_flags,
-                                           burst_time,
-                                           no_of_requested_samples);
+                                           burst_time);
         if (ret != 0) {
                 std::string err = "sdr: Following problem occurred while";
                 err += " activating RX stream: ";
@@ -322,27 +321,39 @@ size_t SDR::write(std::vector<void *> data, size_t no_of_samples,
 
 }
 
-int32_t SDR::read(std::vector<void *> &data, size_t no_of_samples)
+std::vector<std::complex<int16_t>> SDR::read(size_t no_of_samples)
 {
+        size_t num_channels(1);
         int32_t no_of_received_samples(0);
         int flags(0);
         long long time_ns(0);
+        std::vector<std::vector<std::complex<int16_t>>> buff_mem(
+                num_channels,
+                std::vector<std::complex<int16_t>>(no_of_samples));
+        std::vector<void *> buffs(num_channels);
+        for (size_t i = 0; i < num_channels; i++) {
+                buffs[i] = buff_mem[i].data();
+        }
         no_of_received_samples = m_device->readStream(m_rx_stream,
-                                                      data.data(),
+                                                      buffs.data(),
                                                       no_of_samples,
                                                       flags,
                                                       time_ns);
-        return no_of_received_samples;
+        std::cout << "num rec data: " << no_of_received_samples << std::endl;
+        return buff_mem[0];
 }
 
 void SDR::close()
 {
-        m_device->deactivateStream(m_tx_stream);
-        m_device->closeStream(m_tx_stream);
-        m_device->deactivateStream(m_rx_stream);
-        m_device->closeStream(m_rx_stream);
+        if (m_dev_cfg.tx_active) {
+                m_device->deactivateStream(m_tx_stream);
+                m_device->closeStream(m_tx_stream);
+        }
+        if (m_dev_cfg.rx_active) {
+                m_device->deactivateStream(m_rx_stream);
+                m_device->closeStream(m_rx_stream);
+        }
         SoapySDR::Device::unmake(m_device);
-
 }
 
 void SDR::check_burst_time(long long int burst_time)

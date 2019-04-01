@@ -62,28 +62,30 @@ void run_tag(bool plot_data)
         sdr.configure(dev_cfg);
         sdr.start();
 
-        size_t num_channels(1);
-        std::cout << "Num samples: " << no_of_samples << std::endl;
-        std::vector<std::vector<std::complex<int16_t>>> buff_mem(
-                num_channels,
-                std::vector<std::complex<int16_t>>(no_of_samples));
-        std::vector<void *> buffs(num_channels);
-        for (size_t i = 0; i < num_channels; i++) {
-                buffs[i] = buff_mem[i].data();
-        }
 
-        unsigned int overflows(0);
-        unsigned int underflows(0);
-        unsigned long long totalSamples(0);
+        std::cout << "Num samples: " << no_of_samples << std::endl;
+        /*
+          std::vector<std::vector<std::complex<int16_t>>> buff_mem(
+          num_channels,
+          std::vector<std::complex<int16_t>>(no_of_samples));
+          std::vector<void *> buffs(num_channels);
+          for (size_t i = 0; i < num_channels; i++) {
+          buffs[i] = buff_mem[i].data();
+        }
+        */
+        //unsigned int overflows(0);
+        //unsigned int underflows(0);
+        //unsigned long long totalSamples(0);
         auto timeLastSpin = std::chrono::high_resolution_clock::now();
         int spinIndex(0);
+
 
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
         while (not stop) {
-                int32_t no_of_rec_samples = sdr.read(buffs,
-                                                     no_of_samples);
+                std::vector<std::complex<int16_t>> buff  = sdr.read(no_of_samples);
+                /*
                 if (no_of_rec_samples == SOAPY_SDR_TIMEOUT) {
                         continue;
                 }
@@ -101,6 +103,7 @@ void run_tag(bool plot_data)
                                   << std::endl;
                 }
                 totalSamples += no_of_rec_samples;
+                */
                 const auto now = std::chrono::high_resolution_clock::now();
                 if (timeLastSpin + std::chrono::milliseconds(300) < now) {
                         timeLastSpin = now;
@@ -110,9 +113,10 @@ void run_tag(bool plot_data)
                 }
         }
         sdr.close();
-        if (plot_data) {
+        if (plot_data) {}
+        /*if (plot_data) {
                 Analysis analysis;
-                analysis.add_data(buff_mem[0]);
+                analysis.add_data(buff);
                 analysis.plot_data();
-        }
+                }*/
 }
