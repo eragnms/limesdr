@@ -35,7 +35,6 @@ void SDR::connect()
 void SDR::configure(SDR_Device_Config dev_cfg)
 {
         m_dev_cfg = dev_cfg;
-
         if (m_dev_cfg.clock_source != "") {
                 m_device->setClockSource(m_dev_cfg.clock_source);
         }
@@ -43,6 +42,16 @@ void SDR::configure(SDR_Device_Config dev_cfg)
                 m_device->setTimeSource(m_dev_cfg.time_source);
         }
         m_device->setMasterClockRate(m_dev_cfg.f_clk);
+        if (m_dev_cfg.rx_active) {
+                configure_rx();
+        }
+        if (m_dev_cfg.tx_active) {
+                configure_tx();
+        }
+}
+
+void SDR::configure_tx()
+{
         m_device->setSampleRate(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                                 m_dev_cfg.sampling_rate);
         double act_sample_rate = m_device->getSampleRate(
@@ -51,37 +60,16 @@ void SDR::configure(SDR_Device_Config dev_cfg)
         std::cout << "Actual TX rate: "
                   << act_sample_rate
                   << " Msps" << std::endl;
-        m_device->setSampleRate(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
-                                m_dev_cfg.sampling_rate);
-        act_sample_rate = m_device->getSampleRate(
-                SOAPY_SDR_RX,
-                m_dev_cfg.channel_rx);
-        std::cout << "Actual RX rate: "
-                  << act_sample_rate
-                  << " Msps" << std::endl;
-
         if (m_dev_cfg.tx_bw != -1) {
                 m_device->setBandwidth(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                                        m_dev_cfg.tx_bw);
         }
-        if (m_dev_cfg.rx_bw != -1) {
-                m_device->setBandwidth(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
-                                       m_dev_cfg.rx_bw);
-        }
-
         m_device->setGain(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                           m_dev_cfg.tx_gain);
-        m_device->setGain(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
-                          m_dev_cfg.rx_gain);
         m_device->setAntenna(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                              m_dev_cfg.antenna_tx);
-        m_device->setAntenna(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
-                             m_dev_cfg.antenna_rx);
         m_device->setFrequency(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                                m_dev_cfg.frequency);
-        m_device->setFrequency(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
-                               m_dev_cfg.frequency);
-
         if (is_limesdr()) {
                 bool tx_lo_locked = false;
                 while (not tx_lo_locked) {
@@ -97,7 +85,39 @@ void SDR::configure(SDR_Device_Config dev_cfg)
                 std::cout << "sdr: TX LO lock detected on channel "
                           << std::to_string(m_dev_cfg.channel_tx)
                           << std::endl;
-                bool rx_lo_locked = false;
+        }
+        std::cout << "sdr: Actual TX frequency on channel "
+                  << std::to_string(m_dev_cfg.channel_tx) << ": "
+                  << std::to_string(m_device->getFrequency(
+                                            SOAPY_SDR_TX,
+                                            m_dev_cfg.channel_tx)/1e6)
+                  << " [MHz]" << std::endl;
+}
+
+void SDR::configure_rx()
+{
+        m_device->setSampleRate(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
+                                m_dev_cfg.sampling_rate);
+        double act_sample_rate = m_device->getSampleRate(
+                SOAPY_SDR_RX,
+                m_dev_cfg.channel_rx);
+        std::cout << "Actual RX rate: "
+                  << act_sample_rate
+                  << " Msps" << std::endl;
+        if (m_dev_cfg.rx_bw != -1) {
+                m_device->setBandwidth(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
+                                       m_dev_cfg.rx_bw);
+        }
+        m_device->setGain(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
+                          m_dev_cfg.rx_gain);
+        m_device->setAntenna(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
+                             m_dev_cfg.antenna_rx);
+        m_device->setFrequency(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
+                               m_dev_cfg.frequency);
+
+        if (is_limesdr()) {
+                /*
+                  bool rx_lo_locked = false;
                 while (not rx_lo_locked) {
                         std::string rx_locked = m_device->readSensor(
                                 SOAPY_SDR_RX,
@@ -111,13 +131,8 @@ void SDR::configure(SDR_Device_Config dev_cfg)
                 std::cout << "sdr: RX LO lock detected on channel "
                           << std::to_string(m_dev_cfg.channel_rx)
                           << std::endl;
+                */
         }
-        std::cout << "sdr: Actual TX frequency on channel "
-                  << std::to_string(m_dev_cfg.channel_tx) << ": "
-                  << std::to_string(m_device->getFrequency(
-                                            SOAPY_SDR_TX,
-                                            m_dev_cfg.channel_tx)/1e6)
-                  << " [MHz]" << std::endl;
         std::cout << "sdr: Actual RX frequency on channel "
                   << std::to_string(m_dev_cfg.channel_rx) << ": "
                   << std::to_string(m_device->getFrequency(
@@ -127,6 +142,26 @@ void SDR::configure(SDR_Device_Config dev_cfg)
 }
 
 int64_t SDR::start()
+{
+        int64_t now_tick(-1);
+        int mtu_tx = m_device->getStreamMTU(m_tx_stream);
+        int mtu_rx = m_device->getStreamMTU(m_rx_stream);
+        std::cout << "sdr: mtu_tx="
+                  << std::to_string(mtu_tx)
+                  << " [Sa], mtu_rx="
+                  << std::to_string(mtu_rx) + " [Sa]"
+                  << std::endl;
+        if (m_dev_cfg.rx_active) {
+                now_tick = start_rx();
+        }
+        if (m_dev_cfg.tx_active) {
+                start_tx();
+        }
+        return now_tick;
+}
+
+
+void SDR::start_tx()
 {
         m_tx_stream = m_device->setupStream(
                 SOAPY_SDR_TX,
@@ -138,16 +173,6 @@ int64_t SDR::start()
                 std::cout << "sdr: TX stream has been successfully set up!"
                           << std::endl;
         }
-        m_rx_stream = m_device->setupStream(
-                SOAPY_SDR_RX,
-                SOAPY_SDR_CF32,
-                std::vector<size_t>{(size_t)m_dev_cfg.channel_rx});
-        if (m_rx_stream == nullptr) {
-                throw std::runtime_error("Unable to setup RX stream!");
-        } else {
-                std::cout << "sdr: RX stream has been successfully set up!"
-                          << std::endl;
-        }
         int ret = m_device->activateStream(m_tx_stream);
         if (ret != 0) {
                 std::string err = "sdr: Following problem occurred while";
@@ -156,6 +181,20 @@ int64_t SDR::start()
                 throw std::runtime_error(err);
         } else {
                 std::cout << "sdr: TX stream has been successfully activated!"
+                          << std::endl;
+        }
+}
+
+int64_t SDR::start_rx()
+{
+        m_rx_stream = m_device->setupStream(
+                SOAPY_SDR_RX,
+                SOAPY_SDR_CF32,
+                std::vector<size_t>{(size_t)m_dev_cfg.channel_rx});
+        if (m_rx_stream == nullptr) {
+                throw std::runtime_error("Unable to setup RX stream!");
+        } else {
+                std::cout << "sdr: RX stream has been successfully set up!"
                           << std::endl;
         }
         m_device->setHardwareTime(0);
@@ -173,10 +212,10 @@ int64_t SDR::start()
         rx_flags |= SOAPY_SDR_END_BURST;
         rx_flags |= SOAPY_SDR_ONE_PACKET;
         size_t no_of_requested_samples(100);
-        ret = m_device->activateStream(m_rx_stream,
-                                       rx_flags,
-                                       burst_time,
-                                       no_of_requested_samples);
+        int ret = m_device->activateStream(m_rx_stream,
+                                           rx_flags,
+                                           burst_time,
+                                           no_of_requested_samples);
         if (ret != 0) {
                 std::string err = "sdr: Following problem occurred while";
                 err += " activating RX stream: ";
@@ -186,13 +225,6 @@ int64_t SDR::start()
                 std::cout << "sdr: RX stream has been successfully activated!"
                           << std::endl;
         }
-        int mtu_tx = m_device->getStreamMTU(m_tx_stream);
-        int mtu_rx = m_device->getStreamMTU(m_rx_stream);
-        std::cout << "sdr: mtu_tx="
-                  << std::to_string(mtu_tx)
-                  << " [Sa], mtu_rx="
-                  << std::to_string(mtu_rx) + " [Sa]"
-                  << std::endl;
         return now_tick;
 }
 

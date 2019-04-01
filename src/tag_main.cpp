@@ -52,6 +52,7 @@ int main(int argc, char** argv)
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
+        dev_cfg.tx_active = false;
         dev_cfg.sampling_rate = 50e3;
         const size_t no_of_samples = dev_cfg.no_of_rx_samples;
 

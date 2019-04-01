@@ -54,4 +54,7 @@ struct SDR_Device_Config
 		std::string antenna_tx = "BAND1";
 		std::string antenna_rx = "LNAL";
 		double timeout = 2;
+
+        bool tx_active = true;
+        bool rx_active = true;
 };

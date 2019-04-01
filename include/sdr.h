@@ -111,6 +111,10 @@ public:
         void check_burst_time(long long int burst_time);
 private:
         std::string get_device_driver();
+        void configure_tx();
+        void configure_rx();
+        void start_tx();
+        int64_t start_rx();
 
         SDR_Device_Config m_dev_cfg;
         SoapySDR::Device *m_device;
