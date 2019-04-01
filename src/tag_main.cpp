@@ -179,7 +179,9 @@ void run_tag(bool plot_data)
         device->closeStream(stream);
         SoapySDR::Device::unmake(device);
 
-        if (plot_data) {
+        if (plot_data) {}
+
+        /*if (plot_data) {
                 arma::vec y_re(numElems2);
                 //arma::vec y_im(numElems2);
                 for (size_t j = 0; j < numElems2; ++j) {
@@ -187,61 +189,5 @@ void run_tag(bool plot_data)
                         //y_re(j) = buffer[2 * j];
                         //y_im(j) = buffMem[1][2 * j + 1];
                 }
-                plot(y_re);
-        }
-
-
-
-
-
-}
-
-/**
- * \fn plot
- * \brief Use gnuplot-cpp to plot data
- *
- * See the example.cc file that comes with the package for
- * examples on how to use the library.
- *
- */
-void plot(std::vector<double> y, std::string title)
-{
-        Gnuplot g1("lines");
-        g1.set_title(title);
-        g1.plot_x(y);
-        //usleep(1000000);
-        wait_for_key();
-}
-
-void plot(std::vector<double> y)
-{
-        plot(y, "");
-}
-
-void plot(arma::vec y, std::string title)
-{
-        std::vector<double> y_p = arma::conv_to<std::vector<double>>::from(y);
-        plot(y_p, title);
-}
-
-void plot(arma::vec y)
-{
-        std::vector<double> y_p = arma::conv_to<std::vector<double>>::from(y);
-        plot(y_p, "");
-}
-
-void wait_for_key()
-{
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
-        std::cout << std::endl << "Press any key to continue..." << std::endl;
-
-        FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
-        _getch();
-#elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
-        std::cout << std::endl << "Press ENTER to continue..." << std::endl;
-        std::cin.clear();
-        std::cin.ignore(std::cin.rdbuf()->in_avail());
-        std::cin.get();
-#endif
-        return;
+                plot(y_re);*/
 }

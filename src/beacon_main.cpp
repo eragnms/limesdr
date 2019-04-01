@@ -53,20 +53,24 @@ void run_beacon()
         double burst_period = dev_cfg.burst_period;
         double tx_burst_length = dev_cfg.tx_burst_length;
         const double sampling_rate(f_clk / D_tx);
-        //const double tone_freq(16e3);
         size_t buffer_size_tx = tx_burst_length * sampling_rate;
         size_t no_of_tx_samples = buffer_size_tx;
 
         double scale_factor(1.0);
         uint16_t Novs(1);
         Modulation modulation(no_of_tx_samples, scale_factor, Novs);
-        //modulation.generate_sine(tone_freq, sampling_rate);
-        modulation.generate_cdma(0);
+        const double tone_freq(16e3);
+        modulation.generate_sine(tone_freq, sampling_rate);
+        //modulation.generate_cdma(0);
         std::vector<std::complex<float>> tx_buff_data = modulation.get_data();
         std::vector<void *> tx_buffs_data;
         tx_buffs_data.push_back(tx_buff_data.data());
         std::cout << "sample count per send call: "
                   << no_of_tx_samples << std::endl;
+
+        Analysis analyze;
+        analyze.add_data(tx_buff_data);
+        analyze.plot_data();
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);

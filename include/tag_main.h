@@ -20,15 +20,10 @@
 #include <math.h>
 #include <armadillo>
 #include <signal.h>
-#include "gnuplot_i.hpp"
 
 #include "lime/LimeSuite.h"
 #include "macros.h"
 
 void run_tag(bool plot_data);
-void plot(std::vector<double> y, std::string title);
-void plot(std::vector<double> y);
-void plot(arma::vec y, std::string title);
-void plot(arma::vec y);
 void wait_for_key();
 void sigIntHandler(const int);
