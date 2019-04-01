@@ -23,6 +23,9 @@
 
 #include "lime/LimeSuite.h"
 #include "macros.h"
+#include "sdr_config.h"
+#include "sdr.h"
+#include "analysis.h"
 
 void run_tag(bool plot_data);
 void wait_for_key();

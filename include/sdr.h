@@ -66,14 +66,17 @@ public:
          * \param[in] burst_time the timestamp of transmission [ns]
          * \return the number of transmitted samples
          */
-        uint32_t write(std::vector<void *> data, size_t no_of_samples,
+        size_t write(std::vector<void *> data, size_t no_of_samples,
                             long long int burst_time);
         /**
          * \brief Read data from the air
          *
-         * \return a vector of data read
+         * \param[in] data vector of pointers to data vectors, will
+         * return the sampled data
+         * \param[in] no_of_samples number of samples to read
+         * \return number of read samples
          */
-        std::vector<std::vector<std::complex<int16_t>>> read();
+        int32_t read(std::vector<void *> &data, size_t no_of_samples);
         /**
          * \brief Close streams and disconnect device
          *

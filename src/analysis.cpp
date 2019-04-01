@@ -17,24 +17,43 @@ Analysis::Analysis()
 void Analysis::add_data(std::vector<std::complex<float>> data)
 {
         m_data.clear();
-        m_data = data;
+        m_data = arma::conv_to<arma::cx_vec>::from(data);
+}
+
+void Analysis::add_data(std::vector<std::complex<int16_t>> data)
+{
+        m_data.clear();
+        for (size_t n=0; n<data.size(); n++) {
+                int16_t re = std::real(data[n]);
+                int16_t im = std::imag(data[n]);
+                m_data(n) = std::complex<double>((double)re, (double)im);
+        }
+}
+
+void Analysis::plot_real_data()
+{
+        plot(arma::real(m_data), "real part");
+}
+
+void Analysis::plot_imag_data()
+{
+        plot(arma::imag(m_data), "imag part");
 }
 
 void Analysis::plot_data()
 {
-        arma::cx_vec y = arma::conv_to<arma::cx_vec>::from(m_data);
-        plot(arma::real(y), "m");
+        plot(arma::abs(m_data), "absolute part");
 }
+
 
 void Analysis::save_data(std::string filename)
 {
-        arma::cx_vec y = arma::conv_to<arma::cx_vec>::from(m_data);
         std::string file;
         file = filename + "_re.arm";
-        arma::vec re_data = arma::real(y);
+        arma::vec re_data = arma::real(m_data);
         re_data.save(file, arma::raw_ascii);
         file = filename + "_im.arm";
-        arma::vec im_data = arma::imag(y);
+        arma::vec im_data = arma::imag(m_data);
         im_data.save(file, arma::raw_ascii);
 }
 

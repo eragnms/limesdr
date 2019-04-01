@@ -35,12 +35,33 @@ public:
          */
         void add_data(std::vector<std::complex<float>> data);
         /**
+         * \brief Add data for analysis
+         *
+         * \param[in] data the data to be analysed
+         */
+        void add_data(std::vector<std::complex<int16_t>> data);
+        /**
+         * \brief Plot real data
+         *
+         * Plot the real part of the data that has been added with
+         * the add_data method
+         */
+        void plot_real_data();
+        /**
+         * \brief Plot imag data
+         *
+         * Plot the imaginary part of the data that has been added with
+         * the add_data method
+         */
+        void plot_imag_data();
+        /**
          * \brief Plot data
          *
-         * Plot the data that has been added with the
-         * add_data method
+         * Plot the absolute part of the data that has been added with
+         * the add_data method
          */
         void plot_data();
+
         /**
          * \brief Save data to a file
          *
@@ -57,7 +78,7 @@ private:
         void plot(arma::vec y);
         void wait_for_key();
 
-        std::vector<std::complex<float>> m_data;
+        arma::cx_vec m_data;
 
 
 

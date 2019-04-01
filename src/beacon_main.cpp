@@ -68,7 +68,7 @@ void run_beacon()
 
         Analysis analyze;
         analyze.add_data(tx_buff_data);
-        analyze.plot_data();
+        analyze.plot_real_data();
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);

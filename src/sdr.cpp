@@ -99,7 +99,7 @@ void SDR::configure(SDR_Device_Config dev_cfg)
                           << std::endl;
                 bool rx_lo_locked = false;
                 while (not rx_lo_locked) {
-                        std::string tx_locked = m_device->readSensor(
+                        std::string rx_locked = m_device->readSensor(
                                 SOAPY_SDR_RX,
                                 m_dev_cfg.channel_rx,
                                 "lo_locked");
@@ -196,12 +196,12 @@ int64_t SDR::start()
         return now_tick;
 }
 
-uint32_t SDR::write(std::vector<void *> data, size_t no_of_samples,
+size_t SDR::write(std::vector<void *> data, size_t no_of_samples,
                     long long int burst_time)
 {
         int tx_flags = SOAPY_SDR_HAS_TIME;
         tx_flags |= SOAPY_SDR_END_BURST | SOAPY_SDR_ONE_PACKET;
-        uint32_t no_of_transmitted_samples = m_device->writeStream(
+        size_t no_of_transmitted_samples = m_device->writeStream(
                 m_tx_stream,
                 data.data(),
                 no_of_samples,
@@ -290,10 +290,17 @@ uint32_t SDR::write(std::vector<void *> data, size_t no_of_samples,
 
 }
 
-std::vector<std::vector<std::complex<int16_t>>> SDR::read()
+int32_t SDR::read(std::vector<void *> &data, size_t no_of_samples)
 {
-        std::vector<std::vector<std::complex<int16_t>>> a;
-        return a;
+        int32_t no_of_received_samples(0);
+        int flags(0);
+        long long time_ns(0);
+        no_of_received_samples = m_device->readStream(m_rx_stream,
+                                                      data.data(),
+                                                      no_of_samples,
+                                                      flags,
+                                                      time_ns);
+        return no_of_received_samples;
 }
 
 void SDR::close()
