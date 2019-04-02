@@ -65,6 +65,13 @@ public:
          */
         int64_t start();
         /**
+         * \brief Returns the RX stream handle
+         *
+         * \return the RX stream handle
+         */
+        SoapySDR::Stream *get_rx_stream();
+
+        /**
          * \brief Transmit data in the air
          *
          * \param[in] data the data to be transmitted

@@ -132,7 +132,10 @@ void run_tag(bool plot_data)
 
         int direction = SOAPY_SDR_RX;
 
+        sdr.start();
+
         device = sdr.get_device();
+        auto stream = sdr.get_rx_stream();
 
         std::vector<size_t> channels;
         channels.push_back(0);
@@ -141,7 +144,7 @@ void run_tag(bool plot_data)
         double fullScale(0.0);
         const auto format = device->getNativeStreamFormat(direction, channels.front(), fullScale);
         const size_t elemSize = SoapySDR::formatToSize(format);
-        auto stream = device->setupStream(direction, format, channels);
+        //auto stream = device->setupStream(direction, format, channels);
 
         std::cout << "Stream format: " << format << std::endl;
         std::cout << "Num channels: " << channels.size() << std::endl;
