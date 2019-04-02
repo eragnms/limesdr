@@ -40,9 +40,12 @@ struct SDR_Device_Config
         double tx_bw = -1; //!< Not used if -1
         double rx_bw = -1; //!< Not used if -1
 
+        double chiprate = 3.84e6;
+        uint16_t Novs = 1;
         double time_in_future = 1;
-        double burst_period = 10e-3;
-        double tx_burst_length = 0.1024e-3;
+        double burst_period = 10e-3; //!< [s]
+        size_t burst_length_in_chip = 512;
+        double tx_burst_length = burst_length_in_chip * Novs;
         size_t no_of_rx_samples = 600e3;
 
         double f_clk = -1; //!< Should be set in beacon or tag

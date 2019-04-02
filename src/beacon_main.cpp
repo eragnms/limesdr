@@ -50,13 +50,13 @@ void run_beacon()
         dev_cfg.sampling_rate = dev_cfg.f_clk / dev_cfg.D_tx;
         const double sampling_rate = dev_cfg.sampling_rate;
         double burst_period = dev_cfg.burst_period;
-        double tx_burst_length = dev_cfg.tx_burst_length;
-        size_t buffer_size_tx = tx_burst_length * sampling_rate;
+        double tx_burst_length = dev_cfg.burst_length_in_chip;
+        size_t buffer_size_tx = tx_burst_length * dev_cfg.Novs;
         size_t no_of_tx_samples = buffer_size_tx;
 
         double scale_factor(1.0);
-        uint16_t Novs(1);
-        Modulation modulation(no_of_tx_samples, scale_factor, Novs);
+        uint16_t Novs = dev_cfg.Novs;
+        Modulation modulation(tx_burst_length, scale_factor, Novs);
         //const double tone_freq(16e3);
         //modulation.generate_sine(tone_freq, sampling_rate);
         modulation.generate_cdma(0);
