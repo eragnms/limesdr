@@ -12,7 +12,6 @@
  */
 
 #include "tag_main.h"
-//#include "gnuplot_i.hpp"
 
 SoapySDR::Device *device(nullptr);
 
@@ -56,8 +55,7 @@ void run_tag(bool plot_data)
         dev_cfg.tx_active = false;
         const size_t no_of_samples = dev_cfg.no_of_rx_samples;
         dev_cfg.tx_active = false;
-        dev_cfg.f_clk = 160e6;
-        dev_cfg.sampling_rate = dev_cfg.f_clk / dev_cfg.D_tx;
+        dev_cfg.sampling_rate = dev_cfg.f_clk_tag / dev_cfg.D_tx;
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
@@ -109,6 +107,6 @@ void run_tag(bool plot_data)
                 Analysis analysis;
                 analysis.add_data(buff_data);
                 analysis.plot_imag_data();
-                analysis.save_data("cdma_code_0_512_sample_burst_20msps");
+                //analysis.save_data("cdma_code_0_512_sample_burst_20msps");
         }
 }

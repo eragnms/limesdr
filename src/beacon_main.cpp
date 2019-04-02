@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 void run_beacon()
 {
         SDR_Device_Config dev_cfg;
-        double f_clk = dev_cfg.f_clk;
+        double f_clk = dev_cfg.f_clk_beacon;
         uint16_t D_tx = dev_cfg.D_tx;
         double burst_period = dev_cfg.burst_period;
         double tx_burst_length = dev_cfg.tx_burst_length;

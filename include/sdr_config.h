@@ -45,7 +45,8 @@ struct SDR_Device_Config
         double tx_burst_length = 0.1024e-3;
         size_t no_of_rx_samples = 600e3;
 
-		double f_clk = 40.0e6;
+		double f_clk_tag = 160e6;
+		double f_clk_beacon = 40.0e6;
 		short channel_tx = 0;
 		short channel_rx = 0;
 		uint16_t D_tx = 8;
