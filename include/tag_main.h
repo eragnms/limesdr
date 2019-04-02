@@ -25,7 +25,7 @@
 #include "macros.h"
 #include "sdr_config.h"
 #include "sdr.h"
-//#include "analysis.h"
+#include "analysis.h"
 
 void run_tag(bool plot_data);
 void plot(std::vector<double> y, std::string title);
