@@ -66,9 +66,9 @@ void run_beacon()
         std::cout << "sample count per send call: "
                   << no_of_tx_samples << std::endl;
 
-        Analysis analyze;
-        analyze.add_data(tx_buff_data);
-        analyze.plot_real_data();
+        //Analysis analyze;
+        //analyze.add_data(tx_buff_data);
+        //analyze.plot_real_data();
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);

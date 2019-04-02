@@ -34,8 +34,8 @@ struct SDR_Device_Config
 		std::string clock_source = ""; //!< Not used if ""
 		std::string time_source = ""; //!< Not used if ""
 
-        double frequency = 500e6; //!< Center frequency [Hz]
-        double tx_gain = 60; //!< 60 dB is about 0 dBm
+        double frequency = 800e6; //!< Center frequency [Hz]
+        double tx_gain = 70; //!< 60 dB is about 0 dBm
         double rx_gain = 20;
         double tx_bw = -1; //!< Not used if -1
         double rx_bw = -1; //!< Not used if -1
