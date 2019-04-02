@@ -56,6 +56,8 @@ void run_tag(bool plot_data)
         dev_cfg.tx_active = false;
         const size_t no_of_samples = dev_cfg.no_of_rx_samples;
         dev_cfg.tx_active = false;
+        dev_cfg.f_clk = 160e6;
+        dev_cfg.sampling_rate = dev_cfg.f_clk / dev_cfg.D_tx;
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
