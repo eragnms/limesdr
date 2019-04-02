@@ -54,7 +54,6 @@ void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
         dev_cfg.tx_active = false;
-        dev_cfg.sampling_rate = 50e3;
         const size_t no_of_samples = dev_cfg.no_of_rx_samples;
         dev_cfg.tx_active = false;
 
@@ -108,5 +107,6 @@ void run_tag(bool plot_data)
                 Analysis analysis;
                 analysis.add_data(buff_data);
                 analysis.plot_imag_data();
+                analysis.save_data("cdma_code_0_512_sample_burst_20msps");
         }
 }

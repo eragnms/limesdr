@@ -43,9 +43,9 @@ struct SDR_Device_Config
         double time_in_future = 1;
         double burst_period = 10e-3;
         double tx_burst_length = 0.5e-3;
-        size_t no_of_rx_samples = 1500;
+        size_t no_of_rx_samples = 600e3;
 
-		double f_clk = 37.8e6;
+		double f_clk = 160e6;
 		short channel_tx = 0;
 		short channel_rx = 0;
 		uint16_t D_tx = 8;
