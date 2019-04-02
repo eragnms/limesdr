@@ -51,6 +51,12 @@ public:
          */
         void configure(SDR_Device_Config dev_cfg);
         /**
+         * \brief Returns the device handle
+         *
+         * \return the device handle
+         */
+        SoapySDR::Device *get_device();
+        /**
          * \brief Start the SDR
          *
          * setup and activate the streams.

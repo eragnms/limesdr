@@ -32,6 +32,11 @@ void SDR::connect()
         }
 }
 
+SoapySDR::Device *SDR::get_device()
+{
+        return m_device;
+}
+
 void SDR::configure(SDR_Device_Config dev_cfg)
 {
         m_dev_cfg = dev_cfg;
