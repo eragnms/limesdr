@@ -89,7 +89,8 @@ public:
          * \param[in] no_of_samples number of samples to read
          * \return number of read samples
          */
-        int32_t read(size_t no_of_samples);
+        int32_t read(size_t no_of_samples,
+                     std::vector<std::complex<int16_t>> &buff_data);
         /**
          * \brief Close streams and disconnect device
          *

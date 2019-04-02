@@ -332,7 +332,8 @@ size_t SDR::write(std::vector<void *> data, size_t no_of_samples,
 
 }
 
-int32_t SDR::read(size_t no_of_samples)
+int32_t SDR::read(size_t no_of_samples,
+                  std::vector<std::complex<int16_t>> &buff_data)
 {
         int32_t no_of_received_samples(0);
         int flags(0);
@@ -349,7 +350,8 @@ int32_t SDR::read(size_t no_of_samples)
         }
         */
 
-        std::vector<std::complex<int16_t>> buff_data(no_of_samples);
+        //std::vector<std::complex<int16_t>> buff_data(no_of_samples);
+        buff_data.resize(no_of_samples);
         std::vector<void *> buffs_data;
         buffs_data.push_back(buff_data.data());
 

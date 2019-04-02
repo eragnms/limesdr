@@ -152,6 +152,8 @@ void run_tag(bool plot_data)
 
         size_t numElems2 = numElems;
 
+        std::vector<std::complex<int16_t>> buff_data(no_of_samples);
+
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
@@ -161,7 +163,7 @@ void run_tag(bool plot_data)
                 //long long timeNs(0);
 
                 //ret = device->readStream(stream, buffs.data(), numElems2, flags, timeNs);
-                sdr.read(no_of_samples);
+                sdr.read(no_of_samples, buff_data);
 
 
                 if (ret == SOAPY_SDR_TIMEOUT) {
@@ -209,7 +211,7 @@ void run_tag(bool plot_data)
                 arma::vec y_re(numElems2);
                 //arma::vec y_im(numElems2);
                 for (size_t j = 0; j < numElems2; ++j) {
-                        y_re(j) = (double)std::imag(buffMem[0][j]);
+                        y_re(j) = (double)std::imag(buff_data[j]);
                         //y_re(j) = buffer[2 * j];
                         //y_im(j) = buffMem[1][2 * j + 1];
                 }
