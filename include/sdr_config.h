@@ -45,13 +45,16 @@ struct SDR_Device_Config
         double tx_burst_length = 0.1024e-3;
         size_t no_of_rx_samples = 600e3;
 
+        double f_clk = -1; //!< Should be set in beacon or tag
 		double f_clk_tag = 160e6;
 		double f_clk_beacon = 40.0e6;
 		short channel_tx = 0;
 		short channel_rx = 0;
 		uint16_t D_tx = 8;
 		uint16_t D_rx = D_tx;
-        double sampling_rate = f_clk / D_tx;
+        double sampling_rate = -1; //!< Should be set in beacon or tag
+        double sampling_rate_beacon = f_clk_beacon / D_tx;
+        double sampling_rate_tag = f_clk_tag / D_tx;
 		std::string antenna_tx = "BAND1";
 		std::string antenna_rx = "LNAL";
 		double timeout = 2;

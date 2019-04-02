@@ -46,11 +46,11 @@ int main(int argc, char** argv)
 void run_beacon()
 {
         SDR_Device_Config dev_cfg;
-        double f_clk = dev_cfg.f_clk_beacon;
-        uint16_t D_tx = dev_cfg.D_tx;
+        dev_cfg.f_clk = dev_cfg.f_clk_beacon;
+        dev_cfg.sampling_rate = dev_cfg.f_clk / dev_cfg.D_tx;
+        const double sampling_rate = dev_cfg.sampling_rate;
         double burst_period = dev_cfg.burst_period;
         double tx_burst_length = dev_cfg.tx_burst_length;
-        const double sampling_rate(f_clk / D_tx);
         size_t buffer_size_tx = tx_burst_length * sampling_rate;
         size_t no_of_tx_samples = buffer_size_tx;
 
@@ -82,7 +82,7 @@ void run_beacon()
         tx_start_tick += SoapySDR::timeNsToTicks((tx_future) * 1e9,
                                                    dev_cfg.f_clk);
         int64_t tx_tick = tx_start_tick;
-        int64_t tmp = D_tx * burst_period * sampling_rate;
+        int64_t tmp = dev_cfg.D_tx * burst_period * sampling_rate;
         int64_t no_of_ticks_per_bursts_period = tmp;
 
         auto timeLastSpin = std::chrono::high_resolution_clock::now();
@@ -91,8 +91,9 @@ void run_beacon()
                   << std::endl;
         signal(SIGINT, sigIntHandler);
         while (not stop) {
-                long long int burst_time = SoapySDR::ticksToTimeNs(tx_tick,
-                                                                   f_clk);
+                long long int burst_time = SoapySDR::ticksToTimeNs(
+                        tx_tick,
+                        dev_cfg.f_clk);
                 sdr.check_burst_time(burst_time);
                 sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
                 tx_tick += no_of_ticks_per_bursts_period;
