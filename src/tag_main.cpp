@@ -157,9 +157,13 @@ void run_tag(bool plot_data)
         signal(SIGINT, sigIntHandler);
         while (not stop) {
                 int ret(0);
-                int flags(0);
-                long long timeNs(0);
-                ret = device->readStream(stream, buffs.data(), numElems2, flags, timeNs);
+                //int flags(0);
+                //long long timeNs(0);
+
+                //ret = device->readStream(stream, buffs.data(), numElems2, flags, timeNs);
+                sdr.read(no_of_samples);
+
+
                 if (ret == SOAPY_SDR_TIMEOUT) {
                         continue;
                 }
