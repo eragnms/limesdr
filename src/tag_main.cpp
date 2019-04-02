@@ -123,42 +123,41 @@ void run_tag(bool plot_data)
 
         const std::string &channelStr = "0";
 
-        const double sample_rate = dev_cfg.sampling_rate;
+        //const double sample_rate = dev_cfg.sampling_rate;
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
         sdr.connect();
         sdr.configure(dev_cfg);
 
-        int direction = SOAPY_SDR_RX;
+        //int direction = SOAPY_SDR_RX;
 
         sdr.start();
 
         device = sdr.get_device();
         auto stream = sdr.get_rx_stream();
 
+        /*
         std::vector<size_t> channels;
         channels.push_back(0);
-
-        //create the stream, use the native format
         double fullScale(0.0);
         const auto format = device->getNativeStreamFormat(direction, channels.front(), fullScale);
         const size_t elemSize = SoapySDR::formatToSize(format);
-        //auto stream = device->setupStream(direction, format, channels);
 
         std::cout << "Stream format: " << format << std::endl;
         std::cout << "Num channels: " << channels.size() << std::endl;
         std::cout << "Element size: " << elemSize << " bytes" << std::endl;
         std::cout << "Sample rate: "  << (sample_rate/1e6) << " Msps" << std::endl;
+        */
 
         //allocate buffers for the stream read/write
-        const size_t numChans = channels.size();
+        const size_t numChans(1);
         //const size_t numElems = device->getStreamMTU(stream);
         const size_t numElems = no_of_samples;
         std::cout << "Num elems: " << numElems << std::endl;
         std::vector<std::vector<std::complex<int16_t>>> buffMem(
                 numChans,
-                std::vector<std::complex<int16_t >>(elemSize*numElems));
+                std::vector<std::complex<int16_t >>(numElems));
         std::vector<void *> buffs(numChans);
         for (size_t i = 0; i < numChans; i++) buffs[i] = buffMem[i].data();
 
@@ -166,8 +165,8 @@ void run_tag(bool plot_data)
         unsigned int overflows(0);
         unsigned int underflows(0);
         unsigned long long totalSamples(0);
-        const auto startTime = std::chrono::high_resolution_clock::now();
-        auto timeLastPrint = std::chrono::high_resolution_clock::now();
+        //const auto startTime = std::chrono::high_resolution_clock::now();
+        //auto timeLastPrint = std::chrono::high_resolution_clock::now();
         auto timeLastSpin = std::chrono::high_resolution_clock::now();
         auto timeLastStatus = std::chrono::high_resolution_clock::now();
         int spinIndex(0);
@@ -218,19 +217,6 @@ void run_tag(bool plot_data)
                                 else break;
                         }
                 }
-                if (timeLastPrint + std::chrono::seconds(5) < now) {
-                        timeLastPrint = now;
-                        const auto timePassed = std::chrono::duration_cast<std::chrono::microseconds>(now - startTime);
-                        const auto sampleRate = double(totalSamples)/timePassed.count();
-                        printf("\b%g Msps\t%g MBps", sampleRate, sampleRate*numChans*elemSize);
-                        if (overflows != 0) printf("\tOverflows %u", overflows);
-                        if (underflows != 0) printf("\tUnderflows %u", underflows);
-                        printf("\n ");
-                }
-                //n++;
-                //loopDone = (n > 100);
-                //std::cout << n << std::endl;
-
         }
         device->deactivateStream(stream);
         //cleanup stream and device
