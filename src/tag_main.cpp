@@ -123,36 +123,17 @@ void run_tag(bool plot_data)
 
         const std::string &channelStr = "0";
 
-        //const double sample_rate = dev_cfg.sampling_rate;
-
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
         sdr.connect();
         sdr.configure(dev_cfg);
-
-        //int direction = SOAPY_SDR_RX;
 
         sdr.start();
 
         device = sdr.get_device();
         auto stream = sdr.get_rx_stream();
 
-        /*
-        std::vector<size_t> channels;
-        channels.push_back(0);
-        double fullScale(0.0);
-        const auto format = device->getNativeStreamFormat(direction, channels.front(), fullScale);
-        const size_t elemSize = SoapySDR::formatToSize(format);
-
-        std::cout << "Stream format: " << format << std::endl;
-        std::cout << "Num channels: " << channels.size() << std::endl;
-        std::cout << "Element size: " << elemSize << " bytes" << std::endl;
-        std::cout << "Sample rate: "  << (sample_rate/1e6) << " Msps" << std::endl;
-        */
-
-        //allocate buffers for the stream read/write
         const size_t numChans(1);
-        //const size_t numElems = device->getStreamMTU(stream);
         const size_t numElems = no_of_samples;
         std::cout << "Num elems: " << numElems << std::endl;
         std::vector<std::vector<std::complex<int16_t>>> buffMem(
@@ -165,13 +146,10 @@ void run_tag(bool plot_data)
         unsigned int overflows(0);
         unsigned int underflows(0);
         unsigned long long totalSamples(0);
-        //const auto startTime = std::chrono::high_resolution_clock::now();
-        //auto timeLastPrint = std::chrono::high_resolution_clock::now();
         auto timeLastSpin = std::chrono::high_resolution_clock::now();
         auto timeLastStatus = std::chrono::high_resolution_clock::now();
         int spinIndex(0);
 
-        device->activateStream(stream);
         size_t numElems2 = numElems;
 
         std::cout << "Starting stream loop, press Ctrl+C to exit..."

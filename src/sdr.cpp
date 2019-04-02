@@ -192,21 +192,10 @@ void SDR::start_tx()
 
 int64_t SDR::start_rx()
 {
-
-/*        double fullScale(0.0);
-        const auto format = m_device->getNativeStreamFormat(
-                SOAPY_SDR_RX,
-                m_dev_cfg.channel_rx,
-                fullScale);*/
         m_rx_stream = m_device->setupStream(
                 SOAPY_SDR_RX,
                 SOAPY_SDR_CS16,
                 std::vector<size_t>{(size_t)m_dev_cfg.channel_rx});
-
-        /*m_rx_stream = m_device->setupStream(
-                SOAPY_SDR_RX,
-                SOAPY_SDR_CF32,
-                std::vector<size_t>{(size_t)m_dev_cfg.channel_rx});*/
         if (m_rx_stream == nullptr) {
                 throw std::runtime_error("Unable to setup RX stream!");
         } else {
@@ -214,10 +203,9 @@ int64_t SDR::start_rx()
                           << std::endl;
         }
         int64_t now_tick(-1);
-        /*
         m_device->setHardwareTime(0);
         int64_t current_hardware_time = m_device->getHardwareTime();
-        int64_t now_tick = SoapySDR::timeNsToTicks(current_hardware_time,
+        now_tick = SoapySDR::timeNsToTicks(current_hardware_time,
                                                    m_dev_cfg.f_clk);
         m_rx_start_tick = now_tick;
         int64_t rx_future = m_dev_cfg.time_in_future + m_dev_cfg.burst_period;
@@ -229,7 +217,6 @@ int64_t SDR::start_rx()
         int rx_flags = SOAPY_SDR_HAS_TIME;
         rx_flags |= SOAPY_SDR_END_BURST;
         rx_flags |= SOAPY_SDR_ONE_PACKET;
-        //size_t no_of_requested_samples(100);
         int ret = m_device->activateStream(m_rx_stream,
                                            rx_flags,
                                            burst_time);
@@ -242,7 +229,6 @@ int64_t SDR::start_rx()
                 std::cout << "sdr: RX stream has been successfully activated!"
                           << std::endl;
         }
-        */
         return now_tick;
 }
 
