@@ -57,9 +57,9 @@ void run_beacon()
         double scale_factor(1.0);
         uint16_t Novs(1);
         Modulation modulation(no_of_tx_samples, scale_factor, Novs);
-        const double tone_freq(16e3);
-        modulation.generate_sine(tone_freq, sampling_rate);
-        //modulation.generate_cdma(0);
+        //const double tone_freq(16e3);
+        //modulation.generate_sine(tone_freq, sampling_rate);
+        modulation.generate_cdma(0);
         std::vector<std::complex<float>> tx_buff_data = modulation.get_data();
         std::vector<void *> tx_buffs_data;
         tx_buffs_data.push_back(tx_buff_data.data());
