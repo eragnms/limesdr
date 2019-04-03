@@ -39,11 +39,20 @@ public:
          */
         SDR();
         /**
-         * \brief Connect to the SDR
+         * \brief Connect to an SDR
          *
-         * Will connect to an attached SDR.
+         * Will connect to first attached SDR.
          */
         void connect();
+        /**
+         * \brief Connect to an SDR
+         *
+         * Will connect to an attached SDR with a specific serial
+         * number.
+         *
+         * \param[in] device_serial serial number of the device to use
+         */
+        void connect(std::string device_serial);
         /**
          * \brief Configure the SDR
          *
@@ -129,6 +138,10 @@ private:
         void configure_rx();
         void start_tx();
         int64_t start_rx();
+        int32_t look_up_device_serial(SoapySDR::KwargsList result,
+                                      std::string device_id);
+        void connect_to_device(SoapySDR::KwargsList results,
+                               int32_t device_num);
 
         SDR_Device_Config m_dev_cfg;
         SoapySDR::Device *m_device;

@@ -15,19 +15,43 @@ SDR::SDR()
 
 void SDR::connect()
 {
+
         SoapySDR::KwargsList results = SoapySDR::Device::enumerate();
         if (results.size() > 0) {
                 std::cout << "Found Device!" << std::endl;
         } else {
                 throw std::runtime_error("Found no device!");
         }
-        m_device = SoapySDR::Device::make();
+        connect_to_device(results, 0);
+}
+
+void SDR::connect(std::string device_serial)
+{
+        SoapySDR::KwargsList results = SoapySDR::Device::enumerate();
+        if (results.size() > 0) {
+                std::cout << "Found Device!" << std::endl;
+        } else {
+                throw std::runtime_error("Found no device!");
+        }
+        int32_t device_num = look_up_device_serial(results, device_serial);
+        if (device_num != -1) {
+                connect_to_device(results, device_num);
+        } else {
+                std::string err = "Could not find device: ";
+                err += device_serial;
+                throw std::runtime_error(err);
+        }
+}
+
+void SDR::connect_to_device(SoapySDR::KwargsList results, int32_t device_num)
+{
+        m_device = SoapySDR::Device::make(results[device_num]);
         if (m_device == nullptr) {
                 throw std::runtime_error("Could not open device!");
         }
         if (!m_device->hasHardwareTime()) {
-                std::string err = "This device does not support timed";
-                err +=  " streaming!";
+                std::string err = "This device does not support";
+                err +=  " timed streaming!";
                 throw std::runtime_error(err);
         }
 }
@@ -58,7 +82,7 @@ void SDR::configure(SDR_Device_Config dev_cfg)
 void SDR::configure_tx()
 {
         m_device->setSampleRate(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
-                                m_dev_cfg.sampling_rate);
+                                m_dev_cfg.sampling_rate_tx);
         double act_sample_rate = m_device->getSampleRate(
                 SOAPY_SDR_TX,
                 m_dev_cfg.channel_tx);
@@ -102,7 +126,7 @@ void SDR::configure_tx()
 void SDR::configure_rx()
 {
         m_device->setSampleRate(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
-                                m_dev_cfg.sampling_rate);
+                                m_dev_cfg.sampling_rate_rx);
         double act_sample_rate = m_device->getSampleRate(
                 SOAPY_SDR_RX,
                 m_dev_cfg.channel_rx);
@@ -399,4 +423,16 @@ std::string SDR::get_device_driver()
 {
         SoapySDR::KwargsList result = m_device-> enumerate();
         return result[0]["driver"];
+}
+
+int32_t SDR::look_up_device_serial(SoapySDR::KwargsList result,
+                                   std::string device_id)
+{
+        int32_t device_num(-1);
+        for (size_t n=0; n<result.size(); n++) {
+                if (result[n]["serial"] == device_id) {
+                        device_num = n;
+                }
+        }
+        return device_num;
 }

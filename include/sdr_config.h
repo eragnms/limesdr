@@ -8,6 +8,7 @@
  * Copyright (C) 2019 by Wittra. All rights reserved.
  */
 #pragma once
+#include <SoapySDR/Logger.hpp>
 
 /**
  * \struct SDR_Device_Config
@@ -17,8 +18,6 @@
  * Configuration parameters for the SDR. Set the parameters either in this
  * file, or change them in the file configuring the SDR.
  */
-#include <SoapySDR/Logger.hpp>
-
 struct SDR_Device_Config
 {
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_FATAL;
@@ -31,11 +30,15 @@ struct SDR_Device_Config
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_TRACE;
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_SSI;
         std::string args = ""; //!< Not used if ""
-		std::string clock_source = ""; //!< Not used if ""
-		std::string time_source = ""; //!< Not used if ""
+        std::string clock_source = ""; //!< Not used if ""
+        std::string time_source = ""; //!< Not used if ""
+
+        std::string serial_bladerf_v2 = "a662f87f08f131e8dc3f4700c5d555e7";
+        std::string serial_lime_1 = "0009072C02881717";
+        std::string serial_lime_2 = "00090726074D2435";
 
         double frequency = 800e6; //!< Center frequency [Hz]
-        double tx_gain = 70; //!< 60 dB is about 0 dBm
+        double tx_gain = 60; //!< 60 dB is about 0 dBm
         double rx_gain = 20;
         double tx_bw = -1; //!< Not used if -1
         double rx_bw = -1; //!< Not used if -1
@@ -44,23 +47,20 @@ struct SDR_Device_Config
         uint16_t Novs = 1;
         double time_in_future = 1;
         double burst_period = 10e-3; //!< [s]
-        size_t burst_length_in_chip = 512;
-        double tx_burst_length = burst_length_in_chip * Novs;
+        size_t tx_burst_length_chip = 512;
+        double tx_burst_length = tx_burst_length_chip * Novs;
         size_t no_of_rx_samples = 600e3;
 
-        double f_clk = -1; //!< Should be set in beacon or tag
-		double f_clk_tag = 160e6;
-		double f_clk_beacon = 40.0e6;
-		short channel_tx = 0;
-		short channel_rx = 0;
-		uint16_t D_tx = 8;
-		uint16_t D_rx = D_tx;
-        double sampling_rate = -1; //!< Should be set in beacon or tag
-        double sampling_rate_beacon = f_clk_beacon / D_tx;
-        double sampling_rate_tag = f_clk_tag / D_tx;
-		std::string antenna_tx = "BAND1";
-		std::string antenna_rx = "LNAL";
-		double timeout = 2;
+        double f_clk = 160.0e6;
+        short channel_tx = 0;
+        short channel_rx = 0;
+        uint16_t D_tx = 32;
+        uint16_t D_rx = 8;
+        double sampling_rate_tx = f_clk / D_tx;
+        double sampling_rate_rx = f_clk / D_rx;
+        std::string antenna_tx = "BAND1";
+        std::string antenna_rx = "LNAL";
+        double timeout = 2;
 
         bool tx_active = true;
         bool rx_active = true;

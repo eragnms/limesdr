@@ -46,17 +46,16 @@ int main(int argc, char** argv)
 void run_beacon()
 {
         SDR_Device_Config dev_cfg;
-        dev_cfg.f_clk = dev_cfg.f_clk_beacon;
-        dev_cfg.sampling_rate = dev_cfg.f_clk / dev_cfg.D_tx;
-        const double sampling_rate = dev_cfg.sampling_rate;
+        std::string dev_serial = dev_cfg.serial_bladerf_v2;
+        const double sampling_rate = dev_cfg.sampling_rate_tx;
         double burst_period = dev_cfg.burst_period;
-        double tx_burst_length = dev_cfg.burst_length_in_chip;
-        size_t buffer_size_tx = tx_burst_length * dev_cfg.Novs;
+        size_t buffer_size_tx = dev_cfg.tx_burst_length;
         size_t no_of_tx_samples = buffer_size_tx;
 
         double scale_factor(1.0);
         uint16_t Novs = dev_cfg.Novs;
-        Modulation modulation(tx_burst_length, scale_factor, Novs);
+        Modulation modulation(dev_cfg.tx_burst_length_chip,
+                              scale_factor, Novs);
         //const double tone_freq(16e3);
         //modulation.generate_sine(tone_freq, sampling_rate);
         modulation.generate_cdma(0);
@@ -72,7 +71,7 @@ void run_beacon()
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
-        sdr.connect();
+        sdr.connect(dev_serial);
         sdr.configure(dev_cfg);
 
         int64_t now_tick = sdr.start();

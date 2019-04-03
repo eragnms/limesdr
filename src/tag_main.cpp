@@ -52,15 +52,14 @@ int main(int argc, char** argv)
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
+        std::string dev_serial = dev_cfg.serial_lime_2;
         dev_cfg.tx_active = false;
         const size_t no_of_samples = dev_cfg.no_of_rx_samples;
         dev_cfg.tx_active = false;
-        dev_cfg.f_clk = dev_cfg.f_clk_tag;
-        dev_cfg.sampling_rate = dev_cfg.f_clk / dev_cfg.D_tx;
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
-        sdr.connect();
+        sdr.connect(dev_serial);
         sdr.configure(dev_cfg);
         sdr.start();
 
