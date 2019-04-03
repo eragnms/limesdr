@@ -73,7 +73,7 @@ void Detector::correlate_cdma(uint32_t code_nr)
         mod_length = mod_length * (1 + extra_samples_for_filter);
         Modulation modulation(mod_length, scale_factor, Novs);
         modulation.generate_cdma(code_nr);
-        modulation.filter();
+//        modulation.filter();
         modulation.scrap_samples(mod_length * extra_samples_for_filter);
         std::vector<std::complex<float>> tx_pulse = modulation.get_data();
         arma::cx_vec tmp = arma::conv_to<arma::cx_vec>::from(tx_pulse);
@@ -82,7 +82,7 @@ void Detector::correlate_cdma(uint32_t code_nr)
 
 arma::vec Detector::correlate(arma::vec a, arma::vec b)
 {
-        return arma::conv(arma::flipud(a), b);
+        return arma::conv(arma::fliplr(a), b);
 }
 
 arma::cx_vec Detector::correlate(arma::cx_vec a, arma::cx_vec b)

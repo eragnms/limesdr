@@ -38,7 +38,7 @@ struct SDR_Device_Config
         std::string serial_lime_2 = "00090726074D2435";
 
         double frequency = 800e6; //!< Center frequency [Hz]
-        double tx_gain = 60; //!< 60 dB is about 0 dBm
+        double tx_gain = 45; //!< 60 dB is about 0 dBm
         double rx_gain = 20;
         double tx_bw = -1; //!< Not used if -1
         double rx_bw = -1; //!< Not used if -1
@@ -48,7 +48,7 @@ struct SDR_Device_Config
         double burst_period = 10e-3; //!< [s]
         size_t tx_burst_length_chip = 512;
         double tx_burst_length = tx_burst_length_chip * Novs;
-        double extra_samples_filter = 1/8;
+        double extra_samples_filter = 0;
 
         double f_clk = 122.88e6;
         short channel_tx = 0;
