@@ -54,7 +54,7 @@ void run_beacon()
 
         double scale_factor(1.0);
         uint16_t Novs = dev_cfg.Novs;
-        double extra_samples_for_filter(1/8);
+        double extra_samples_for_filter = dev_cfg.extra_samples_filter;
         size_t mod_length = dev_cfg.tx_burst_length_chip;
         mod_length = mod_length * (1 + extra_samples_for_filter);
         Modulation modulation(mod_length, scale_factor, Novs);

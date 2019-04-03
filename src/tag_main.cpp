@@ -107,9 +107,20 @@ void run_tag(bool plot_data)
         }
         sdr.close();
         if (plot_data) {
+                /*
                 Analysis analysis;
                 analysis.add_data(buff_data);
                 analysis.plot_imag_data();
+                */
                 //analysis.save_data("cdma_code_0_512_sample_burst_20msps");
+                Detector detector;
+                detector.configure(CDMA, {0}, dev_cfg);
+                detector.add_data(buff_data);
+                detector.detect();
+                std::vector<std::complex<float>> corr;
+                corr = detector.get_corr_result();
+                Analysis analysis;
+                analysis.add_data(corr);
+                analysis.plot_data();
         }
 }
