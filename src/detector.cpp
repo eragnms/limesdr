@@ -82,7 +82,7 @@ void Detector::correlate_cdma(uint32_t code_nr)
 
 arma::vec Detector::correlate(arma::vec a, arma::vec b)
 {
-        return arma::conv(arma::fliplr(a), b);
+        return arma::conv(b, arma::flipud(a));
 }
 
 arma::cx_vec Detector::correlate(arma::cx_vec a, arma::cx_vec b)
