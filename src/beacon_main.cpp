@@ -54,11 +54,15 @@ void run_beacon()
 
         double scale_factor(1.0);
         uint16_t Novs = dev_cfg.Novs;
-        Modulation modulation(dev_cfg.tx_burst_length_chip,
-                              scale_factor, Novs);
+        double extra_samples_for_filter(1/8);
+        size_t mod_length = dev_cfg.tx_burst_length_chip;
+        mod_length = mod_length * (1 + extra_samples_for_filter);
+        Modulation modulation(mod_length, scale_factor, Novs);
         //const double tone_freq(16e3);
         //modulation.generate_sine(tone_freq, sampling_rate);
         modulation.generate_cdma(0);
+        modulation.filter();
+        modulation.scrap_samples(mod_length * extra_samples_for_filter);
         std::vector<std::complex<float>> tx_buff_data = modulation.get_data();
         std::vector<void *> tx_buffs_data;
         tx_buffs_data.push_back(tx_buff_data.data());

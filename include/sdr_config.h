@@ -43,24 +43,25 @@ struct SDR_Device_Config
         double tx_bw = -1; //!< Not used if -1
         double rx_bw = -1; //!< Not used if -1
 
-        double chiprate = 3.84e6;
-        uint16_t Novs = 1;
+        uint16_t Novs = 2; //!< Should be 2, 4, or 8
         double time_in_future = 1;
         double burst_period = 10e-3; //!< [s]
         size_t tx_burst_length_chip = 512;
         double tx_burst_length = tx_burst_length_chip * Novs;
-        size_t no_of_rx_samples = 600e3;
 
-        double f_clk = 160.0e6;
+        double f_clk = 122.88e6;
         short channel_tx = 0;
         short channel_rx = 0;
-        uint16_t D_tx = 32;
+        uint16_t D_tx = 32 / Novs; //!< Our chiprate
         uint16_t D_rx = 8;
         double sampling_rate_tx = f_clk / D_tx;
         double sampling_rate_rx = f_clk / D_rx;
         std::string antenna_tx = "BAND1";
         std::string antenna_rx = "LNAL";
         double timeout = 2;
+
+        size_t no_of_rx_samples = 3 * sampling_rate_rx * burst_period;
+
 
         bool tx_active = true;
         bool rx_active = true;

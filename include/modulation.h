@@ -15,6 +15,8 @@
 #include <complex>
 #include <armadillo>
 
+#include "macros.h"
+
 /**
  * \class Modulation
  *
@@ -60,6 +62,22 @@ public:
          * \return the generated data
          */
         std::vector<std::complex<float>> get_data();
+        /**
+         * \brief Filter the generated pulse
+         *
+         * The filtering will use different coefficients based on
+         * the oversampling factor Novs.
+         */
+        void filter();
+        /**
+         * \brief Scrap samples
+         *
+         * Throw away a number of samples in the beginning of the
+         * modulated data vector
+         *
+         * \param[in] no_to_scrap the number of samples to throw away
+         */
+        void scrap_samples(size_t no_to_scrap);
 private:
         void gen_scr_code(uint16_t code_nr, arma::cx_vec & Z);
         arma::cx_vec repvecN(arma::cx_vec vect);
@@ -67,6 +85,7 @@ private:
         int8_t mod_2(double x);
 
         std::vector<std::complex<float>> m_data;
+        arma::cx_vec m_data_arma;
         size_t m_no_of_samples;
         double m_scale_factor;
         uint16_t m_Novs;
