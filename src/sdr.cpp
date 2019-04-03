@@ -173,14 +173,16 @@ void SDR::configure_rx()
 int64_t SDR::start()
 {
         int64_t now_tick(-1);
+        int mtu_tx(-1);
+        int mtu_rx(-1);
         if (m_dev_cfg.rx_active) {
                 now_tick = start_rx();
+                mtu_rx = m_device->getStreamMTU(m_rx_stream);
         }
         if (m_dev_cfg.tx_active) {
                 start_tx();
+                mtu_tx = m_device->getStreamMTU(m_tx_stream);
         }
-        int mtu_tx = m_device->getStreamMTU(m_tx_stream);
-        int mtu_rx = m_device->getStreamMTU(m_rx_stream);
         std::cout << "sdr: mtu_tx="
                   << std::to_string(mtu_tx)
                   << " [Sa], mtu_rx="

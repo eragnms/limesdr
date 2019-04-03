@@ -57,6 +57,9 @@ void run_tag(bool plot_data)
         const size_t no_of_samples = dev_cfg.no_of_rx_samples;
         dev_cfg.tx_active = false;
 
+        std::cout << "No of samples to read: "
+                  << no_of_samples << std::endl;
+
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
         sdr.connect(dev_serial);

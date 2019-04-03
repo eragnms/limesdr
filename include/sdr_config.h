@@ -43,7 +43,7 @@ struct SDR_Device_Config
         double tx_bw = -1; //!< Not used if -1
         double rx_bw = -1; //!< Not used if -1
 
-        uint16_t Novs = 2; //!< Should be 2, 4, or 8
+        uint16_t Novs = 2; //!< No of oversampling [2,4,8]
         double time_in_future = 1;
         double burst_period = 10e-3; //!< [s]
         size_t tx_burst_length_chip = 512;
