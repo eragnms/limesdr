@@ -72,28 +72,33 @@ void Detector::correlate_cdma(uint32_t code_nr)
         size_t mod_length = m_dev_cfg.tx_burst_length_chip;
         mod_length = mod_length * (1 + extra_samples_for_filter);
         Modulation modulation(mod_length, scale_factor, Novs);
+        std::cout << "Code generated: " << code_nr << std::endl;
         modulation.generate_cdma(code_nr);
 //        modulation.filter();
         modulation.scrap_samples(mod_length * extra_samples_for_filter);
         std::vector<std::complex<float>> tx_pulse = modulation.get_data();
-        arma::cx_vec tmp = arma::conv_to<arma::cx_vec>::from(tx_pulse);
-        m_corr_result = correlate(m_data, tmp);
+        arma::cx_vec reference = arma::conv_to<arma::cx_vec>::from(tx_pulse);
+        m_corr_result = correlate(reference, m_data);
 }
 
-arma::vec Detector::correlate(arma::vec a, arma::vec b)
+arma::vec Detector::correlate(arma::vec ref, arma::vec rx_data)
 {
-        return arma::conv(b, arma::flipud(a));
+        return arma::conv(ref, arma::flipud(rx_data));
 }
 
-arma::cx_vec Detector::correlate(arma::cx_vec a, arma::cx_vec b)
+arma::cx_vec Detector::correlate(arma::cx_vec ref, arma::cx_vec rx_data)
 {
-        arma::vec real_corr = correlate(arma::real(a), arma::real(b));
-        arma::vec imag_corr = correlate(arma::imag(a), arma::imag(b));
-        arma::cx_vec complex_corr(a.n_rows);
-        for (size_t n=0; n<a.n_rows; n++)
+        arma::vec c_re = correlate(arma::real(ref), arma::real(rx_data));
+        arma::vec c_im = correlate(arma::imag(ref), arma::imag(rx_data));
+        arma::vec c_mix_1 = correlate(arma::real(ref), arma::imag(rx_data));
+        arma::vec c_mix_2 = correlate(arma::imag(ref), arma::real(rx_data));
+        size_t length = std::max(ref.n_rows, rx_data.n_rows);
+        arma::cx_vec complex_corr(length);
+        for (size_t n=0; n<length; n++)
         {
-                complex_corr(n) = std::complex<double>(real_corr(n),
-                                                       imag_corr(n));
+                complex_corr(n) = std::complex<double>(
+                        c_re(n) + c_im(n),
+                        -c_mix_1(n) + c_mix_2(n));
         }
         return complex_corr;
 }
