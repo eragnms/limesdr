@@ -38,13 +38,13 @@ struct SDR_Device_Config
         std::string serial_lime_2 = "00090726074D2435";
 
         double frequency = 800e6; //!< Center frequency [Hz]
-        double tx_gain = 30; //!< 60 dB is about 0 dBm
+        double tx_gain = 40; //!< 60 dB is about 0 dBm
         double rx_gain = 20;
         double tx_bw = -1; //!< Not used if -1
         double rx_bw = -1; //!< Not used if -1
 
         uint16_t Novs_tx = 2; //!< No of oversampling [2,4,8]
-        uint16_t Novs_rx = 4; //!< No of oversampling [2,4,8]
+        uint16_t Novs_rx = 2; //!< No of oversampling [2,4,8]
         double time_in_future = 1;
         double burst_period = 10e-3; //!< [s]
         size_t tx_burst_length_chip = 512;
@@ -55,7 +55,7 @@ struct SDR_Device_Config
         short channel_tx = 0;
         short channel_rx = 0;
         uint16_t D_tx = 32 / Novs_tx; //!< Our chiprate
-        uint16_t D_rx = 8;
+        uint16_t D_rx = 32 / Novs_rx;
         double sampling_rate_tx = f_clk / D_tx;
         double sampling_rate_rx = f_clk / D_rx;
         std::string antenna_tx = "BAND1";
