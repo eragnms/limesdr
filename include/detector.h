@@ -79,7 +79,8 @@ private:
         void detect_cdma();
         void correlate_cdma(uint32_t code_nr);
         arma::vec correlate(arma::vec ref, arma::vec rx_data);
-        arma::cx_vec correlate(arma::cx_vec ref, arma::cx_vec rx_data);
+        arma::cx_vec correlate_2(arma::cx_vec ref, arma::cx_vec rx_data);
+        arma::cx_vec correlate_3(arma::cx_vec ref, arma::cx_vec rx_data);
 
         arma::cx_vec m_data;
         DetectorType m_det_type;

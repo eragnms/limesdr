@@ -117,6 +117,7 @@ void run_tag(bool plot_data)
                 detector.detect();
                 std::vector<std::complex<float>> corr;
                 corr = detector.get_corr_result();
+                std::cout << "corr l " << corr.size() << std::endl;
                 analysis.add_data(corr);
                 analysis.plot_data();
         }
