@@ -53,7 +53,7 @@ void run_beacon()
         size_t no_of_tx_samples = buffer_size_tx;
 
         double scale_factor(1.0);
-        uint16_t Novs = dev_cfg.Novs;
+        uint16_t Novs = dev_cfg.Novs_tx;
         double extra_samples_for_filter = dev_cfg.extra_samples_filter;
         size_t mod_length = dev_cfg.tx_burst_length_chip;
         mod_length = mod_length * (1 + extra_samples_for_filter);

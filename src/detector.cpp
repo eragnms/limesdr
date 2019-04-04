@@ -67,7 +67,7 @@ void Detector::detect_cdma()
 void Detector::correlate_cdma(uint32_t code_nr)
 {
         double scale_factor(1.0);
-        uint16_t Novs = 4;
+        uint16_t Novs = m_dev_cfg.Novs_rx;
         double extra_samples_for_filter = m_dev_cfg.extra_samples_filter;
         size_t mod_length = m_dev_cfg.tx_burst_length_chip;
         mod_length = mod_length * (1 + extra_samples_for_filter);
@@ -87,7 +87,7 @@ void Detector::correlate_cdma(uint32_t code_nr)
                           std::complex<double>(3,3),
                           std::complex<double>(4,4)};
         // TODO do not call with m_data, being an attribute og the class
-        m_corr_result = correlate_3(reference, m_data);
+        m_corr_result = correlate_2(reference, m_data);
         double gh = arma::max(arma::abs(m_corr_result));
         std::cout << "MAX: " << gh << std::endl;
         //m_corr_result.print();

@@ -112,7 +112,7 @@ void run_tag(bool plot_data)
                 analysis.plot_imag_data();
                 analysis.save_data("cdma");
                 Detector detector;
-                detector.configure(CDMA, {12}, dev_cfg);
+                detector.configure(CDMA, {2}, dev_cfg);
                 detector.add_data(buff_data);
                 detector.detect();
                 std::vector<std::complex<float>> corr;
