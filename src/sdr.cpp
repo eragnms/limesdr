@@ -412,8 +412,9 @@ bool SDR::is_bladerf()
 
 void SDR::list_hw_info()
 {
-        SoapySDR::KwargsList result = m_device-> enumerate();
+        SoapySDR::KwargsList result = m_device->enumerate();
         for (size_t n=0; n<result.size(); n++){
+                std::cout << "*******************" << std::endl;
                 SoapySDR::Kwargs::iterator it;
                 for (it=result[n].begin(); it!=result[n].end(); ++it)
                         std::cout << it->first << " => "

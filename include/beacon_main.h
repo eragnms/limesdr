@@ -28,3 +28,4 @@
 
 void run_beacon();
 void sigIntHandler(const int);
+void list_device_info();

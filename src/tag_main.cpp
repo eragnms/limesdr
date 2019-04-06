@@ -35,12 +35,20 @@ int main(int argc, char** argv)
                 TCLAP::SwitchArg plot_switch("p","plot",
                                              "Plot data",
                                              cmd, false);
+                TCLAP::SwitchArg list_switch("l","list-devices",
+                                             "List info on attached devices",
+                                             cmd, false);
                 cmd.parse(argc, argv);
                 bool start_tag = start_switch.getValue();
                 bool plot_data = plot_switch.getValue();
+                bool list_dev_info = list_switch.getValue();
+                if (list_dev_info) {
+                        list_device_info();
+                }
                 if (start_tag) {
                         run_tag(plot_data);
                 }
+
         }
         catch (TCLAP::ArgException &e) {
                 std::cerr << "error: " << e.error()
@@ -49,10 +57,17 @@ int main(int argc, char** argv)
         return EXIT_SUCCESS;
 }
 
+void list_device_info()
+{
+        SDR sdr;
+        sdr.connect();
+        sdr.list_hw_info();
+}
+
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
-        std::string dev_serial = dev_cfg.serial_lime_2;
+        std::string dev_serial = dev_cfg.serial_lime_3;
         dev_cfg.tx_active = false;
         const size_t no_of_samples = dev_cfg.no_of_rx_samples;
         dev_cfg.tx_active = false;

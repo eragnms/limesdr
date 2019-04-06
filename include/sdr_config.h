@@ -36,6 +36,7 @@ struct SDR_Device_Config
         std::string serial_bladerf_v2 = "a662f87f08f131e8dc3f4700c5d555e7";
         std::string serial_lime_1 = "0009072C02881717";
         std::string serial_lime_2 = "00090726074D2435";
+        std::string serial_lime_3 = "0009072C02870A19";
 
         double frequency = 800e6; //!< Center frequency [Hz]
         double tx_gain = 40; //!< 60 dB is about 0 dBm

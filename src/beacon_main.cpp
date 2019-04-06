@@ -30,8 +30,15 @@ int main(int argc, char** argv)
                 TCLAP::SwitchArg start_switch("s","start",
                                               "Start beacon",
                                               cmd, false);
+                TCLAP::SwitchArg list_switch("l","list-devices",
+                                             "List info on attached devices",
+                                             cmd, false);
                 cmd.parse(argc, argv);
                 bool start_beacon = start_switch.getValue();
+                bool list_dev_info = list_switch.getValue();
+                if (list_dev_info) {
+                        list_device_info();
+                }
                 if (start_beacon) {
                         run_beacon();
                 }
@@ -41,6 +48,13 @@ int main(int argc, char** argv)
                           << " for arg " << e.argId() << std::endl;
         }
         return EXIT_SUCCESS;
+}
+
+void list_device_info()
+{
+        SDR sdr;
+        sdr.connect();
+        sdr.list_hw_info();
 }
 
 void run_beacon()
