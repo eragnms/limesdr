@@ -88,6 +88,8 @@ void run_tag(bool plot_data)
         int spinIndex(0);
 
         std::vector<std::complex<int16_t>> buff_data(no_of_samples);
+        Detector detector;
+        detector.configure(CDMA, {dev_cfg.ping_scr_code}, dev_cfg);
 
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
@@ -112,6 +114,11 @@ void run_tag(bool plot_data)
                         throw std::runtime_error(err);
                 }
                 totalSamples += ret;
+
+                detector.add_data(buff_data);
+                detector.detect();
+
+
                 const auto now = std::chrono::high_resolution_clock::now();
                 if (timeLastSpin + std::chrono::milliseconds(300) < now) {
                         timeLastSpin = now;
@@ -125,11 +132,7 @@ void run_tag(bool plot_data)
                 Analysis analysis;
                 analysis.add_data(buff_data);
                 analysis.plot_imag_data();
-                analysis.save_data("cdma");
-                Detector detector;
-                detector.configure(CDMA, {2}, dev_cfg);
-                detector.add_data(buff_data);
-                detector.detect();
+                //analysis.save_data("cdma");
                 std::vector<std::complex<float>> corr;
                 corr = detector.get_corr_result();
                 std::cout << "corr l " << corr.size() << std::endl;

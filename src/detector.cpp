@@ -61,6 +61,7 @@ void Detector::detect_cdma()
 {
         for (size_t n=0; n<m_codes.size(); n++) {
                 correlate_cdma(m_codes[n]);
+
         }
 }
 
@@ -86,11 +87,7 @@ void Detector::correlate_cdma(uint32_t code_nr)
                           std::complex<double>(2,2),
                           std::complex<double>(3,3),
                           std::complex<double>(4,4)};
-        // TODO do not call with m_data, being an attribute og the class
-        m_corr_result = correlate_2(reference, m_data);
-        double gh = arma::max(arma::abs(m_corr_result));
-        std::cout << "MAX: " << gh << std::endl;
-        //m_corr_result.print();
+        m_corr_result = correlate(reference);
 }
 
 arma::vec Detector::correlate(arma::vec ref, arma::vec rx_data)
@@ -98,12 +95,12 @@ arma::vec Detector::correlate(arma::vec ref, arma::vec rx_data)
         return arma::conv(ref, arma::flipud(rx_data));
 }
 
-arma::cx_vec Detector::correlate_2(arma::cx_vec ref, arma::cx_vec rx_data)
+arma::cx_vec Detector::correlate(arma::cx_vec ref)
 {
-        arma::vec c_re = correlate(arma::real(ref), arma::real(rx_data));
-        arma::vec c_im = correlate(arma::imag(ref), arma::imag(rx_data));
-        arma::vec c_mix_1 = correlate(arma::real(ref), arma::imag(rx_data));
-        arma::vec c_mix_2 = correlate(arma::imag(ref), arma::real(rx_data));
+        arma::vec c_re = correlate(arma::real(ref), arma::real(m_data));
+        arma::vec c_im = correlate(arma::imag(ref), arma::imag(m_data));
+        arma::vec c_mix_1 = correlate(arma::real(ref), arma::imag(m_data));
+        arma::vec c_mix_2 = correlate(arma::imag(ref), arma::real(m_data));
         size_t length = c_re.n_rows;
         arma::cx_vec complex_corr(length);
         for (size_t n=0; n<length; n++)
@@ -113,19 +110,4 @@ arma::cx_vec Detector::correlate_2(arma::cx_vec ref, arma::cx_vec rx_data)
                         -c_mix_1(n) + c_mix_2(n));
         }
         return complex_corr;
-}
-
-arma::cx_vec Detector::correlate_3(arma::cx_vec ref, arma::cx_vec rx_data)
-{
-        uint32_t rx_length = rx_data.n_rows;
-        uint32_t ref_length = ref.n_rows;
-        arma::cx_vec corr(rx_length-ref_length);
-        for (size_t n=0; n<(rx_length-ref_length); n++) {
-                arma::vec ix = arma::linspace(n, n+ref_length-1, ref_length);
-                arma::uvec uix = arma::conv_to<arma::uvec>::from(ix);
-                arma::cx_vec data = rx_data.rows(uix);
-                //corr(n) = std::abs(arma::sum(data % arma::conj(ref)));
-                corr(n) = arma::sum(data % arma::conj(ref));
-        }
-        return corr;
 }

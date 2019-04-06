@@ -65,6 +65,8 @@ struct SDR_Device_Config
 
         size_t no_of_rx_samples = 2 * sampling_rate_rx * burst_period;
 
+        uint32_t ping_scr_code = 2;
+        uint32_t pong_scr_code = 2;
 
         bool tx_active = true;
         bool rx_active = true;
