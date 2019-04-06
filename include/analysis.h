@@ -35,6 +35,12 @@ public:
          *
          * \param[in] data the data to be analysed
          */
+        void add_data(std::vector<float> data);
+        /**
+         * \brief Add data for analysis
+         *
+         * \param[in] data the data to be analysed
+         */
         void add_data(std::vector<std::complex<float>> data);
         /**
          * \brief Add data for analysis

@@ -66,25 +66,32 @@ public:
                        std::vector<uint32_t> codes,
                        SDR_Device_Config dev_cfg);
         /**
-         * \brief Run the detector
+         * \brief Look for initial sync
+         *
+         * \return index of detected sync peak, -1 if sync failed
          */
-        void detect();
+        int64_t initial_sync();
         /**
          * \brief Get the correlation result
          *
          * \return a vector containing the correlation result
          */
-        std::vector<std::complex<float>> get_corr_result();
+        std::vector<float> get_corr_result();
 private:
-        void detect_cdma();
+        int64_t detect_cdma();
         void correlate_cdma(uint32_t code_nr);
         arma::vec correlate(arma::vec ref, arma::vec rx_data);
-        arma::cx_vec correlate(arma::cx_vec ref);
+        arma::vec correlate(arma::cx_vec ref);
+        double calculate_threshold();
+        arma::uvec find_peaks(double threshold);
+        int64_t find_sync_ix(arma::uvec peak_indexes);
+        bool found_sync(int64_t ix);
+        bool delta_ok(int64_t delta);
 
         arma::cx_vec m_data;
         DetectorType m_det_type;
         std::vector<uint32_t> m_codes;
         SDR_Device_Config m_dev_cfg;
-        arma::cx_vec m_corr_result;
+        arma::vec m_corr_result;
 
 };

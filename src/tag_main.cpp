@@ -92,10 +92,12 @@ void run_tag(bool plot_data)
         Detector detector;
         detector.configure(CDMA, {dev_cfg.ping_scr_code}, dev_cfg);
 
+        bool found_sync(false);
+        int64_t sync_ix(-1);
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
-        while (not stop) {
+        while (not stop && not found_sync) {
                 int ret(0);
                 ret = sdr.read(no_of_samples, buff_data);
                 if (ret == SOAPY_SDR_TIMEOUT) {
@@ -117,8 +119,10 @@ void run_tag(bool plot_data)
                 totalSamples += ret;
 
                 detector.add_data(buff_data);
-                detector.detect();
-
+                sync_ix = detector.initial_sync();
+                if (sync_ix >= 0) {
+                        found_sync = true;
+                }
 
                 const auto now = std::chrono::high_resolution_clock::now();
                 if (timeLastSpin + std::chrono::milliseconds(300) < now) {
@@ -129,14 +133,16 @@ void run_tag(bool plot_data)
                 }
         }
         sdr.close();
+        std::cout << "Found initial sync peak at: "
+                  << sync_ix
+                  << std::endl;
         if (plot_data) {
                 Analysis analysis;
                 analysis.add_data(buff_data);
                 analysis.plot_imag_data();
                 //analysis.save_data("cdma");
-                std::vector<std::complex<float>> corr;
+                std::vector<float> corr;
                 corr = detector.get_corr_result();
-                std::cout << "corr l " << corr.size() << std::endl;
                 analysis.add_data(corr);
                 analysis.plot_data();
         }

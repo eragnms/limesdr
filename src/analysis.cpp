@@ -14,6 +14,13 @@
 Analysis::Analysis()
 {}
 
+void Analysis::add_data(std::vector<float> data)
+{
+        m_data.clear();
+        m_data.set_size(data.size());
+        m_data = arma::conv_to<arma::cx_vec>::from(data);
+}
+
 void Analysis::add_data(std::vector<std::complex<float>> data)
 {
         m_data.clear();

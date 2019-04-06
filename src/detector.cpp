@@ -41,28 +41,36 @@ void Detector::add_data(std::vector<std::complex<int16_t>> data)
         }
 }
 
-void Detector::detect()
+int64_t Detector::initial_sync()
 {
+        int64_t index_of_sync(-1);
         if (m_det_type == CDMA) {
-                detect_cdma();
+                index_of_sync = detect_cdma();
         }
+        return index_of_sync;
 }
 
-std::vector<std::complex<float>> Detector::get_corr_result()
+std::vector<float> Detector::get_corr_result()
 {
-        std::vector<std::complex<float>> data;
-        for (size_t n=0; n<m_corr_result.n_rows; n++) {
-                data.push_back((std::complex<float>) m_corr_result(n));
-        }
+        std::vector<float> data;
+        data = arma::conv_to<std::vector<float>>::from(m_corr_result);
         return data;
 }
 
-void Detector::detect_cdma()
+int64_t Detector::detect_cdma()
 {
+        int64_t index_of_sync(-1);
         for (size_t n=0; n<m_codes.size(); n++) {
                 correlate_cdma(m_codes[n]);
-
+                double threshold = calculate_threshold();
+                arma::uvec peak_indexes = find_peaks(threshold);
+                int64_t ix = find_sync_ix(peak_indexes);
+                if (found_sync(ix)) {
+                        index_of_sync = ix;
+                        break;
+                }
         }
+        return index_of_sync;
 }
 
 void Detector::correlate_cdma(uint32_t code_nr)
@@ -86,7 +94,7 @@ arma::vec Detector::correlate(arma::vec ref, arma::vec rx_data)
         return arma::conv(ref, arma::flipud(rx_data));
 }
 
-arma::cx_vec Detector::correlate(arma::cx_vec ref)
+arma::vec Detector::correlate(arma::cx_vec ref)
 {
         arma::vec c_re = correlate(arma::real(ref), arma::real(m_data));
         arma::vec c_im = correlate(arma::imag(ref), arma::imag(m_data));
@@ -100,5 +108,48 @@ arma::cx_vec Detector::correlate(arma::cx_vec ref)
                         c_re(n) + c_im(n),
                         -c_mix_1(n) + c_mix_2(n));
         }
-        return complex_corr;
+        return arma::abs(complex_corr);
+}
+
+double Detector::calculate_threshold()
+{
+        double mean = arma::mean(m_corr_result);
+        double standard_dev = arma::stddev(m_corr_result);
+        double threshold = mean + m_dev_cfg.threshold_factor * standard_dev;
+        return threshold;
+}
+
+arma::uvec Detector::find_peaks(double threshold)
+{
+        arma::uvec peaks = arma::find(m_corr_result > threshold);
+        return peaks;
+}
+
+int64_t Detector::find_sync_ix(arma::uvec peak_indexes)
+{
+        int64_t sync_index(-1);
+        for (size_t n=0; n<peak_indexes.n_rows-1; n++) {
+                uint64_t delta = peak_indexes(n+1) - peak_indexes(n);
+                if (delta_ok(delta)) {
+                        sync_index = peak_indexes(n);
+                        break;
+                }
+        }
+        return sync_index;
+}
+
+bool Detector::delta_ok(int64_t delta)
+{
+        bool ok;
+        int64_t burst_distance =
+                m_dev_cfg.burst_period * m_dev_cfg.sampling_rate_rx;
+        int64_t ok_error = m_dev_cfg.max_sync_error;
+        ok = delta <= (burst_distance + ok_error);
+        ok = ok && (delta >= (burst_distance - ok_error));
+        return ok;
+}
+
+bool Detector::found_sync(int64_t ix)
+{
+        return ix >= 0;
 }

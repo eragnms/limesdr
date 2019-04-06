@@ -68,6 +68,9 @@ struct SDR_Device_Config
         uint32_t ping_scr_code = 2;
         uint32_t pong_scr_code = 2;
 
+        int64_t max_sync_error = 5;
+        uint32_t threshold_factor = 16;
+
         bool tx_active = true;
         bool rx_active = true;
 };
