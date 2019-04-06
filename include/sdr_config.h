@@ -50,7 +50,7 @@ struct SDR_Device_Config
         double burst_period = 10e-3; //!< [s]
         size_t tx_burst_length_chip = 512;
         double tx_burst_length = tx_burst_length_chip * Novs_tx;
-        double extra_samples_filter = 0;
+        double extra_samples_filter = 1/8;
 
         double f_clk = 122.88e6;
         short channel_tx = 0;

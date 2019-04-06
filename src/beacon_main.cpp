@@ -61,6 +61,7 @@ void run_beacon()
 {
         SDR_Device_Config dev_cfg;
         std::string dev_serial = dev_cfg.serial_bladerf_v2;
+        //std::string dev_serial = dev_cfg.serial_lime_3;
         const double sampling_rate = dev_cfg.sampling_rate_tx;
         double burst_period = dev_cfg.burst_period;
         size_t buffer_size_tx = dev_cfg.tx_burst_length;
@@ -74,8 +75,8 @@ void run_beacon()
         Modulation modulation(mod_length, scale_factor, Novs);
         //const double tone_freq(16e3);
         //modulation.generate_sine(tone_freq, sampling_rate);
-        modulation.generate_cdma(2);
-        //modulation.filter();
+        modulation.generate_cdma(dev_cfg.ping_scr_code);
+        modulation.filter();
         modulation.scrap_samples(mod_length * extra_samples_for_filter);
         std::vector<std::complex<float>> tx_buff_data = modulation.get_data();
         std::vector<void *> tx_buffs_data;
