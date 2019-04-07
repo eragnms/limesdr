@@ -85,9 +85,9 @@ void run_tag(bool plot_data)
         sdr.configure(dev_cfg);
         sdr.start();
 
-        auto time_last_spin = std::chrono::high_resolution_clock::now();
+        //auto time_last_spin = std::chrono::high_resolution_clock::now();
         auto time_status_info = std::chrono::high_resolution_clock::now();
-        int spinIndex(0);
+        //int spinIndex(0);
 
         std::vector<std::complex<int16_t>> buff_data_initial(
                 no_of_samples_initial_sync);
@@ -115,22 +115,26 @@ void run_tag(bool plot_data)
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
                                 if (detector.found_initial_sync(sync_ix)) {
+                                        sdr.set_time_of_next_burst(sync_ix);
                                         std::cout << std::endl
                                                   << "Found inital sync"
                                                   << std::endl;
-                                        std::cout << "Looking for PING"
-                                                  << std::endl;
-                                        current_state = LOOKING_FOR_PING;
+                                        /*std::cout << "Waiting 64for PING"
+                                          << std::endl;*/
+                                        current_state = WAIT_FOR_PING;
                                 }
                         }
                         break;
                 }
-                case LOOKING_FOR_PING: {
-                        usleep(2500);
-                        maybe we need to restart the rx here and
-                                use timestamps to delay it the right
-                                amount in activateStream?
-
+                case WAIT_FOR_PING: {
+                        if (sdr.time_to_start_rx()) {
+                                std::cout << "Searching for PING"
+                                          << std::endl;
+                                current_state = SEARCH_FOR_PING;
+                        }
+                        break;
+                }
+                case SEARCH_FOR_PING: {
                         int ret = sdr.read(no_of_samples_ping,
                                            buff_data_ping);
                         if (return_ok(ret)) {
@@ -138,20 +142,26 @@ void run_tag(bool plot_data)
                                 detector.add_data(buff_data_ping);
                                 sync_ix = detector.look_for_ping();
                                 if (detector.found_ping(sync_ix)) {
+                                        sdr.set_time_of_next_burst(sync_ix);
                                         num_of_found_pings++;
                                         num_of_missed_pings = 0;
+                                        std::cout << "Found PING"
+                                                  << std::endl;
+                                        /*
+                                        std::cout << "Waiting for PING"
+                                        << std::endl;*/
+                                        current_state = WAIT_FOR_PING;
                                         stop = true;
                                 } else {
                                         num_of_missed_pings++;
                                 }
                                 if (num_of_missed_pings > dev_cfg.num_of_ping_tries) {
-                                        std::cout << std::endl
+                                        /*std::cout << std::endl
                                                   << "Faild PING detect"
                                                   << std::endl;
                                         std::cout << "Starting initial sync"
-                                                  << std::endl;
+                                        << std::endl;*/
                                         current_state = INITIAL_SYNC;
-                                        stop = true;
                                 }
                         }
                         break;
@@ -160,13 +170,16 @@ void run_tag(bool plot_data)
                         throw std::runtime_error("Unknown state tag!");
                 }
                 const auto now = std::chrono::high_resolution_clock::now();
+                /*
                 if (time_last_spin + std::chrono::milliseconds(300) < now) {
                         time_last_spin = now;
                         static const char spin[] = {"|/-\\"};
                         printf("\b%c", spin[(spinIndex++)%4]);
                         fflush(stdout);
                 }
-                if (time_status_info + std::chrono::seconds(5) < now) {
+                */
+
+                if (time_status_info + std::chrono::seconds(1) < now) {
                         time_status_info = now;
                         std::string state_info = "In state: ";
                         state_info += state_to_string(current_state);
@@ -178,6 +191,7 @@ void run_tag(bool plot_data)
                                   << std::endl;
 
                 }
+
         }
         sdr.close();
         std::cout << "Found initial sync peak at: "
@@ -220,8 +234,10 @@ std::string state_to_string(TagStateMachine state)
         switch(state) {
         case INITIAL_SYNC:
                 return "INITIAL_SYNC";
-        case LOOKING_FOR_PING:
-                return "LOOKING_FOR_PING";
+        case WAIT_FOR_PING:
+                return "WAITING_FOR_PING";
+        case SEARCH_FOR_PING:
+                return "SEARCHING_FOR_PING";
         }
         return "UNKNOWN STATE";
 }

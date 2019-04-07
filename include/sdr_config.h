@@ -47,34 +47,34 @@ struct SDR_Device_Config
         uint16_t Novs_tx = 2; //!< No of oversampling [2,4,8]
         uint16_t Novs_rx = 2; //!< No of oversampling [2,4,8]
         double time_in_future = 1;
-        double burst_period = 10e-3; //!< [s]
-        size_t tx_burst_length_chip = 512;
+        double burst_period = 10e-3; //!< Time between PINGs [s]
+        size_t tx_burst_length_chip = 512; //!< PING length
         double tx_burst_length = tx_burst_length_chip * Novs_tx;
         double extra_samples_filter = 1/8;
 
-        double f_clk = 122.88e6;
+        double f_clk = 122.88e6; //!< SDR system clock
         short channel_tx = 0;
         short channel_rx = 0;
-        uint16_t D_tx = 32 / Novs_tx; //!< Our chiprate
-        uint16_t D_rx = 32 / Novs_rx;
+        uint16_t D_tx = 32 / Novs_tx; //!< Should be 8
+        uint16_t D_rx = 32 / Novs_rx; //!< Should be 8
         double sampling_rate_tx = f_clk / D_tx;
         double sampling_rate_rx = f_clk / D_rx;
         std::string antenna_tx = "BAND1";
         std::string antenna_rx = "LNAL";
-        double timeout = 2;
+        double timeout = 2; //!< Read and write stream timeout
 
         size_t no_of_rx_samples_initial_sync =
-                2 * sampling_rate_rx * burst_period;
+                2 * sampling_rate_rx * burst_period; //!< Read buffer size
         size_t no_of_rx_samples_ping =
-                4 * tx_burst_length;
+                4 * tx_burst_length; //!< Read buffer size
 
         uint32_t ping_scr_code = 2;
         uint32_t pong_scr_code = 2;
 
         int64_t max_sync_error = 5;
         uint32_t threshold_factor = 8;
-
-        size_t num_of_ping_tries = 1000;
+        size_t num_of_ping_tries = 10; //!< Number of tries before initial sync
+        int64_t ping_burst_guard = 2048; //!< Guard samples around expected PING
 
         bool tx_active = true;
         bool rx_active = true;

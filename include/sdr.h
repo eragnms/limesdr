@@ -132,6 +132,9 @@ public:
          * \param[in] burst_time the time to check
          */
         void check_burst_time(long long int burst_time);
+        void set_time_of_next_burst(int64_t ix);
+        bool time_to_start_rx();
+
 private:
         std::string get_device_driver();
         void configure_tx();
@@ -149,4 +152,6 @@ private:
         SoapySDR::Stream *m_rx_stream;
         int64_t m_tx_start_tick;
         int64_t m_rx_start_tick;
+        int64_t m_last_rx_timestamp;
+        int64_t m_time_of_next_burst;
 };

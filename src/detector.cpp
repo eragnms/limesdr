@@ -180,7 +180,7 @@ int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
         for (size_t n=0; n<peak_indexes.n_rows-1; n++) {
                 uint64_t spacing = peak_indexes(n+1) - peak_indexes(n);
                 if (spacing_ok(spacing)) {
-                        sync_index = peak_indexes(n);
+                        sync_index = peak_indexes(n+1);
                         break;
                 }
         }

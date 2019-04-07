@@ -68,7 +68,7 @@ public:
         /**
          * \brief Look for initial sync
          *
-         * \return index of detected sync peak, -1 if sync failed
+         * \return index of (second) detected sync peak, -1 if sync failed
          */
         int64_t look_for_initial_sync();
         /**
