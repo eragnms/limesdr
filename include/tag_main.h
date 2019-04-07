@@ -35,8 +35,8 @@
  *
  */
 enum TagStateMachine {
-        INITIAL_SYNC,
-        LOOKING_FOR_PING
+        INITIAL_SYNC, /**< Trying to get initial synchronization */
+        LOOKING_FOR_PING /**< Trying to find ping messages */
 };
 
 void run_tag(bool plot_data);

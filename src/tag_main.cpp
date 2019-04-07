@@ -70,11 +70,14 @@ void run_tag(bool plot_data)
         //std::string dev_serial = dev_cfg.serial_bladerf_v2;
         std::string dev_serial = dev_cfg.serial_lime_3;
         dev_cfg.tx_active = false;
-        const size_t no_of_samples = dev_cfg.no_of_rx_samples;
+        const size_t no_of_samples_initial_sync =
+                dev_cfg.no_of_rx_samples_initial_sync;
+        const size_t no_of_samples_ping =
+                dev_cfg.no_of_rx_samples_ping;
         dev_cfg.tx_active = false;
 
-        std::cout << "No of samples to read: "
-                  << no_of_samples << std::endl;
+        std::cout << "No of samples to read in initial sync: "
+                  << no_of_samples_initial_sync << std::endl;
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);
@@ -86,10 +89,16 @@ void run_tag(bool plot_data)
         auto time_status_info = std::chrono::high_resolution_clock::now();
         int spinIndex(0);
 
-        std::vector<std::complex<int16_t>> buff_data(no_of_samples);
+        std::vector<std::complex<int16_t>> buff_data_initial(
+                no_of_samples_initial_sync);
+        std::vector<std::complex<int16_t>> buff_data_ping(
+                no_of_samples_ping);
         Detector detector;
         detector.configure(CDMA, {dev_cfg.ping_scr_code}, dev_cfg);
 
+        size_t num_of_found_pings(0);
+        size_t num_of_missed_pings(0);
+        size_t num_ping_tries(0);
         int64_t sync_ix(-1);
         TagStateMachine current_state(INITIAL_SYNC);
         std::cout << "**********************" << std::endl;
@@ -100,9 +109,10 @@ void run_tag(bool plot_data)
         while (not stop) {
                 switch(current_state) {
                 case INITIAL_SYNC: {
-                        int ret = sdr.read(no_of_samples, buff_data);
+                        int ret = sdr.read(no_of_samples_initial_sync,
+                                           buff_data_initial);
                         if (return_ok(ret)) {
-                                detector.add_data(buff_data);
+                                detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
                                 if (detector.found_initial_sync(sync_ix)) {
                                         std::cout << std::endl
@@ -116,7 +126,34 @@ void run_tag(bool plot_data)
                         break;
                 }
                 case LOOKING_FOR_PING: {
+                        usleep(2500);
+                        maybe we need to restart the rx here and
+                                use timestamps to delay it the right
+                                amount in activateStream?
 
+                        int ret = sdr.read(no_of_samples_ping,
+                                           buff_data_ping);
+                        if (return_ok(ret)) {
+                                num_ping_tries++;
+                                detector.add_data(buff_data_ping);
+                                sync_ix = detector.look_for_ping();
+                                if (detector.found_ping(sync_ix)) {
+                                        num_of_found_pings++;
+                                        num_of_missed_pings = 0;
+                                        stop = true;
+                                } else {
+                                        num_of_missed_pings++;
+                                }
+                                if (num_of_missed_pings > dev_cfg.num_of_ping_tries) {
+                                        std::cout << std::endl
+                                                  << "Faild PING detect"
+                                                  << std::endl;
+                                        std::cout << "Starting initial sync"
+                                                  << std::endl;
+                                        current_state = INITIAL_SYNC;
+                                        stop = true;
+                                }
+                        }
                         break;
                 }
                 default:
@@ -134,6 +171,12 @@ void run_tag(bool plot_data)
                         std::string state_info = "In state: ";
                         state_info += state_to_string(current_state);
                         std::cout << std::endl << state_info << std::endl;
+                        std::cout << "Num of found PINGS: "
+                                  << num_of_found_pings
+                                  << " Num of tries "
+                                  << num_ping_tries
+                                  << std::endl;
+
                 }
         }
         sdr.close();
@@ -142,7 +185,7 @@ void run_tag(bool plot_data)
                   << std::endl;
         if (plot_data) {
                 Analysis analysis;
-                analysis.add_data(buff_data);
+                analysis.add_data(buff_data_initial);
                 analysis.plot_imag_data();
                 //analysis.save_data("cdma");
                 std::vector<float> corr;

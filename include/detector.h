@@ -23,7 +23,7 @@
  * Enum for picking detector
  */
 enum DetectorType {
-        CDMA
+        CDMA /**< CDMA detector */
 };
 
 
@@ -72,6 +72,12 @@ public:
          */
         int64_t look_for_initial_sync();
         /**
+         * \brief Look for PING bursts
+         *
+         * \return index of the first detected PING, -1 if sync failed
+         */
+        int64_t look_for_ping();
+        /**
          * \brief Get the correlation result
          *
          * \return a vector containing the correlation result
@@ -109,6 +115,7 @@ private:
         bool spacing_ok(int64_t burst_spacing);
         bool found_ok_index(int64_t ix);
         int64_t check_bursts_for_intial_sync_index(arma::uvec peak_indexes);
+        int64_t check_bursts_for_ping_index(arma::uvec peak_indexes);
 
         arma::cx_vec m_data;
         DetectorType m_det_type;

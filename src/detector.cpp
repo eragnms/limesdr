@@ -52,6 +52,17 @@ int64_t Detector::look_for_initial_sync()
         return index_of_sync;
 }
 
+int64_t Detector::look_for_ping()
+{
+        int64_t index_of_sync(-1);
+        arma::uvec found_bursts;
+        if (m_det_type == CDMA) {
+                found_bursts = detect_cdma_bursts();
+        }
+        index_of_sync = check_bursts_for_ping_index(found_bursts);
+        return index_of_sync;
+}
+
 bool Detector::found_initial_sync(int64_t ix)
 {
         return found_ok_index(ix);
@@ -98,6 +109,15 @@ int64_t Detector::check_bursts_for_intial_sync_index(arma::uvec peak_indexes)
         int64_t ix(-1);
         if (peak_indexes.n_rows > 0) {
                 ix = find_initial_sync_ix(peak_indexes);
+        }
+        return ix;
+}
+
+int64_t Detector::check_bursts_for_ping_index(arma::uvec peak_indexes)
+{
+        int64_t ix(-1);
+        if (peak_indexes.n_rows > 0) {
+                ix = peak_indexes(0);
         }
         return ix;
 }

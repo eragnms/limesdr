@@ -63,13 +63,18 @@ struct SDR_Device_Config
         std::string antenna_rx = "LNAL";
         double timeout = 2;
 
-        size_t no_of_rx_samples = 2 * sampling_rate_rx * burst_period;
+        size_t no_of_rx_samples_initial_sync =
+                2 * sampling_rate_rx * burst_period;
+        size_t no_of_rx_samples_ping =
+                4 * tx_burst_length;
 
         uint32_t ping_scr_code = 2;
         uint32_t pong_scr_code = 2;
 
         int64_t max_sync_error = 5;
-        uint32_t threshold_factor = 16;
+        uint32_t threshold_factor = 8;
+
+        size_t num_of_ping_tries = 1000;
 
         bool tx_active = true;
         bool rx_active = true;
