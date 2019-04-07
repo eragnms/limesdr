@@ -64,7 +64,10 @@ int64_t Detector::detect_cdma()
                 correlate_cdma(m_codes[n]);
                 double threshold = calculate_threshold();
                 arma::uvec peak_indexes = find_peaks(threshold);
-                int64_t ix = find_sync_ix(peak_indexes);
+                int64_t ix(-1);
+                if (peak_indexes.n_rows > 0) {
+                        ix = find_sync_ix(peak_indexes);
+                }
                 if (found_sync(ix)) {
                         index_of_sync = ix;
                         break;

@@ -82,9 +82,6 @@ void run_tag(bool plot_data)
         sdr.configure(dev_cfg);
         sdr.start();
 
-        unsigned int overflows(0);
-        unsigned int underflows(0);
-        unsigned long long totalSamples(0);
         auto timeLastSpin = std::chrono::high_resolution_clock::now();
         int spinIndex(0);
 
@@ -98,32 +95,13 @@ void run_tag(bool plot_data)
                   << std::endl;
         signal(SIGINT, sigIntHandler);
         while (not stop && not found_sync) {
-                int ret(0);
-                ret = sdr.read(no_of_samples, buff_data);
-                if (ret == SOAPY_SDR_TIMEOUT) {
-                        continue;
-                }
-                if (ret == SOAPY_SDR_OVERFLOW) {
-                        overflows++;
-                        continue;
-                }
-                if (ret == SOAPY_SDR_UNDERFLOW) {
-                        underflows++;
-                        continue;
-                }
-                if (ret < 0) {
-                        std::string err = "Unexpected stream error ";
-                        err += SoapySDR::errToStr(ret);
-                        throw std::runtime_error(err);
-                }
-                totalSamples += ret;
-
+                int ret = sdr.read(no_of_samples, buff_data);
+                check_return(ret);
                 detector.add_data(buff_data);
                 sync_ix = detector.initial_sync();
                 if (sync_ix >= 0) {
                         found_sync = true;
                 }
-
                 const auto now = std::chrono::high_resolution_clock::now();
                 if (timeLastSpin + std::chrono::milliseconds(300) < now) {
                         timeLastSpin = now;
@@ -145,5 +123,23 @@ void run_tag(bool plot_data)
                 corr = detector.get_corr_result();
                 analysis.add_data(corr);
                 analysis.plot_data();
+        }
+}
+
+void check_return(int ret)
+{
+        if (ret == SOAPY_SDR_TIMEOUT) {
+                std::cout << "Timeout!" << std::endl;
+        }
+        if (ret == SOAPY_SDR_OVERFLOW) {
+                std::cout << "Overflow!" << std::endl;
+        }
+        if (ret == SOAPY_SDR_UNDERFLOW) {
+                std::cout << "Underflow!" << std::endl;
+        }
+        if (ret < 0) {
+                std::string err = "Unexpected stream error ";
+                err += SoapySDR::errToStr(ret);
+                throw std::runtime_error(err);
         }
 }
