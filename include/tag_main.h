@@ -28,7 +28,19 @@
 #include "analysis.h"
 #include "detector.h"
 
+/**
+ * \brief enum
+ *
+ * Keeping track of the status machine in the tag
+ *
+ */
+enum TagStateMachine {
+        INITIAL_SYNC,
+        LOOKING_FOR_PING
+};
+
 void run_tag(bool plot_data);
 void sigIntHandler(const int);
 void list_device_info();
 bool return_ok(int ret);
+std::string state_to_string(TagStateMachine state);

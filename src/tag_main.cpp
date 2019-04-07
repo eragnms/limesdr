@@ -82,33 +82,58 @@ void run_tag(bool plot_data)
         sdr.configure(dev_cfg);
         sdr.start();
 
-        auto timeLastSpin = std::chrono::high_resolution_clock::now();
+        auto time_last_spin = std::chrono::high_resolution_clock::now();
+        auto time_status_info = std::chrono::high_resolution_clock::now();
         int spinIndex(0);
 
         std::vector<std::complex<int16_t>> buff_data(no_of_samples);
         Detector detector;
         detector.configure(CDMA, {dev_cfg.ping_scr_code}, dev_cfg);
 
-        bool found_sync(false);
         int64_t sync_ix(-1);
+        TagStateMachine current_state(INITIAL_SYNC);
+        std::cout << "**********************" << std::endl;
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
+        std::cout << "Looking for inital sync" << std::endl;
         signal(SIGINT, sigIntHandler);
-        while (not stop && not found_sync) {
-                int ret = sdr.read(no_of_samples, buff_data);
-                if (return_ok(ret)) {
-                        detector.add_data(buff_data);
-                        sync_ix = detector.look_for_initial_sync();
-                        if (detector.found_initial_sync(sync_ix)) {
-                                found_sync = true;
+        while (not stop) {
+                switch(current_state) {
+                case INITIAL_SYNC: {
+                        int ret = sdr.read(no_of_samples, buff_data);
+                        if (return_ok(ret)) {
+                                detector.add_data(buff_data);
+                                sync_ix = detector.look_for_initial_sync();
+                                if (detector.found_initial_sync(sync_ix)) {
+                                        std::cout << std::endl
+                                                  << "Found inital sync"
+                                                  << std::endl;
+                                        std::cout << "Looking for PING"
+                                                  << std::endl;
+                                        current_state = LOOKING_FOR_PING;
+                                }
                         }
+                        break;
+                }
+                case LOOKING_FOR_PING: {
+
+                        break;
+                }
+                default:
+                        throw std::runtime_error("Unknown state tag!");
                 }
                 const auto now = std::chrono::high_resolution_clock::now();
-                if (timeLastSpin + std::chrono::milliseconds(300) < now) {
-                        timeLastSpin = now;
+                if (time_last_spin + std::chrono::milliseconds(300) < now) {
+                        time_last_spin = now;
                         static const char spin[] = {"|/-\\"};
                         printf("\b%c", spin[(spinIndex++)%4]);
                         fflush(stdout);
+                }
+                if (time_status_info + std::chrono::seconds(5) < now) {
+                        time_status_info = now;
+                        std::string state_info = "In state: ";
+                        state_info += state_to_string(current_state);
+                        std::cout << std::endl << state_info << std::endl;
                 }
         }
         sdr.close();
@@ -145,4 +170,15 @@ bool return_ok(int ret)
                 throw std::runtime_error(err);
         }
         return data_ok;
+}
+
+std::string state_to_string(TagStateMachine state)
+{
+        switch(state) {
+        case INITIAL_SYNC:
+                return "INITIAL_SYNC";
+        case LOOKING_FOR_PING:
+                return "LOOKING_FOR_PING";
+        }
+        return "UNKNOWN STATE";
 }
