@@ -70,13 +70,34 @@ public:
          *
          * \return index of detected sync peak, -1 if sync failed
          */
-        int64_t initial_sync();
+        int64_t look_for_initial_sync();
         /**
          * \brief Get the correlation result
          *
          * \return a vector containing the correlation result
          */
         std::vector<float> get_corr_result();
+        /**
+         * \brief Check if initial sync index was found
+         *
+         * \return true if the index checked indicates that
+         * initial sync has been found
+         */
+        bool found_initial_sync(int64_t ix);
+        /**
+         * \brief Check if ping index was found
+         *
+         * \return true if the index checked indicates that
+         * a ping has been found
+         */
+        bool found_ping(int64_t ix);
+        /**
+         * \brief Check if pong index was found
+         *
+         * \return true if the index checked indicates that
+         * a pong has been found
+         */
+        bool found_pong(int64_t ix);
 private:
         int64_t detect_cdma();
         void correlate_cdma(uint32_t code_nr);
@@ -87,6 +108,7 @@ private:
         int64_t find_sync_ix(arma::uvec peak_indexes);
         bool found_sync(int64_t ix);
         bool delta_ok(int64_t delta);
+        bool found_ok_index(int64_t ix);
 
         arma::cx_vec m_data;
         DetectorType m_det_type;

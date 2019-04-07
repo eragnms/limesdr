@@ -41,13 +41,33 @@ void Detector::add_data(std::vector<std::complex<int16_t>> data)
         }
 }
 
-int64_t Detector::initial_sync()
+int64_t Detector::look_for_initial_sync()
 {
         int64_t index_of_sync(-1);
         if (m_det_type == CDMA) {
                 index_of_sync = detect_cdma();
         }
         return index_of_sync;
+}
+
+bool Detector::found_initial_sync(int64_t ix)
+{
+        return found_ok_index(ix);
+}
+
+bool Detector::found_ping(int64_t ix)
+{
+        return found_ok_index(ix);
+}
+
+bool Detector::found_pong(int64_t ix)
+{
+        return found_ok_index(ix);
+}
+
+bool Detector::found_ok_index(int64_t ix)
+{
+        return ix >= 0;
 }
 
 std::vector<float> Detector::get_corr_result()

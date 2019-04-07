@@ -96,11 +96,12 @@ void run_tag(bool plot_data)
         signal(SIGINT, sigIntHandler);
         while (not stop && not found_sync) {
                 int ret = sdr.read(no_of_samples, buff_data);
-                check_return(ret);
-                detector.add_data(buff_data);
-                sync_ix = detector.initial_sync();
-                if (sync_ix >= 0) {
-                        found_sync = true;
+                if (check_return_ok(ret)) {
+                        detector.add_data(buff_data);
+                        sync_ix = detector.look_for_initial_sync();
+                        if (detector.found_initial_sync(ix)) {
+                                found_sync = true;
+                        }
                 }
                 const auto now = std::chrono::high_resolution_clock::now();
                 if (timeLastSpin + std::chrono::milliseconds(300) < now) {
@@ -126,8 +127,9 @@ void run_tag(bool plot_data)
         }
 }
 
-void check_return(int ret)
+bool check_return_ok(int ret)
 {
+        bool data_ok(true);
         if (ret == SOAPY_SDR_TIMEOUT) {
                 std::cout << "Timeout!" << std::endl;
         }
@@ -142,4 +144,5 @@ void check_return(int ret)
                 err += SoapySDR::errToStr(ret);
                 throw std::runtime_error(err);
         }
+        return data_ok;
 }
