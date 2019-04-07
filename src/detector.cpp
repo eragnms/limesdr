@@ -52,15 +52,50 @@ int64_t Detector::look_for_initial_sync()
         return index_of_sync;
 }
 
-int64_t Detector::look_for_ping()
+int64_t Detector::look_for_ping(int64_t expected_ix)
 {
         int64_t index_of_sync(-1);
+        expected_ix += 0;
+        //reduce_buffer_data(expected_ix);
         arma::uvec found_bursts;
         if (m_det_type == CDMA) {
                 found_bursts = detect_cdma_bursts();
         }
         index_of_sync = check_bursts_for_ping_index(found_bursts);
         return index_of_sync;
+}
+
+void Detector::reduce_buffer_data(int64_t expected_ix)
+{
+        size_t data_length = m_dev_cfg.tx_burst_length;
+        data_length += 2 * m_dev_cfg.ping_burst_guard;
+        int64_t start_pos = expected_ix - data_length / 2;
+        uint64_t start_ix;
+        if (start_pos < 0) {
+                start_ix = 0;
+        } else {
+                start_ix = (uint64_t)start_pos;
+        }
+        uint64_t end_pos = (uint64_t)expected_ix + data_length / 2;
+        uint64_t end_ix;
+        if (end_pos > m_data.n_rows) {
+                end_ix = m_data.n_rows;
+        } else {
+                end_ix = (uint64_t)end_pos;
+        }
+        arma::cx_vec tmp = m_data;
+        m_data.set_size(data_length);
+        std::cout << data_length
+                  << " "
+                  << start_pos
+                  << " "
+                  << expected_ix
+                  << " "
+                  << start_ix
+                  << " "
+                  << end_ix
+                  << std::endl;
+        m_data = tmp.rows(start_ix, end_ix);
 }
 
 bool Detector::found_initial_sync(int64_t ix)

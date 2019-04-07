@@ -100,6 +100,7 @@ void run_tag(bool plot_data)
         size_t num_of_missed_pings(0);
         size_t num_ping_tries(0);
         int64_t sync_ix(-1);
+        int64_t hw_time_of_sync(-1);
         TagStateMachine current_state(INITIAL_SYNC);
         std::cout << "**********************" << std::endl;
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
@@ -115,22 +116,12 @@ void run_tag(bool plot_data)
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
                                 if (detector.found_initial_sync(sync_ix)) {
-                                        sdr.set_time_of_next_burst(sync_ix);
+                                        hw_time_of_sync = sdr.ix_to_hw_time(sync_ix);
                                         std::cout << std::endl
                                                   << "Found inital sync"
                                                   << std::endl;
-                                        /*std::cout << "Waiting 64for PING"
-                                          << std::endl;*/
-                                        current_state = WAIT_FOR_PING;
+                                        current_state = SEARCH_FOR_PING;
                                 }
-                        }
-                        break;
-                }
-                case WAIT_FOR_PING: {
-                        if (sdr.time_to_start_rx()) {
-                                std::cout << "Searching for PING"
-                                          << std::endl;
-                                current_state = SEARCH_FOR_PING;
                         }
                         break;
                 }
@@ -139,28 +130,27 @@ void run_tag(bool plot_data)
                                            buff_data_ping);
                         if (return_ok(ret)) {
                                 num_ping_tries++;
+                                int64_t expected_ping_ix;
+                                expected_ping_ix = sdr.expected_ping_pos_ix(hw_time_of_sync);
+                                std::cout << "expected " << expected_ping_ix
+                                          << std::endl;
                                 detector.add_data(buff_data_ping);
-                                sync_ix = detector.look_for_ping();
+                                sync_ix = detector.look_for_ping(expected_ping_ix);
                                 if (detector.found_ping(sync_ix)) {
-                                        sdr.set_time_of_next_burst(sync_ix);
+                                        hw_time_of_sync = sdr.ix_to_hw_time(sync_ix);
                                         num_of_found_pings++;
                                         num_of_missed_pings = 0;
                                         std::cout << "Found PING"
                                                   << std::endl;
-                                        /*
-                                        std::cout << "Waiting for PING"
-                                        << std::endl;*/
-                                        current_state = WAIT_FOR_PING;
-                                        stop = true;
                                 } else {
                                         num_of_missed_pings++;
                                 }
                                 if (num_of_missed_pings > dev_cfg.num_of_ping_tries) {
-                                        /*std::cout << std::endl
+                                        std::cout << std::endl
                                                   << "Faild PING detect"
                                                   << std::endl;
                                         std::cout << "Starting initial sync"
-                                        << std::endl;*/
+                                                  << std::endl;
                                         current_state = INITIAL_SYNC;
                                 }
                         }

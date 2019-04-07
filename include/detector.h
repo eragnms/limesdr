@@ -76,7 +76,7 @@ public:
          *
          * \return index of the first detected PING, -1 if sync failed
          */
-        int64_t look_for_ping();
+        int64_t look_for_ping(int64_t expected_ix);
         /**
          * \brief Get the correlation result
          *
@@ -116,6 +116,7 @@ private:
         bool found_ok_index(int64_t ix);
         int64_t check_bursts_for_intial_sync_index(arma::uvec peak_indexes);
         int64_t check_bursts_for_ping_index(arma::uvec peak_indexes);
+        void reduce_buffer_data(int64_t expected_ix);
 
         arma::cx_vec m_data;
         DetectorType m_det_type;

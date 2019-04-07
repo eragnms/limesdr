@@ -376,31 +376,24 @@ int32_t SDR::read(size_t no_of_samples,
         return no_of_received_samples;
 }
 
-void SDR::set_time_of_next_burst(int64_t ix)
+int64_t SDR::ix_to_hw_time(int64_t ix)
 {
-        int64_t sync_time_ns  = (1e9 * ix)/m_dev_cfg.sampling_rate_rx;
-        int64_t burst_period_ns = m_dev_cfg.burst_period*1e9;
-        m_time_of_next_burst = m_last_rx_timestamp + sync_time_ns + burst_period_ns;
-        int64_t current_hardware_time = m_device->getHardwareTime();
-        while (current_hardware_time > m_time_of_next_burst) {
-                m_time_of_next_burst += burst_period_ns;
-        }
+        int64_t hw_time;
+        int64_t fs = m_dev_cfg.sampling_rate_rx;
+        hw_time = m_last_rx_timestamp + (ix * 1e9) / fs;
+        return hw_time;
 }
 
-bool SDR::time_to_start_rx()
+int64_t SDR::expected_ping_pos_ix(int64_t hw_time_of_sync)
 {
-        int64_t guard_time_ns = (1e9*m_dev_cfg.ping_burst_guard)/m_dev_cfg.sampling_rate_rx;
-        int64_t current_hardware_time = m_device->getHardwareTime();
-        int64_t burst_period_ns = m_dev_cfg.burst_period*1e9;
-        while (current_hardware_time > (m_time_of_next_burst + guard_time_ns)) {
-                m_time_of_next_burst += burst_period_ns;
+        int64_t exp_hw_time = hw_time_of_sync;
+        int64_t burst_period_ns = m_dev_cfg.burst_period * 1e9;
+        while (exp_hw_time <= m_last_rx_timestamp) {
+                exp_hw_time += burst_period_ns;
         }
-        bool start = current_hardware_time >= (m_time_of_next_burst - guard_time_ns);
-        std::cout << "next "
-                  << m_time_of_next_burst
-                  << " curr " << current_hardware_time
-                  << " " << start << std::endl;
-        return start;
+        int64_t fs = m_dev_cfg.sampling_rate_rx;
+        int64_t ix = (exp_hw_time - m_last_rx_timestamp) * 1e-9 * fs;
+        return ix;
 }
 
 void SDR::close()

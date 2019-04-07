@@ -132,8 +132,8 @@ public:
          * \param[in] burst_time the time to check
          */
         void check_burst_time(long long int burst_time);
-        void set_time_of_next_burst(int64_t ix);
-        bool time_to_start_rx();
+        int64_t ix_to_hw_time(int64_t ix);
+        int64_t expected_ping_pos_ix(int64_t hw_time_of_sync);
 
 private:
         std::string get_device_driver();

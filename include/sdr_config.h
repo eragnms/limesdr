@@ -66,7 +66,7 @@ struct SDR_Device_Config
         size_t no_of_rx_samples_initial_sync =
                 2 * sampling_rate_rx * burst_period; //!< Read buffer size
         size_t no_of_rx_samples_ping =
-                4 * tx_burst_length; //!< Read buffer size
+                (size_t)(1.1 * sampling_rate_rx * burst_period); //!< Read buffer size
 
         uint32_t ping_scr_code = 2;
         uint32_t pong_scr_code = 2;
@@ -74,7 +74,7 @@ struct SDR_Device_Config
         int64_t max_sync_error = 5;
         uint32_t threshold_factor = 8;
         size_t num_of_ping_tries = 10; //!< Number of tries before initial sync
-        int64_t ping_burst_guard = 2048; //!< Guard samples around expected PING
+        int64_t ping_burst_guard = 1000; //!< Guard samples around expected PING
 
         bool tx_active = true;
         bool rx_active = true;
