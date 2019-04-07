@@ -96,10 +96,10 @@ void run_tag(bool plot_data)
         signal(SIGINT, sigIntHandler);
         while (not stop && not found_sync) {
                 int ret = sdr.read(no_of_samples, buff_data);
-                if (check_return_ok(ret)) {
+                if (return_ok(ret)) {
                         detector.add_data(buff_data);
                         sync_ix = detector.look_for_initial_sync();
-                        if (detector.found_initial_sync(ix)) {
+                        if (detector.found_initial_sync(sync_ix)) {
                                 found_sync = true;
                         }
                 }
@@ -127,7 +127,7 @@ void run_tag(bool plot_data)
         }
 }
 
-bool check_return_ok(int ret)
+bool return_ok(int ret)
 {
         bool data_ok(true);
         if (ret == SOAPY_SDR_TIMEOUT) {

@@ -99,16 +99,16 @@ public:
          */
         bool found_pong(int64_t ix);
 private:
-        int64_t detect_cdma();
+        arma::uvec detect_cdma_bursts();
         void correlate_cdma(uint32_t code_nr);
         arma::vec correlate(arma::vec ref, arma::vec rx_data);
         arma::vec correlate(arma::cx_vec ref);
         double calculate_threshold();
         arma::uvec find_peaks(double threshold);
-        int64_t find_sync_ix(arma::uvec peak_indexes);
-        bool found_sync(int64_t ix);
-        bool delta_ok(int64_t delta);
+        int64_t find_initial_sync_ix(arma::uvec peak_indexes);
+        bool spacing_ok(int64_t burst_spacing);
         bool found_ok_index(int64_t ix);
+        int64_t check_bursts_for_intial_sync_index(arma::uvec peak_indexes);
 
         arma::cx_vec m_data;
         DetectorType m_det_type;

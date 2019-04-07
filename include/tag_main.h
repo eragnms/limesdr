@@ -31,4 +31,4 @@
 void run_tag(bool plot_data);
 void sigIntHandler(const int);
 void list_device_info();
-bool check_return_ok(int ret);
+bool return_ok(int ret);

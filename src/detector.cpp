@@ -44,9 +44,11 @@ void Detector::add_data(std::vector<std::complex<int16_t>> data)
 int64_t Detector::look_for_initial_sync()
 {
         int64_t index_of_sync(-1);
+        arma::uvec found_bursts;
         if (m_det_type == CDMA) {
-                index_of_sync = detect_cdma();
+                found_bursts = detect_cdma_bursts();
         }
+        index_of_sync = check_bursts_for_intial_sync_index(found_bursts);
         return index_of_sync;
 }
 
@@ -77,23 +79,27 @@ std::vector<float> Detector::get_corr_result()
         return data;
 }
 
-int64_t Detector::detect_cdma()
+arma::uvec Detector::detect_cdma_bursts()
 {
-        int64_t index_of_sync(-1);
+        arma::uvec peak_indexes;
         for (size_t n=0; n<m_codes.size(); n++) {
                 correlate_cdma(m_codes[n]);
                 double threshold = calculate_threshold();
-                arma::uvec peak_indexes = find_peaks(threshold);
-                int64_t ix(-1);
+                peak_indexes = find_peaks(threshold);
                 if (peak_indexes.n_rows > 0) {
-                        ix = find_sync_ix(peak_indexes);
-                }
-                if (found_sync(ix)) {
-                        index_of_sync = ix;
                         break;
                 }
         }
-        return index_of_sync;
+        return peak_indexes;
+}
+
+int64_t Detector::check_bursts_for_intial_sync_index(arma::uvec peak_indexes)
+{
+        int64_t ix(-1);
+        if (peak_indexes.n_rows > 0) {
+                ix = find_initial_sync_ix(peak_indexes);
+        }
+        return ix;
 }
 
 void Detector::correlate_cdma(uint32_t code_nr)
@@ -148,12 +154,12 @@ arma::uvec Detector::find_peaks(double threshold)
         return peaks;
 }
 
-int64_t Detector::find_sync_ix(arma::uvec peak_indexes)
+int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
 {
         int64_t sync_index(-1);
         for (size_t n=0; n<peak_indexes.n_rows-1; n++) {
-                uint64_t delta = peak_indexes(n+1) - peak_indexes(n);
-                if (delta_ok(delta)) {
+                uint64_t spacing = peak_indexes(n+1) - peak_indexes(n);
+                if (spacing_ok(spacing)) {
                         sync_index = peak_indexes(n);
                         break;
                 }
@@ -161,18 +167,13 @@ int64_t Detector::find_sync_ix(arma::uvec peak_indexes)
         return sync_index;
 }
 
-bool Detector::delta_ok(int64_t delta)
+bool Detector::spacing_ok(int64_t burst_spacing)
 {
         bool ok;
-        int64_t burst_distance =
+        int64_t burst_period =
                 m_dev_cfg.burst_period * m_dev_cfg.sampling_rate_rx;
-        int64_t ok_error = m_dev_cfg.max_sync_error;
-        ok = delta <= (burst_distance + ok_error);
-        ok = ok && (delta >= (burst_distance - ok_error));
+        int64_t max_diff = m_dev_cfg.max_sync_error;
+        ok = burst_spacing <= (burst_period + max_diff);
+        ok = ok && (burst_spacing >= (burst_period - max_diff));
         return ok;
-}
-
-bool Detector::found_sync(int64_t ix)
-{
-        return ix >= 0;
 }
