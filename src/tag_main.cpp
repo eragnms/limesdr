@@ -107,6 +107,8 @@ void run_tag(bool plot_data)
                   << std::endl;
         std::cout << "Looking for inital sync" << std::endl;
         signal(SIGINT, sigIntHandler);
+        size_t num_syncs(0);
+        int64_t old_hw_time(0);
         while (not stop) {
                 switch(current_state) {
                 case INITIAL_SYNC: {
@@ -116,11 +118,25 @@ void run_tag(bool plot_data)
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
                                 if (detector.found_initial_sync(sync_ix)) {
+                                        num_syncs++;
                                         hw_time_of_sync = sdr.ix_to_hw_time(sync_ix);
                                         std::cout << std::endl
                                                   << "Found inital sync"
                                                   << std::endl;
-                                        current_state = SEARCH_FOR_PING;
+                                        //current_state = SEARCH_FOR_PING;
+                                        if (num_syncs == 10) {
+                                                stop = true;
+                                        }
+                                        int64_t diff = hw_time_of_sync - old_hw_time;
+                                        double diff_ns = diff / 1e9;
+                                        std::cout << "hw time sync "
+                                                  << hw_time_of_sync
+                                                  << " diff "
+                                                  << diff
+                                                  << " diff ns "
+                                                  << diff_ns
+                                                  << std::endl;
+                                        old_hw_time = hw_time_of_sync;
                                 }
                         }
                         break;
@@ -171,6 +187,7 @@ void run_tag(bool plot_data)
 
                 if (time_status_info + std::chrono::seconds(1) < now) {
                         time_status_info = now;
+/*
                         std::string state_info = "In state: ";
                         state_info += state_to_string(current_state);
                         std::cout << std::endl << state_info << std::endl;
@@ -179,7 +196,7 @@ void run_tag(bool plot_data)
                                   << " Num of tries "
                                   << num_ping_tries
                                   << std::endl;
-
+*/
                 }
 
         }

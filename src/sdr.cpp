@@ -239,10 +239,11 @@ int64_t SDR::start_rx()
                                                    m_dev_cfg.f_clk);
         int64_t burst_time = SoapySDR::ticksToTimeNs(m_rx_start_tick,
                                                      m_dev_cfg.f_clk);
-        burst_time = 0;
+        //burst_time = 0;
         int rx_flags = SOAPY_SDR_HAS_TIME;
         rx_flags |= SOAPY_SDR_END_BURST;
         rx_flags |= SOAPY_SDR_ONE_PACKET;
+        //int rx_flags(0);
         int ret = m_device->activateStream(m_rx_stream,
                                            rx_flags,
                                            burst_time);
@@ -362,7 +363,10 @@ int32_t SDR::read(size_t no_of_samples,
                   std::vector<std::complex<int16_t>> &buff_data)
 {
         int32_t no_of_received_samples(0);
-        int flags(0);
+        //int flags(0);
+        int flags = SOAPY_SDR_HAS_TIME;
+        flags |= SOAPY_SDR_END_BURST;
+        //flags |= SOAPY_SDR_ONE_PACKET;
         long long time_ns(0);
         buff_data.resize(no_of_samples);
         std::vector<void *> buffs_data;
@@ -380,7 +384,13 @@ int64_t SDR::ix_to_hw_time(int64_t ix)
 {
         int64_t hw_time;
         int64_t fs = m_dev_cfg.sampling_rate_rx;
-        hw_time = m_last_rx_timestamp + (ix * 1e9) / fs;
+        int64_t ix_ns = (ix * 1e9) / fs;
+        std::cout << "ix "
+                  << ix
+                  << " ix_ns "
+                  << ix_ns
+                  << std::endl;
+        hw_time = m_last_rx_timestamp + ix_ns;
         return hw_time;
 }
 
