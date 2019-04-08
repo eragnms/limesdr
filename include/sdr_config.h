@@ -39,7 +39,7 @@ struct SDR_Device_Config
         std::string serial_lime_3 = "0009072C02870A19";
 
         double frequency = 800e6; //!< Center frequency [Hz]
-        double tx_gain = 40; //!< 60 dB is about 0 dBm
+        double tx_gain = 50; //!< 60 dB is about 0 dBm
         double rx_gain = 20;
         double tx_bw = -1; //!< Not used if -1
         double rx_bw = -1; //!< Not used if -1
@@ -66,15 +66,15 @@ struct SDR_Device_Config
         size_t no_of_rx_samples_initial_sync =
                 2 * sampling_rate_rx * burst_period; //!< Read buffer size
         size_t no_of_rx_samples_ping =
-                (size_t)(1.1 * sampling_rate_rx * burst_period); //!< Read buffer size
+                (size_t)(1 * sampling_rate_rx * burst_period); //!< Read buffer size
 
         uint32_t ping_scr_code = 2;
         uint32_t pong_scr_code = 2;
 
         int64_t max_sync_error = 5;
-        uint32_t threshold_factor = 16;
-        size_t num_of_ping_tries = 10; //!< Number of tries before initial sync
-        int64_t ping_burst_guard = 1000; //!< Guard samples around expected PING
+        uint32_t threshold_factor = 32;
+        size_t num_of_ping_tries = 1000; //!< Number of tries before initial sync
+        int64_t ping_burst_guard = 2000; //!< Guard samples around expected PING
 
         bool tx_active = true;
         bool rx_active = true;
