@@ -108,7 +108,7 @@ void run_tag(bool plot_data)
         std::cout << "Looking for inital sync" << std::endl;
         signal(SIGINT, sigIntHandler);
         size_t num_syncs(0);
-        int64_t old_hw_time(0);
+        //int64_t old_hw_time(0);
         while (not stop) {
                 switch(current_state) {
                 case INITIAL_SYNC: {
@@ -123,20 +123,7 @@ void run_tag(bool plot_data)
                                         std::cout << std::endl
                                                   << "Found inital sync"
                                                   << std::endl;
-                                        //current_state = SEARCH_FOR_PING;
-                                        if (num_syncs == 10) {
-                                                stop = true;
-                                        }
-                                        int64_t diff = hw_time_of_sync - old_hw_time;
-                                        double diff_ns = diff / 1e9;
-                                        std::cout << "hw time sync "
-                                                  << hw_time_of_sync
-                                                  << " diff "
-                                                  << diff
-                                                  << " diff ns "
-                                                  << diff_ns
-                                                  << std::endl;
-                                        old_hw_time = hw_time_of_sync;
+                                        current_state = SEARCH_FOR_PING;
                                 }
                         }
                         break;
@@ -158,6 +145,9 @@ void run_tag(bool plot_data)
                                         num_of_missed_pings = 0;
                                         std::cout << "Found PING"
                                                   << std::endl;
+                                        if (num_of_found_pings == 3) {
+                                                stop = true;
+                                        }
                                 } else {
                                         num_of_missed_pings++;
                                 }

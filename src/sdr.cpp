@@ -398,11 +398,11 @@ int64_t SDR::expected_ping_pos_ix(int64_t hw_time_of_sync)
 {
         int64_t exp_hw_time = hw_time_of_sync;
         int64_t burst_period_ns = m_dev_cfg.burst_period * 1e9;
-        while (exp_hw_time <= m_last_rx_timestamp) {
+        while (exp_hw_time < m_last_rx_timestamp) {
                 exp_hw_time += burst_period_ns;
         }
         int64_t fs = m_dev_cfg.sampling_rate_rx;
-        int64_t ix = (exp_hw_time - m_last_rx_timestamp) * 1e-9 * fs;
+        int64_t ix = ((exp_hw_time - m_last_rx_timestamp) * fs) / 1e9;
         return ix;
 }
 

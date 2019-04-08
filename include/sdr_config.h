@@ -72,7 +72,7 @@ struct SDR_Device_Config
         uint32_t pong_scr_code = 2;
 
         int64_t max_sync_error = 5;
-        uint32_t threshold_factor = 8;
+        uint32_t threshold_factor = 16;
         size_t num_of_ping_tries = 10; //!< Number of tries before initial sync
         int64_t ping_burst_guard = 1000; //!< Guard samples around expected PING
 
