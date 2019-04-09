@@ -98,6 +98,7 @@ void run_tag(bool plot_data)
 
         size_t num_of_found_pings(0);
         size_t num_of_missed_pings(0);
+        size_t tot_num_of_missed_pings(0);
         size_t num_ping_tries(0);
         int64_t sync_ix(-1);
         int64_t hw_time_of_sync(-1);
@@ -149,6 +150,7 @@ void run_tag(bool plot_data)
                                                   << std::endl;
                                 } else {
                                         num_of_missed_pings++;
+                                        tot_num_of_missed_pings++;
                                 }
                                 if (num_of_missed_pings > dev_cfg.num_of_ping_tries) {
                                         num_of_missed_pings = 0;
@@ -191,8 +193,10 @@ void run_tag(bool plot_data)
 
         }
         sdr.close();
-        std::cout << "Found initial sync peak at: "
-                  << sync_ix
+        std::cout << "Number of found PINGS: "
+                  << num_of_found_pings
+                  << " Number of missed PINGS: "
+                  << tot_num_of_missed_pings
                   << std::endl;
         if (plot_data) {
                 Analysis analysis;
