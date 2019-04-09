@@ -123,5 +123,5 @@ private:
         std::vector<uint32_t> m_codes;
         SDR_Device_Config m_dev_cfg;
         arma::vec m_corr_result;
-
+        arma::cx_vec m_reference;
 };

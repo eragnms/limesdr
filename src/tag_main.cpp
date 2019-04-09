@@ -121,7 +121,8 @@ void run_tag(bool plot_data)
                                 sync_ix = detector.look_for_initial_sync();
                                 if (detector.found_initial_sync(sync_ix)) {
                                         num_syncs++;
-                                        hw_time_of_sync = sdr.ix_to_hw_time(sync_ix);
+                                        hw_time_of_sync = sdr.ix_to_hw_time(
+                                                sync_ix);
                                         std::cout << std::endl
                                                   << "Found inital sync"
                                                   << std::endl;
@@ -136,18 +137,23 @@ void run_tag(bool plot_data)
                         if (return_ok(ret)) {
                                 num_ping_tries++;
                                 int64_t expected_ping_ix;
-                                expected_ping_ix = sdr.expected_ping_pos_ix(hw_time_of_sync);
+                                expected_ping_ix = sdr.expected_ping_pos_ix(
+                                        hw_time_of_sync);
                                 detector.add_data(buff_data_ping);
-                                sync_ix = detector.look_for_ping(expected_ping_ix);
+                                sync_ix = detector.look_for_ping(
+                                        expected_ping_ix);
                                 if (detector.found_ping(sync_ix)) {
-                                        hw_time_of_sync = sdr.ix_to_hw_time(sync_ix);
+                                        hw_time_of_sync = sdr.ix_to_hw_time(
+                                                sync_ix);
                                         num_of_found_pings++;
                                         num_of_missed_pings = 0;
                                         std::cout << "Found PING"
-                                                  << " expected " << expected_ping_ix
-                                                  << "sync ix " << sync_ix
-                                                  << "diff "
-                                                  << expected_ping_ix - sync_ix
+                                                  << " expected "
+                                                  << expected_ping_ix
+                                                  << " sync ix "
+                                                  << sync_ix
+                                                  << " diff "
+                                                  << expected_ping_ix-sync_ix
                                                   << " data_length "
                                                   << buff_data_ping.size()
                                                   << std::endl;

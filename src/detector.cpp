@@ -63,10 +63,6 @@ int64_t Detector::look_for_ping(int64_t expected_ix)
         }
         index_of_sync = check_bursts_for_ping_index(found_bursts);
         if (index_of_sync > 0) {
-                //std::cout << "peak values" << std::endl;
-                //found_bursts.print();
-        }
-        if (index_of_sync > 0) {
                 index_of_sync += adjust_ix;
         }
         return index_of_sync;
@@ -76,8 +72,6 @@ int64_t Detector::reduce_buffer_data(int64_t expected_ix)
 {
         size_t data_length = m_dev_cfg.tx_burst_length;
         data_length += 2 * m_dev_cfg.ping_burst_guard;
-
-        //data_length = m_data.n_rows / 40;
         int64_t start_pos = expected_ix - data_length / 2;
         uint64_t start_ix;
         if (start_pos < 0) {
@@ -95,18 +89,6 @@ int64_t Detector::reduce_buffer_data(int64_t expected_ix)
         data_length = end_ix - start_ix + 1;
         arma::cx_vec tmp = m_data;
         m_data.set_size(data_length);
-        /*std::cout << data_length
-                  << " "
-                  << start_pos
-                  << " "
-                  << expected_ix
-                  << " "
-                  << start_ix
-                  << " "
-                  << end_ix
-                  << " "
-                  << tmp.n_rows
-                  << std::endl;*/
         m_data = tmp.rows(start_ix, end_ix);
         return start_ix;
 }
@@ -182,8 +164,8 @@ void Detector::correlate_cdma(uint32_t code_nr)
         modulation.filter();
         modulation.scrap_samples(mod_length * extra_samples_for_filter);
         std::vector<std::complex<float>> tx_pulse = modulation.get_data();
-        arma::cx_vec reference = arma::conv_to<arma::cx_vec>::from(tx_pulse);
-        m_corr_result = correlate(reference);
+        m_reference = arma::conv_to<arma::cx_vec>::from(tx_pulse);
+        m_corr_result = correlate(m_reference);
 }
 
 arma::vec Detector::correlate(arma::vec ref, arma::vec rx_data)
@@ -210,13 +192,22 @@ arma::vec Detector::correlate(arma::cx_vec ref)
 
 double Detector::calculate_threshold()
 {
-        /*
-         max = arma::max(corr)
-         mean = arma::mean(max-1/2*ref_length, max+1/2*ref_length)
-         standard_dev = arma::stddev(max-1/2*ref_length, max+1/2*ref_length)
-        */
-        double mean = arma::mean(m_corr_result);
-        double standard_dev = arma::stddev(m_corr_result);
+        size_t length = m_reference.n_rows;
+        size_t max_ix = m_corr_result.index_max();
+        int64_t start_candidate = max_ix - length / 2;
+        uint64_t start_ix;
+        if (start_candidate < 0) {
+                start_ix = 0;
+        } else {
+                start_ix = (uint64_t)(start_candidate);
+        }
+        uint64_t end_ix = (uint64_t)(max_ix + length / 2);
+        if (end_ix >= m_corr_result.n_rows) {
+                end_ix = m_corr_result.n_rows - 1;
+        }
+        arma::vec corr_data = m_corr_result.rows(start_ix, end_ix);
+        double mean = arma::mean(corr_data);
+        double standard_dev = arma::stddev(corr_data);
         double threshold = mean + m_dev_cfg.threshold_factor * standard_dev;
         return threshold;
 }
