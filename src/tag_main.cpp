@@ -67,9 +67,9 @@ void list_device_info()
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
-        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        std::string dev_serial = dev_cfg.serial_bladerf_x40;
         //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
-        std::string dev_serial = dev_cfg.serial_lime_3;
+        //std::string dev_serial = dev_cfg.serial_lime_3;
         dev_cfg.tx_active = false;
         const size_t no_of_samples_initial_sync =
                 dev_cfg.no_of_rx_samples_initial_sync;
