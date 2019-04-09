@@ -210,10 +210,14 @@ arma::vec Detector::correlate(arma::cx_vec ref)
 
 double Detector::calculate_threshold()
 {
+        /*
+         max = arma::max(corr)
+         mean = arma::mean(max-1/2*ref_length, max+1/2*ref_length)
+         standard_dev = arma::stddev(max-1/2*ref_length, max+1/2*ref_length)
+        */
         double mean = arma::mean(m_corr_result);
         double standard_dev = arma::stddev(m_corr_result);
         double threshold = mean + m_dev_cfg.threshold_factor * standard_dev;
-        //std::cout << "Threshold: " << threshold << std::endl;
         return threshold;
 }
 
