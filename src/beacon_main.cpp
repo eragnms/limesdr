@@ -60,7 +60,8 @@ void list_device_info()
 void run_beacon()
 {
         SDR_Device_Config dev_cfg;
-        std::string dev_serial = dev_cfg.serial_bladerf_v2;
+        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         //std::string dev_serial = dev_cfg.serial_lime_3;
         const double sampling_rate = dev_cfg.sampling_rate_tx;
         double burst_period = dev_cfg.burst_period;

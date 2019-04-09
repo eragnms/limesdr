@@ -67,7 +67,8 @@ void list_device_info()
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
-        //std::string dev_serial = dev_cfg.serial_bladerf_v2;
+        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         std::string dev_serial = dev_cfg.serial_lime_3;
         dev_cfg.tx_active = false;
         const size_t no_of_samples_initial_sync =
@@ -147,6 +148,8 @@ void run_tag(bool plot_data)
                                                   << "sync ix " << sync_ix
                                                   << "diff "
                                                   << expected_ping_ix - sync_ix
+                                                  << " data_length "
+                                                  << buff_data_ping.size()
                                                   << std::endl;
                                 } else {
                                         num_of_missed_pings++;
@@ -202,7 +205,10 @@ void run_tag(bool plot_data)
                 Analysis analysis;
                 analysis.add_data(buff_data_initial);
                 analysis.plot_imag_data();
-                //analysis.save_data("cdma");
+                //analysis.save_data("initial_buff_20ms");
+                analysis.add_data(buff_data_ping);
+                analysis.plot_imag_data();
+                //analysis.save_data("ping_buff_10ms");
                 std::vector<float> corr;
                 corr = detector.get_corr_result();
                 analysis.add_data(corr);
