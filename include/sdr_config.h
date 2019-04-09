@@ -25,10 +25,10 @@ struct SDR_Device_Config
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_ERROR;
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_WARNING;
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_NOTICE;
-        SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_INFO;
+        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_INFO;
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_DEBUG;
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_TRACE;
-        //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_SSI;
+        SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_SSI;
         std::string args = ""; //!< Not used if ""
         std::string clock_source = ""; //!< Not used if ""
         std::string time_source = ""; //!< Not used if ""
@@ -59,7 +59,8 @@ struct SDR_Device_Config
         uint16_t D_tx = 32 / Novs_tx; //!< Should be 8
         uint16_t D_rx = 32 / Novs_rx; //!< Should be 8
         double sampling_rate_tx = f_clk / D_tx;
-        double sampling_rate_rx = f_clk / D_rx;
+        //double sampling_rate_rx = f_clk / D_rx;
+        double sampling_rate_rx = 7.68e6;
         std::string antenna_tx = "BAND1";
         std::string antenna_rx = "LNAL";
         double timeout = 2; //!< Read and write stream timeout
