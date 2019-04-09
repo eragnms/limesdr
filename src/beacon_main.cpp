@@ -89,20 +89,13 @@ void run_beacon()
                             no_of_ticks_per_bursts_period);
         my_futures.push_back(std::move(future));
 
-        //std::chrono::_V2::system_clock::time_point timeLastSpin = std::chrono::high_resolution_clock::now();
-        TimePoint timeLastSpin = std::chrono::high_resolution_clock::now();
-        int spinIndex(0);
+        TimePoint time_last_spin = std::chrono::high_resolution_clock::now();
+        int spin_index(0);
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
         while (not stop) {
-                const auto now = std::chrono::high_resolution_clock::now();
-                if (timeLastSpin + std::chrono::milliseconds(300) < now) {
-                        timeLastSpin = now;
-                        static const char spin[] = {"|/-\\"};
-                        printf("\b%c", spin[(spinIndex++)%4]);
-                        fflush(stdout);
-                }
+                time_last_spin = print_spin(time_last_spin, spin_index++);
                 usleep(100);
         }
         size_t m = my_futures.size();
@@ -112,6 +105,18 @@ void run_beacon()
                 my_futures.pop_back();
         }
         sdr.close();
+}
+
+TimePoint print_spin(TimePoint time_last_spin, int spin_index)
+{
+        TimePoint now = std::chrono::high_resolution_clock::now();
+        if (time_last_spin + std::chrono::milliseconds(300) < now) {
+                static const char spin[] = {"|/-\\"};
+                printf("\b%c", spin[(spin_index++)%4]);
+                fflush(stdout);
+                time_last_spin = now;
+        }
+        return time_last_spin;
 }
 
 void transmit_ping(SDR sdr,
@@ -138,7 +143,6 @@ void transmit_ping(SDR sdr,
         tx_buffs_data.push_back(tx_buff_data.data());
         std::cout << "sample count per send call: "
                   << no_of_tx_samples << std::endl;
-
         while (not stop) {
                 long long int burst_time = SoapySDR::ticksToTimeNs(
                         tx_tick,

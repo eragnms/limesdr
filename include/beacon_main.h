@@ -35,3 +35,4 @@ void list_device_info();
 void transmit_ping(SDR sdr,
                    int64_t tx_start_tick,
                    int64_t no_of_ticks_per_bursts_period);
+TimePoint print_spin(TimePoint time_last_spin, int spin_index);
