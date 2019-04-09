@@ -67,15 +67,14 @@ void list_device_info()
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
-        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        std::string dev_serial = dev_cfg.serial_bladerf_x40;
         //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
-        std::string dev_serial = dev_cfg.serial_lime_3;
+        //std::string dev_serial = dev_cfg.serial_lime_3;
         dev_cfg.tx_active = false;
         const size_t no_of_samples_initial_sync =
                 dev_cfg.no_of_rx_samples_initial_sync;
         const size_t no_of_samples_ping =
                 dev_cfg.no_of_rx_samples_ping;
-        dev_cfg.tx_active = false;
 
         std::cout << "No of samples to read in initial sync: "
                   << no_of_samples_initial_sync << std::endl;
@@ -86,16 +85,29 @@ void run_tag(bool plot_data)
         sdr.configure(dev_cfg);
         sdr.start();
 
-        //auto time_last_spin = std::chrono::high_resolution_clock::now();
-        auto time_status_info = std::chrono::high_resolution_clock::now();
-        //int spinIndex(0);
-
         std::vector<std::complex<int16_t>> buff_data_initial(
                 no_of_samples_initial_sync);
         std::vector<std::complex<int16_t>> buff_data_ping(
                 no_of_samples_ping);
         Detector detector;
         detector.configure(CDMA, {dev_cfg.ping_scr_code}, dev_cfg);
+
+        size_t buffer_size_tx = dev_cfg.tx_burst_length;
+        size_t no_of_tx_samples = buffer_size_tx;
+        double scale_factor(1.0);
+        uint16_t Novs = dev_cfg.Novs_tx;
+        double extra_samples_for_filter = dev_cfg.extra_samples_filter;
+        size_t mod_length = dev_cfg.tx_burst_length_chip;
+        mod_length = mod_length * (1 + extra_samples_for_filter);
+        Modulation modulation(mod_length, scale_factor, Novs);
+        modulation.generate_cdma(dev_cfg.pong_scr_code);
+        modulation.filter();
+        modulation.scrap_samples(mod_length * extra_samples_for_filter);
+        std::vector<std::complex<float>> tx_buff_data = modulation.get_data();
+        std::vector<void *> tx_buffs_data;
+        tx_buffs_data.push_back(tx_buff_data.data());
+        std::cout << "sample count per send call: "
+                  << no_of_tx_samples << std::endl;
 
         size_t num_of_found_pings(0);
         size_t num_of_missed_pings(0);
@@ -123,8 +135,7 @@ void run_tag(bool plot_data)
                                         num_syncs++;
                                         hw_time_of_sync = sdr.ix_to_hw_time(
                                                 sync_ix);
-                                        std::cout << std::endl
-                                                  << "Found inital sync"
+                                        std::cout << "Found inital sync"
                                                   << std::endl;
                                         current_state = SEARCH_FOR_PING;
                                 }
@@ -157,14 +168,14 @@ void run_tag(bool plot_data)
                                                   << " data_length "
                                                   << buff_data_ping.size()
                                                   << std::endl;
+                                        //current_state = SEND_PONG;
                                 } else {
                                         num_of_missed_pings++;
                                         tot_num_of_missed_pings++;
                                 }
                                 if (num_of_missed_pings > dev_cfg.num_of_ping_tries) {
                                         num_of_missed_pings = 0;
-                                        std::cout << std::endl
-                                                  << "Faild PING detect"
+                                        std::cout << "Faild PING detect"
                                                   << std::endl;
                                         std::cout << "Starting initial sync"
                                                   << std::endl;
@@ -173,33 +184,25 @@ void run_tag(bool plot_data)
                         }
                         break;
                 }
+                case SEND_PONG: {
+                        std::cout << "Sending PONG" << std::endl;
+                        const double fs_tx = dev_cfg.sampling_rate_tx;
+                        double pong_delay = dev_cfg.pong_delay;
+                        int64_t tmp = dev_cfg.D_tx * pong_delay * fs_tx;
+                        int64_t ticks_before_pong = tmp;
+                        int64_t tx_tick = SoapySDR::timeNsToTicks(
+                                hw_time_of_sync, dev_cfg.f_clk) + ticks_before_pong;
+                        long long int burst_time = SoapySDR::ticksToTimeNs(
+                                tx_tick,
+                                dev_cfg.f_clk);
+                        sdr.check_burst_time(burst_time);
+                        sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
+                        current_state = SEARCH_FOR_PING;
+                        break;
+                }
                 default:
                         throw std::runtime_error("Unknown state tag!");
                 }
-                const auto now = std::chrono::high_resolution_clock::now();
-                /*
-                if (time_last_spin + std::chrono::milliseconds(300) < now) {
-                        time_last_spin = now;
-                        static const char spin[] = {"|/-\\"};
-                        printf("\b%c", spin[(spinIndex++)%4]);
-                        fflush(stdout);
-                }
-                */
-
-                if (time_status_info + std::chrono::seconds(1) < now) {
-                        time_status_info = now;
-/*
-                        std::string state_info = "In state: ";
-                        state_info += state_to_string(current_state);
-                        std::cout << std::endl << state_info << std::endl;
-                        std::cout << "Num of found PINGS: "
-                                  << num_of_found_pings
-                                  << " Num of tries "
-                                  << num_ping_tries
-                                  << std::endl;
-*/
-                }
-
         }
         sdr.close();
         std::cout << "Number of found PINGS: "
@@ -247,10 +250,10 @@ std::string state_to_string(TagStateMachine state)
         switch(state) {
         case INITIAL_SYNC:
                 return "INITIAL_SYNC";
-        case WAIT_FOR_PING:
-                return "WAITING_FOR_PING";
         case SEARCH_FOR_PING:
                 return "SEARCHING_FOR_PING";
+        case SEND_PONG:
+                return "SEND_PONG";
         }
         return "UNKNOWN STATE";
 }
