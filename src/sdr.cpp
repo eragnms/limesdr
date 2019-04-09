@@ -385,11 +385,11 @@ int64_t SDR::ix_to_hw_time(int64_t ix)
         int64_t hw_time;
         int64_t fs = m_dev_cfg.sampling_rate_rx;
         int64_t ix_ns = (ix * 1e9) / fs;
-        std::cout << "ix "
+        /*std::cout << "ix "
                   << ix
                   << " ix_ns "
                   << ix_ns
-                  << std::endl;
+                  << std::endl;*/
         hw_time = m_last_rx_timestamp + ix_ns;
         return hw_time;
 }

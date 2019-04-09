@@ -135,8 +135,6 @@ void run_tag(bool plot_data)
                                 num_ping_tries++;
                                 int64_t expected_ping_ix;
                                 expected_ping_ix = sdr.expected_ping_pos_ix(hw_time_of_sync);
-                                //std::cout << "expected " << expected_ping_ix
-                                //          << std::endl;
                                 detector.add_data(buff_data_ping);
                                 sync_ix = detector.look_for_ping(expected_ping_ix);
                                 if (detector.found_ping(sync_ix)) {
@@ -144,8 +142,11 @@ void run_tag(bool plot_data)
                                         num_of_found_pings++;
                                         num_of_missed_pings = 0;
                                         std::cout << "Found PING"
+                                                  << " expected " << expected_ping_ix
+                                                  << "sync ix " << sync_ix
+                                                  << "diff "
+                                                  << expected_ping_ix - sync_ix
                                                   << std::endl;
-                                        stop = true;
                                 } else {
                                         num_of_missed_pings++;
                                 }
