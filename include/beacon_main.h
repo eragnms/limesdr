@@ -20,11 +20,14 @@
 #include <chrono>
 #include <math.h>
 #include <signal.h>
+#include <future>
 
 #include "sdr_config.h"
 #include "sdr.h"
 #include "modulation.h"
 #include "analysis.h"
+
+typedef std::chrono::_V2::system_clock::time_point TimePoint;
 
 void run_beacon();
 void sigIntHandler(const int);

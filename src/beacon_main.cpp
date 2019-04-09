@@ -13,6 +13,8 @@
 
 #include "beacon_main.h"
 
+std::vector<std::future<void>> my_futures;
+
 static sig_atomic_t stop = false;
 void sigIntHandler(const int)
 {
@@ -70,18 +72,45 @@ void run_beacon()
         SoapySDR::setLogLevel(dev_cfg.log_level);
         sdr.connect(dev_serial);
         sdr.configure(dev_cfg);
-
         int64_t now_tick = sdr.start();
-        int64_t tx_start_tick = now_tick;
         int64_t tx_future = dev_cfg.time_in_future;
         tx_future += 2 * dev_cfg.burst_period;
-        tx_start_tick += SoapySDR::timeNsToTicks((tx_future) * 1e9,
-                                                   dev_cfg.f_clk);
+        int64_t tx_start_tick;
+        tx_start_tick = now_tick + SoapySDR::timeNsToTicks(
+                (tx_future) * 1e9,
+                dev_cfg.f_clk);
         int64_t tmp = dev_cfg.D_tx * burst_period * sampling_rate;
         int64_t no_of_ticks_per_bursts_period = tmp;
 
-        transmit_ping(sdr, tx_start_tick, no_of_ticks_per_bursts_period);
+        std::future<void> future;
+        future = std::async(std::launch::async, &transmit_ping,
+                            sdr,
+                            tx_start_tick,
+                            no_of_ticks_per_bursts_period);
+        my_futures.push_back(std::move(future));
 
+        //std::chrono::_V2::system_clock::time_point timeLastSpin = std::chrono::high_resolution_clock::now();
+        TimePoint timeLastSpin = std::chrono::high_resolution_clock::now();
+        int spinIndex(0);
+        std::cout << "Starting stream loop, press Ctrl+C to exit..."
+                  << std::endl;
+        signal(SIGINT, sigIntHandler);
+        while (not stop) {
+                const auto now = std::chrono::high_resolution_clock::now();
+                if (timeLastSpin + std::chrono::milliseconds(300) < now) {
+                        timeLastSpin = now;
+                        static const char spin[] = {"|/-\\"};
+                        printf("\b%c", spin[(spinIndex++)%4]);
+                        fflush(stdout);
+                }
+                usleep(100);
+        }
+        size_t m = my_futures.size();
+        for(size_t n = 0; n < m; n++) {
+                auto e = std::move(my_futures.back());
+                e.get();
+                my_futures.pop_back();
+        }
         sdr.close();
 }
 
@@ -110,11 +139,6 @@ void transmit_ping(SDR sdr,
         std::cout << "sample count per send call: "
                   << no_of_tx_samples << std::endl;
 
-        auto timeLastSpin = std::chrono::high_resolution_clock::now();
-        int spinIndex(0);
-        std::cout << "Starting stream loop, press Ctrl+C to exit..."
-                  << std::endl;
-        signal(SIGINT, sigIntHandler);
         while (not stop) {
                 long long int burst_time = SoapySDR::ticksToTimeNs(
                         tx_tick,
@@ -122,13 +146,5 @@ void transmit_ping(SDR sdr,
                 sdr.check_burst_time(burst_time);
                 sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
                 tx_tick += no_of_ticks_per_bursts_period;
-
-                const auto now = std::chrono::high_resolution_clock::now();
-                if (timeLastSpin + std::chrono::milliseconds(300) < now) {
-                        timeLastSpin = now;
-                        static const char spin[] = {"|/-\\"};
-                        printf("\b%c", spin[(spinIndex++)%4]);
-                        fflush(stdout);
-                }
         }
 }
