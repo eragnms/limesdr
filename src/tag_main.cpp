@@ -67,11 +67,10 @@ void list_device_info()
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
-        std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
         //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
-        //std::string dev_serial = dev_cfg.serial_lime_3;
+        std::string dev_serial = dev_cfg.serial_lime_3;
         dev_cfg.tx_active = false;
-        dev_cfg.no_of_rx_samples_initial_sync = 2048;
         const size_t no_of_samples_initial_sync =
                 dev_cfg.no_of_rx_samples_initial_sync;
         const size_t no_of_samples_ping =
@@ -117,13 +116,9 @@ void run_tag(bool plot_data)
                 case INITIAL_SYNC: {
                         int ret = sdr.read(no_of_samples_initial_sync,
                                            buff_data_initial);
-                        MARK;
                         if (return_ok(ret)) {
-                                MARK;
                                 detector.add_data(buff_data_initial);
-                                MARK;
                                 sync_ix = detector.look_for_initial_sync();
-                                MARK;
                                 if (detector.found_initial_sync(sync_ix)) {
                                         num_syncs++;
                                         hw_time_of_sync = sdr.ix_to_hw_time(
@@ -133,12 +128,6 @@ void run_tag(bool plot_data)
                                                   << std::endl;
                                         current_state = SEARCH_FOR_PING;
                                 }
-                                //stop = true;
-                                std::cout << "ret "
-                                          << ret
-                                          << " no of samples "
-                                          << no_of_samples_initial_sync
-                                          << std::endl;
                         }
                         break;
                 }
@@ -224,12 +213,12 @@ void run_tag(bool plot_data)
                 analysis.plot_imag_data();
                 //analysis.save_data("initial_buff_20ms");
                 analysis.add_data(buff_data_ping);
-                //analysis.plot_imag_data();
+                analysis.plot_imag_data();
                 //analysis.save_data("ping_buff_10ms");
                 std::vector<float> corr;
                 corr = detector.get_corr_result();
                 analysis.add_data(corr);
-                //analysis.plot_data();
+                analysis.plot_data();
         }
 }
 

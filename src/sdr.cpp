@@ -70,12 +70,7 @@ void SDR::configure(SDR_Device_Config dev_cfg)
         if (m_dev_cfg.time_source != "") {
                 m_device->setTimeSource(m_dev_cfg.time_source);
         }
-        if (is_limesdr()) {
-                m_device->setMasterClockRate(m_dev_cfg.f_clk);
-        }
-        if (is_bladerf()) {
-                m_device->setMasterClockRate(m_dev_cfg.f_clk);
-        }
+        m_device->setMasterClockRate(m_dev_cfg.f_clk);
         if (m_dev_cfg.rx_active) {
                 configure_rx();
         }
@@ -242,19 +237,16 @@ int64_t SDR::start_rx()
         int64_t rx_future = m_dev_cfg.time_in_future + m_dev_cfg.burst_period;
         m_rx_start_tick += SoapySDR::timeNsToTicks(rx_future * 1e9,
                                                    m_dev_cfg.f_clk);
-        //int64_t burst_time = SoapySDR::ticksToTimeNs(m_rx_start_tick,
-        //                                           m_dev_cfg.f_clk);
+        int64_t burst_time = SoapySDR::ticksToTimeNs(m_rx_start_tick,
+                                                     m_dev_cfg.f_clk);
         //burst_time = 0;
         int rx_flags = SOAPY_SDR_HAS_TIME;
         rx_flags |= SOAPY_SDR_END_BURST;
         rx_flags |= SOAPY_SDR_ONE_PACKET;
         //int rx_flags(0);
-        /*
         int ret = m_device->activateStream(m_rx_stream,
                                            rx_flags,
                                            burst_time);
-        */
-        int ret = m_device->activateStream(m_rx_stream);
         if (ret != 0) {
                 std::string err = "sdr: Following problem occurred while";
                 err += " activating RX stream: ";
@@ -371,9 +363,9 @@ int32_t SDR::read(size_t no_of_samples,
                   std::vector<std::complex<int16_t>> &buff_data)
 {
         int32_t no_of_received_samples(0);
-        int flags(0);
-        //int flags = SOAPY_SDR_HAS_TIME;
-        //flags |= SOAPY_SDR_END_BURST;
+        //int flags(0);
+        int flags = SOAPY_SDR_HAS_TIME;
+        flags |= SOAPY_SDR_END_BURST;
         //flags |= SOAPY_SDR_ONE_PACKET;
         long long time_ns(0);
         buff_data.resize(no_of_samples);
@@ -383,9 +375,7 @@ int32_t SDR::read(size_t no_of_samples,
                                                       buffs_data.data(),
                                                       no_of_samples,
                                                       flags,
-                                                      time_ns,
-                                                      2e6);
-
+                                                      time_ns);
         m_last_rx_timestamp = time_ns;
         return no_of_received_samples;
 }
