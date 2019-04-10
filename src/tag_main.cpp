@@ -119,12 +119,6 @@ void run_tag(bool plot_data)
                         if (return_ok(ret)) {
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
-
-                                stop = true;
-                                std::cout << "no of samples to fetch "
-                                          << no_of_samples_initial_sync
-                                          << " ret " << ret << std::endl;
-
                                 if (detector.found_initial_sync(sync_ix)) {
                                         num_syncs++;
                                         hw_time_of_sync = sdr.ix_to_hw_time(
@@ -224,7 +218,7 @@ void run_tag(bool plot_data)
                 std::vector<float> corr;
                 corr = detector.get_corr_result();
                 analysis.add_data(corr);
-                //analysis.plot_data();
+                analysis.plot_data();
         }
 }
 

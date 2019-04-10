@@ -19,11 +19,31 @@
  *
  * \section sec_Install Installation
  *
- * To install the application do:
+ * \subsection sec_installBladerf Install support for BladeRF
  *
- *     $ tar zxf libcsc-x.y.z.tar.gz
- *     $ cd libcsc-x.y.z
- *     $ ...
+ * We need to install SoapySDR for BladeRF:
+ *
+ *      $ git clone https://github.com/eragnms/SoapyBladeRF.git
+ *      $ cd SoapyBladeRF
+ *      $ mkdir build
+ *      $ cd build
+ *      $ cmake ..
+ *      $ make
+ *      $ sudo make install
+ *
+ * \subsection sec_confBladerf Configure the BladeRF
+ *
+ * To get the BladeRF up and running do:
+ *
+ *      Attach the BladeRF with its USB
+ *      $ lsusb
+ *      $ sudo chmod 666 /dev/bus/usb/X/Y
+ *      $ bladeRF-cli -l <the right .brf file>
+ *
+ * The .brf file can be found here: https://www.nuand.com/fpga_images/
+ * If more than one BladeRF is connected to the same computer do (with the correct serial):
+ *
+ *      $ bladeRF-cli -l hostedx40-latest.rbf -d "*:serial=a662f87f08f131e8dc3f4700c5d555e7"
  *
  * \section sec_Usage Usage
  *
