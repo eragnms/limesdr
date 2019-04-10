@@ -67,9 +67,9 @@ void list_device_info()
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
-        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        std::string dev_serial = dev_cfg.serial_bladerf_x40;
         //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
-        std::string dev_serial = dev_cfg.serial_lime_3;
+        //std::string dev_serial = dev_cfg.serial_lime_3;
         dev_cfg.tx_active = false;
         const size_t no_of_samples_initial_sync =
                 dev_cfg.no_of_rx_samples_initial_sync;
@@ -119,6 +119,12 @@ void run_tag(bool plot_data)
                         if (return_ok(ret)) {
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
+
+                                stop = true;
+                                std::cout << "no of samples to fetch "
+                                          << no_of_samples_initial_sync
+                                          << " ret " << ret << std::endl;
+
                                 if (detector.found_initial_sync(sync_ix)) {
                                         num_syncs++;
                                         hw_time_of_sync = sdr.ix_to_hw_time(
@@ -213,12 +219,12 @@ void run_tag(bool plot_data)
                 analysis.plot_imag_data();
                 //analysis.save_data("initial_buff_20ms");
                 analysis.add_data(buff_data_ping);
-                analysis.plot_imag_data();
+                //analysis.plot_imag_data();
                 //analysis.save_data("ping_buff_10ms");
                 std::vector<float> corr;
                 corr = detector.get_corr_result();
                 analysis.add_data(corr);
-                analysis.plot_data();
+                //analysis.plot_data();
         }
 }
 
