@@ -175,7 +175,7 @@ void run_tag(bool plot_data)
                                                   << " data_length "
                                                   << buff_data_ping.size()
                                                   << std::endl;
-                                        //current_state = SEND_PONG;
+                                        current_state = SEND_PONG;
                                 } else {
                                         num_of_missed_pings++;
                                         tot_num_of_missed_pings++;
@@ -188,8 +188,8 @@ void run_tag(bool plot_data)
                                                   << std::endl;
                                         current_state = INITIAL_SYNC;
                                 }
-                                if (num_of_found_pings == 15) {
-                                        //stop = true;
+                                if (num_of_found_pings == 10) {
+                                        stop = true;
                                 }
                         }
                         break;
