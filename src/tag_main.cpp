@@ -127,6 +127,7 @@ void run_tag(bool plot_data)
                                                   << "Found inital sync"
                                                   << std::endl;
                                         current_state = SEARCH_FOR_PING;
+                                        stop = true;
                                 }
                         }
                         break;

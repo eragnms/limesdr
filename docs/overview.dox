@@ -21,7 +21,37 @@
  *
  * \subsection sec_installBladerf Install support for BladeRF
  *
- * We need to install SoapySDR for BladeRF:
+ * Install libraries for BladeRF:
+ *
+ *      $ git clone --recursive https://github.com/Nuand/bladeRF.git ./bladeRF
+ *      $ cd ./bladeRF
+ *      $ cd host/
+ *      $ mkdir build
+ *      $ cd build
+ *
+ * If not the right groups are setup, ie if the user do not belong to bladerf, and or bladerf do not exist:
+ *
+ *      $ sudo groupadd bladerf
+ *      $ sudo usermod -a -G bladerf <user>
+ *
+ * Build the libraries:
+ *
+ *      $ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DINSTALL_UDEV_RULES=ON ../
+ *      $ make && sudo make install && sudo ldconfig
+ *
+ *   Add lines to this file:
+ *
+ *      $ cat /etc/ld.so.conf.d/local.conf
+ *      /usr/local/lib
+ *      /usr/local/lib64
+ *      $ sudo ldconfig
+ *
+ *   Add a line to .bashrc:
+ *   export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+ *   Or to ~/.config/fish/config.fish (and then restart computer):
+ *   set -x PKG_CONFIG_PATH $PKG_CONFIG_PATH /usr/local/lib/pkgconfig
+ *
+ * Install SoapySDR for BladeRF:
  *
  *      $ git clone https://github.com/eragnms/SoapyBladeRF.git
  *      $ cd SoapyBladeRF

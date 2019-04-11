@@ -33,8 +33,8 @@ struct SDR_Device_Config
         std::string clock_source = ""; //!< Not used if ""
         std::string time_source = ""; //!< Not used if ""
 
-        std::string serial_bladerf_x40 = "a662f87f08f131e8dc3f4700c5d555e7";
-        std::string serial_bladerf_xA4 = "9fe83c7bbc004b49b71a0adfd941ae6d";
+        std::string serial_bladerf_x40 = "a662f87f08f131e8dc3f4700c5d555e7"; //!< Old BladeRF
+        std::string serial_bladerf_xA4 = "9fe83c7bbc004b49b71a0adfd941ae6d"; //!< New BladeRF
         std::string serial_lime_1 = "0009072C02881717";
         std::string serial_lime_2 = "00090726074D2435";
         std::string serial_lime_3 = "0009072C02870A19";

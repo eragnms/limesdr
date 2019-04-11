@@ -73,6 +73,7 @@ void run_beacon()
         sdr.connect(dev_serial);
         sdr.configure(dev_cfg);
         int64_t now_tick = sdr.start();
+
         int64_t tx_future = dev_cfg.time_in_future;
         tx_future += 2 * dev_cfg.burst_period;
         int64_t tx_start_tick;
