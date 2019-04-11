@@ -79,4 +79,6 @@ struct SDR_Device_Config
 
         bool tx_active = true;
         bool rx_active = true;
+
+        bool is_beacon = true;
 };

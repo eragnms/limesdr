@@ -194,10 +194,15 @@ int64_t SDR::start()
 
 void SDR::start_tx()
 {
+        SoapySDR::Kwargs args;
+        if (m_dev_cfg.is_beacon) {
+                args["beacon"] = 1;
+        }
         m_tx_stream = m_device->setupStream(
                 SOAPY_SDR_TX,
                 SOAPY_SDR_CF32,
-                std::vector<size_t>{(size_t)m_dev_cfg.channel_tx});
+                std::vector<size_t>{(size_t)m_dev_cfg.channel_tx},
+                args);
         if (m_tx_stream == nullptr) {
                 throw std::runtime_error("Unable to setup TX stream!");
         } else {
@@ -218,10 +223,15 @@ void SDR::start_tx()
 
 int64_t SDR::start_rx()
 {
+        SoapySDR::Kwargs args;
+        if (m_dev_cfg.is_beacon) {
+                args["beacon"] = 1;
+        }
         m_rx_stream = m_device->setupStream(
                 SOAPY_SDR_RX,
                 SOAPY_SDR_CS16,
-                std::vector<size_t>{(size_t)m_dev_cfg.channel_rx});
+                std::vector<size_t>{(size_t)m_dev_cfg.channel_rx},
+                args);
         if (m_rx_stream == nullptr) {
                 throw std::runtime_error("Unable to setup RX stream!");
         } else {
