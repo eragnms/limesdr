@@ -178,7 +178,7 @@ void run_tag(bool plot_data)
                                         current_state = INITIAL_SYNC;
                                 }
                                 if (num_of_found_pings == 15) {
-                                        stop = true;
+                                        //stop = true;
                                 }
                         }
                         break;
