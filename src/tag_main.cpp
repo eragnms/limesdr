@@ -71,6 +71,7 @@ void run_tag(bool plot_data)
         //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         //std::string dev_serial = dev_cfg.serial_lime_3;
         dev_cfg.tx_active = false;
+        dev_cfg.is_beacon = false;
         const size_t no_of_samples_initial_sync =
                 dev_cfg.no_of_rx_samples_initial_sync;
         const size_t no_of_samples_ping =
@@ -123,14 +124,19 @@ void run_tag(bool plot_data)
         signal(SIGINT, sigIntHandler);
         size_t num_syncs(0);
         //int64_t old_hw_time(0);
+        //size_t num_packets(0);
         while (not stop) {
                 switch(current_state) {
                 case INITIAL_SYNC: {
                         int ret = sdr.read(no_of_samples_initial_sync,
                                            buff_data_initial);
                         if (return_ok(ret)) {
+                                //num_packets++;
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
+                                /*if (num_packets > 10) {
+                                        stop = true;
+                                        }*/
                                 if (detector.found_initial_sync(sync_ix)) {
                                         num_syncs++;
                                         hw_time_of_sync = sdr.ix_to_hw_time(
@@ -138,6 +144,7 @@ void run_tag(bool plot_data)
                                         std::cout << "Found inital sync"
                                                   << std::endl;
                                         current_state = SEARCH_FOR_PING;
+                                        //stop = true;
                                 }
                         }
                         break;
@@ -180,6 +187,9 @@ void run_tag(bool plot_data)
                                         std::cout << "Starting initial sync"
                                                   << std::endl;
                                         current_state = INITIAL_SYNC;
+                                }
+                                if (num_of_found_pings == 15) {
+                                        //stop = true;
                                 }
                         }
                         break;

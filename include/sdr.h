@@ -16,6 +16,7 @@
 #include <SoapySDR/Formats.hpp>
 #include <SoapySDR/Errors.hpp>
 #include <SoapySDR/Time.hpp>
+#include <SoapySDR/Modules.hpp>
 #include <unistd.h>
 #include <armadillo>
 
@@ -145,6 +146,9 @@ private:
                                       std::string device_id);
         void connect_to_device(SoapySDR::KwargsList results,
                                int32_t device_num);
+        void check_lib_bladerf_support();
+        std::string get_modules_version(std::string libname);
+
 
         SDR_Device_Config m_dev_cfg;
         SoapySDR::Device *m_device;
