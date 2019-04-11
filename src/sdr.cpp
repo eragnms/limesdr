@@ -54,6 +54,9 @@ void SDR::connect_to_device(SoapySDR::KwargsList results, int32_t device_num)
                 err +=  " timed streaming!";
                 throw std::runtime_error(err);
         }
+        if (is_bladerf()) {
+                check_lib_bladerf_support();
+        }
 }
 
 SoapySDR::Device *SDR::get_device()
@@ -461,6 +464,31 @@ void SDR::list_hw_info()
                         std::cout << it->first << " => "
                                   << it->second << std::endl;
         }
+}
+
+void SDR::check_lib_bladerf_support()
+{
+        std::string libname = "libbladeRFSupport";
+        std::string version = get_modules_version(libname);
+        std::size_t found = version.find("wittra");
+        if (found == std::string::npos) {
+                std::string err = "Need the Wittra SoapySDR";
+                err += " plugin for BladeRF";
+                throw std::runtime_error(err);
+        }
+}
+
+std::string SDR::get_modules_version(std::string libname)
+{
+        std::vector<std::string> modules = SoapySDR::listModules();
+        std::string version = "";
+        for (size_t n=0; n<modules.size(); n++){
+                std::size_t found = modules[n].find(libname);
+                if (found != std::string::npos) {
+                        version = SoapySDR::getModuleVersion(modules[n]);
+                }
+        }
+        return version;
 }
 
 std::string SDR::get_device_driver()
