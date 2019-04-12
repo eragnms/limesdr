@@ -78,7 +78,7 @@ struct SDR_Device_Config
         size_t num_of_ping_tries = 10; //!< Number of tries before initial sync
         int64_t ping_burst_guard = 2; //!< Guard samples around expected PING
 
-        double pong_delay = 50e-3; //!< In tag, time from ping rx to pong tx
+        double pong_delay = 55e-3; //!< In tag, time from ping rx to pong tx
 
         bool tx_active = true;
         bool rx_active = true;
