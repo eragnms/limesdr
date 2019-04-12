@@ -39,7 +39,7 @@ struct SDR_Device_Config
         std::string serial_lime_2 = "00090726074D2435";
         std::string serial_lime_3 = "0009072C02870A19";
 
-        double frequency = 800e6; //!< Center frequency [Hz]
+        double frequency = 500e6; //!< Center frequency [Hz]
         double tx_gain = 50; //!< 60 dB is about 0 dBm
         double rx_gain = 20;
         double tx_bw = -1; //!< Not used if -1
@@ -74,7 +74,7 @@ struct SDR_Device_Config
 
         int64_t max_sync_error = 5; //!< Max diff on spacing between peaks  inital sync
         uint64_t min_peak_distance = 10; //!< Min distance between two peaks initial sync
-        uint32_t threshold_factor = 16;
+        uint32_t threshold_factor = 8;
         size_t num_of_ping_tries = 10; //!< Number of tries before initial sync
         int64_t ping_burst_guard = 2; //!< Guard samples around expected PING
 

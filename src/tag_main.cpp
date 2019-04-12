@@ -225,14 +225,12 @@ void run_tag(bool plot_data)
                   << tot_num_of_missed_pings
                   << std::endl;
         if (plot_data) {
-                MARK;
                 Analysis analysis;
                 analysis.add_data(buff_data_initial);
-                analysis.plot_imag_data();
-                MARK;
+                //analysis.plot_imag_data();
                 //analysis.save_data("initial_buff_20ms");
                 analysis.add_data(buff_data_ping);
-                analysis.plot_imag_data();
+                //analysis.plot_imag_data();
                 //analysis.save_data("ping_buff_10ms");
                 std::vector<float> corr;
                 corr = detector.get_corr_result();

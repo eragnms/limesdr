@@ -232,20 +232,32 @@ arma::uvec Detector::find_peaks(double threshold)
                         }
                 }
         }
-        return cleaned;
+        return sorted_peaks;
 }
 
 int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
 {
         int64_t sync_index(-1);
-        for (size_t n=0; n<peak_indexes.n_rows-1; n++) {
-                uint64_t spacing = peak_indexes(n+1) - peak_indexes(n);
-                std::cout << "Spacing: " << spacing << std::endl;
-                if (spacing_ok(spacing)) {
-                        sync_index = peak_indexes(n+1);
+        size_t num_peaks = peak_indexes.n_rows;
+        std::cout << "Num peaks: " << num_peaks << std::endl;
+        std::cout << "amplitude " << std::flush;
+        for (size_t n=0; n<num_peaks-1; n++) {
+                std::cout << m_corr_result(peak_indexes(n))
+                          << ", "
+                          << std::flush;
+                for (size_t m=n+1; m<num_peaks-1; m++) {
+                        uint64_t spacing = peak_indexes(m) - peak_indexes(n);
+                        //std::cout << "Spacing: " << spacing << std::endl;
+                        if (spacing_ok(spacing)) {
+                                sync_index = peak_indexes(m);
+                                break;
+                        }
+                }
+                if (sync_index != -1) {
                         break;
                 }
         }
+        std::cout << std::endl;
         return sync_index;
 }
 
@@ -257,5 +269,8 @@ bool Detector::spacing_ok(int64_t burst_spacing)
         int64_t max_diff = m_dev_cfg.max_sync_error;
         ok = burst_spacing <= (burst_period + max_diff);
         ok = ok && (burst_spacing >= (burst_period - max_diff));
+        if (ok) {
+                std::cout << "Spacing " << burst_spacing << std::endl;
+        }
         return ok;
 }
