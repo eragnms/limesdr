@@ -380,7 +380,7 @@ int32_t SDR::read(size_t no_of_samples,
         int flags = SOAPY_SDR_HAS_TIME;
         flags |= SOAPY_SDR_END_BURST;
         //flags |= SOAPY_SDR_ONE_PACKET;
-        long long time_ns(0);
+        long long int time_ns(0);
         buff_data.resize(no_of_samples);
         std::vector<void *> buffs_data;
         buffs_data.push_back(buff_data.data());
@@ -389,7 +389,7 @@ int32_t SDR::read(size_t no_of_samples,
                                                       no_of_samples,
                                                       flags,
                                                       time_ns);
-        m_last_rx_timestamp = time_ns;
+        m_last_rx_timestamp = (int64_t)time_ns;
         return no_of_received_samples;
 }
 
@@ -411,6 +411,20 @@ int64_t SDR::expected_ping_pos_ix(int64_t hw_time_of_sync)
 {
         int64_t exp_hw_time = hw_time_of_sync;
         int64_t burst_period_ns = m_dev_cfg.burst_period * 1e9;
+        /* If the diff is too large there is something spoky
+         * with the timestamps, and we skip this and try to
+         * sample some new data, by setting the stamps equal.
+         */
+        uint64_t diff = std::abs(exp_hw_time - m_last_rx_timestamp);
+        if (diff > 2e9) {
+                std::cout << "Warning: strange timestamps,"
+                          << " last timestamp on rx buffer: "
+                          << m_last_rx_timestamp
+                          << " expected timestamp: "
+                          << exp_hw_time
+                          << std::endl;
+                exp_hw_time = m_last_rx_timestamp;
+        }
         while (exp_hw_time < m_last_rx_timestamp) {
                 exp_hw_time += burst_period_ns;
         }
@@ -471,6 +485,7 @@ void SDR::check_lib_bladerf_support()
         std::string libname = "libbladeRFSupport";
         std::string version = get_modules_version(libname);
         std::size_t found = version.find("wittra");
+        std::cout << version << std::endl;
         if (found == std::string::npos) {
                 std::string err = "Need the Wittra SoapySDR";
                 err += " plugin for BladeRF";

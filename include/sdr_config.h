@@ -72,9 +72,10 @@ struct SDR_Device_Config
         uint32_t ping_scr_code = 2;
         uint32_t pong_scr_code = 12;
 
-        int64_t max_sync_error = 5;
+        int64_t max_sync_error = 5; //!< Max diff on spacing between peaks  inital sync
+        uint64_t min_peak_distance = 10; //!< Min distance between two peaks initial sync
         uint32_t threshold_factor = 16;
-        size_t num_of_ping_tries = 1000; //!< Number of tries before initial sync
+        size_t num_of_ping_tries = 10; //!< Number of tries before initial sync
         int64_t ping_burst_guard = 2; //!< Guard samples around expected PING
 
         double pong_delay = 50e-3; //!< In tag, time from ping rx to pong tx

@@ -215,7 +215,24 @@ double Detector::calculate_threshold()
 arma::uvec Detector::find_peaks(double threshold)
 {
         arma::uvec peaks = arma::find(m_corr_result > threshold);
-        return peaks;
+        arma::uvec sorted_peaks = arma::sort(peaks, "ascend");
+        arma::uvec cleaned;
+        if (peaks.n_rows > 0) {
+                size_t cleaned_length(1);
+                cleaned.resize(cleaned_length);
+                cleaned(0) = sorted_peaks(0);
+                uint64_t min_diff = m_dev_cfg. min_peak_distance;
+                for (size_t n=0; n<sorted_peaks.n_rows-1; n++) {
+                        int64_t diff = sorted_peaks(n)-sorted_peaks(n+1);
+                        uint64_t abs_diff = std::abs(diff);
+                        if (abs_diff >= min_diff) {
+                                cleaned_length++;
+                                cleaned.resize(cleaned_length);
+                                cleaned(cleaned_length-1) = sorted_peaks(n+1);
+                        }
+                }
+        }
+        return cleaned;
 }
 
 int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
@@ -223,6 +240,7 @@ int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
         int64_t sync_index(-1);
         for (size_t n=0; n<peak_indexes.n_rows-1; n++) {
                 uint64_t spacing = peak_indexes(n+1) - peak_indexes(n);
+                std::cout << "Spacing: " << spacing << std::endl;
                 if (spacing_ok(spacing)) {
                         sync_index = peak_indexes(n+1);
                         break;

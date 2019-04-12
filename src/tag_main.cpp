@@ -67,10 +67,10 @@ void list_device_info()
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
-        std::string dev_serial = dev_cfg.serial_bladerf_x40;
-        //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
+        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         //std::string dev_serial = dev_cfg.serial_lime_3;
-        dev_cfg.tx_active = false;
+        //dev_cfg.tx_active = false;
         dev_cfg.is_beacon = false;
         const size_t no_of_samples_initial_sync =
                 dev_cfg.no_of_rx_samples_initial_sync;
@@ -115,7 +115,7 @@ void run_tag(bool plot_data)
         size_t tot_num_of_missed_pings(0);
         size_t num_ping_tries(0);
         int64_t sync_ix(-1);
-        int64_t hw_time_of_sync(-1);
+        int64_t hw_time_of_sync(0);
         TagStateMachine current_state(INITIAL_SYNC);
         std::cout << "**********************" << std::endl;
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
@@ -142,6 +142,8 @@ void run_tag(bool plot_data)
                                         hw_time_of_sync = sdr.ix_to_hw_time(
                                                 sync_ix);
                                         std::cout << "Found inital sync"
+                                                  << " at "
+                                                  << hw_time_of_sync
                                                   << std::endl;
                                         current_state = SEARCH_FOR_PING;
                                         //stop = true;
@@ -189,7 +191,7 @@ void run_tag(bool plot_data)
                                         current_state = INITIAL_SYNC;
                                 }
                                 if (num_of_found_pings == 10) {
-                                        stop = true;
+                                        //stop = true;
                                 }
                         }
                         break;
@@ -214,16 +216,20 @@ void run_tag(bool plot_data)
                         throw std::runtime_error("Unknown state tag!");
                 }
         }
+        MARK;
         sdr.close();
+        MARK;
         std::cout << "Number of found PINGS: "
                   << num_of_found_pings
                   << " Number of missed PINGS: "
                   << tot_num_of_missed_pings
                   << std::endl;
         if (plot_data) {
+                MARK;
                 Analysis analysis;
                 analysis.add_data(buff_data_initial);
                 analysis.plot_imag_data();
+                MARK;
                 //analysis.save_data("initial_buff_20ms");
                 analysis.add_data(buff_data_ping);
                 analysis.plot_imag_data();
