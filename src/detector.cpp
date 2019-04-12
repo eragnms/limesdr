@@ -215,24 +215,7 @@ double Detector::calculate_threshold()
 arma::uvec Detector::find_peaks(double threshold)
 {
         arma::uvec peaks = arma::find(m_corr_result > threshold);
-        arma::uvec sorted_peaks = arma::sort(peaks, "ascend");
-        arma::uvec cleaned;
-        if (peaks.n_rows > 0) {
-                size_t cleaned_length(1);
-                cleaned.resize(cleaned_length);
-                cleaned(0) = sorted_peaks(0);
-                uint64_t min_diff = m_dev_cfg. min_peak_distance;
-                for (size_t n=0; n<sorted_peaks.n_rows-1; n++) {
-                        int64_t diff = sorted_peaks(n)-sorted_peaks(n+1);
-                        uint64_t abs_diff = std::abs(diff);
-                        if (abs_diff >= min_diff) {
-                                cleaned_length++;
-                                cleaned.resize(cleaned_length);
-                                cleaned(cleaned_length-1) = sorted_peaks(n+1);
-                        }
-                }
-        }
-        return sorted_peaks;
+        return arma::sort(peaks, "ascend");
 }
 
 int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
@@ -240,14 +223,15 @@ int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
         int64_t sync_index(-1);
         size_t num_peaks = peak_indexes.n_rows;
         std::cout << "Num peaks: " << num_peaks << std::endl;
-        std::cout << "amplitude " << std::flush;
+        std::cout << "index:amplitude " << std::flush;
         for (size_t n=0; n<num_peaks-1; n++) {
-                std::cout << m_corr_result(peak_indexes(n))
+                std::cout << peak_indexes(n)
+                          << ":"
+                          << m_corr_result(peak_indexes(n))
                           << ", "
                           << std::flush;
                 for (size_t m=n+1; m<num_peaks-1; m++) {
                         uint64_t spacing = peak_indexes(m) - peak_indexes(n);
-                        //std::cout << "Spacing: " << spacing << std::endl;
                         if (spacing_ok(spacing)) {
                                 sync_index = peak_indexes(m);
                                 break;
