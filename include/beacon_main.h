@@ -39,3 +39,5 @@ int64_t calculate_tx_start_tick(int64_t now_tick);
 int64_t ticks_per_period(double period);
 int64_t look_for_pong(SDR sdr, int64_t tx_start_tick);
 bool return_ok(int ret);
+void calculate_tof(int64_t tx_start_time_hw_ns,
+                   int64_t last_pong_time_hw_ns);

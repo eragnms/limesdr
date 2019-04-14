@@ -94,6 +94,7 @@ void run_beacon()
         while (not stop) {
                 last_pong_time_hw_ns = look_for_pong(sdr,
                                                      last_pong_time_hw_ns);
+                calculate_tof(tx_start_time_hw_ns, last_pong_time_hw_ns);
                 time_last_spin = print_spin(time_last_spin, spin_index++);
                 usleep(100);
         }
@@ -107,6 +108,16 @@ void run_beacon()
 
         sdr.close();
 }
+
+void calculate_tof(int64_t tx_start_time_hw_ns, int64_t last_pong_time_hw_ns)
+{
+        /* TODO: this is just a place holder for now. Should probably be
+         * something like mod((last-tx), burst_period)/2*c
+         */
+        int64_t tof = last_pong_time_hw_ns - tx_start_time_hw_ns;
+        if (tof > 0) {}
+}
+
 
 int64_t look_for_pong(SDR sdr, int64_t last_pong_time_hw_ns)
 {
