@@ -490,7 +490,8 @@ void SDR::check_lib_bladerf_support()
         std::string libname = "libbladeRFSupport";
         std::string version = get_modules_version(libname);
         std::size_t found = version.find("wittra");
-        std::cout << version << std::endl;
+        std::cout << "Lib BladeRF SOAPY support version: "
+                  << version << std::endl;
         if (found == std::string::npos) {
                 std::string err = "Need the Wittra SoapySDR";
                 err += " plugin for BladeRF";
