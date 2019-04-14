@@ -67,8 +67,8 @@ void list_device_info()
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
-        std::string dev_serial = dev_cfg.serial_bladerf_x40;
-        //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
+        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         //std::string dev_serial = dev_cfg.serial_lime_3;
         //dev_cfg.tx_active = false;
         dev_cfg.is_beacon = false;
@@ -199,7 +199,7 @@ void run_tag(bool plot_data)
                 case SEND_PONG: {
                         std::cout << "Sending PONG" << std::endl;
                         const double fs_tx = dev_cfg.sampling_rate_tx;
-                        double pong_delay = dev_cfg.pong_delay;
+                        double pong_delay = dev_cfg.pong_delay + dev_cfg.pong_delay_processing;
                         int64_t tmp = dev_cfg.D_tx * pong_delay * fs_tx;
                         int64_t ticks_before_pong = tmp;
                         int64_t tx_tick = SoapySDR::timeNsToTicks(
@@ -216,9 +216,7 @@ void run_tag(bool plot_data)
                         throw std::runtime_error("Unknown state tag!");
                 }
         }
-        MARK;
         sdr.close();
-        MARK;
         std::cout << "Number of found PINGS: "
                   << num_of_found_pings
                   << " Number of missed PINGS: "

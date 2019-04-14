@@ -60,7 +60,6 @@ int64_t Detector::look_for_pong(int64_t expected_ix)
 int64_t Detector::look_for_ping(int64_t expected_ix)
 {
         int64_t index_of_sync(-1);
-        expected_ix += 0;
         int64_t adjust_ix = reduce_buffer_data(expected_ix);
         arma::uvec found_bursts;
         if (m_det_type == CDMA) {

@@ -86,6 +86,11 @@ void run_beacon()
                 tx_start_time_hw_ns + dev_cfg.pong_delay * 1e9;
         int64_t last_pong_time_hw_ns = earliest_pong_tx_time_hw_ns;
 
+        // TODO: Can we get rid of this?
+        // A dummy read to get timestamps up to sync
+        std::vector<std::complex<int16_t>> buff_data_dummy(100);
+        sdr.read(100, buff_data_dummy);
+
         TimePoint time_last_spin = std::chrono::high_resolution_clock::now();
         int spin_index(0);
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
@@ -137,7 +142,6 @@ int64_t look_for_pong(SDR sdr, int64_t last_pong_time_hw_ns)
 
         Detector detector;
         detector.configure(CDMA, {dev_cfg.pong_scr_code}, dev_cfg);
-
         int ret = sdr.read(no_of_samples_pong,
                            buff_data_pong);
         if (return_ok(ret)) {
@@ -186,7 +190,8 @@ bool return_ok(int ret)
         if (ret < 0) {
                 std::string err = "Unexpected stream error ";
                 err += SoapySDR::errToStr(ret);
-                throw std::runtime_error(err);
+                //throw std::runtime_error(err);
+                std::cout << err << std::endl;
         }
         return data_ok;
 }
