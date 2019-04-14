@@ -78,6 +78,12 @@ public:
          */
         int64_t look_for_ping(int64_t expected_ix);
         /**
+         * \brief Look for PONG bursts
+         *
+         * \return index of the first detected PONG, -1 if sync failed
+         */
+        int64_t look_for_pong(int64_t expected_ix);
+        /**
          * \brief Get the correlation result
          *
          * \return a vector containing the correlation result

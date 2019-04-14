@@ -65,8 +65,10 @@ struct SDR_Device_Config
         double timeout = 2; //!< Read and write stream timeout
 
         size_t no_of_rx_samples_initial_sync =
-                2 * sampling_rate_rx * burst_period; //!< Read buffer size
+                (size_t)(2 * sampling_rate_rx * burst_period); //!< Read buffer size
         size_t no_of_rx_samples_ping =
+                (size_t)(1 * sampling_rate_rx * burst_period); //!< Read buffer size
+        size_t no_of_rx_samples_pong =
                 (size_t)(1 * sampling_rate_rx * burst_period); //!< Read buffer size
 
         uint32_t ping_scr_code = 2;
