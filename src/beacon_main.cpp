@@ -79,12 +79,12 @@ void run_beacon()
                             tx_start_tick);
         my_futures.push_back(std::move(future));
 
-        long long int tx_start_time_hw_ns = SoapySDR::ticksToTimeNs(
-                tx_start_tick,
-                dev_cfg.f_clk);
-        int64_t earliest_pong_tx_time_hw_ns =
-                tx_start_time_hw_ns + dev_cfg.pong_delay * 1e9;
-        int64_t last_pong_time_hw_ns = earliest_pong_tx_time_hw_ns;
+        //long long int tx_start_time_hw_ns = SoapySDR::ticksToTimeNs(
+        //        tx_start_tick,
+        //        dev_cfg.f_clk);
+        //int64_t earliest_pong_tx_time_hw_ns =
+        //        tx_start_time_hw_ns + dev_cfg.pong_delay * 1e9;
+        //int64_t last_pong_time_hw_ns = earliest_pong_tx_time_hw_ns;
 
         // TODO: Can we get rid of this?
         // A dummy read to get timestamps up to sync
@@ -97,9 +97,9 @@ void run_beacon()
                   << std::endl;
         signal(SIGINT, sigIntHandler);
         while (not stop) {
-                last_pong_time_hw_ns = look_for_pong(sdr,
-                                                     last_pong_time_hw_ns);
-                calculate_tof(tx_start_time_hw_ns, last_pong_time_hw_ns);
+                //last_pong_time_hw_ns = look_for_pong(sdr,
+                //                                    last_pong_time_hw_ns);
+                //calculate_tof(tx_start_time_hw_ns, last_pong_time_hw_ns);
                 time_last_spin = print_spin(time_last_spin, spin_index++);
                 usleep(100);
         }
