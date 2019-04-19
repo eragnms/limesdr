@@ -98,6 +98,8 @@ void SDR::configure_tx()
         }
         m_device->setGain(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                           m_dev_cfg.tx_gain);
+        double gain = m_device->getGain(SOAPY_SDR_TX, m_dev_cfg.channel_tx);
+        std::cout << "TX gain " << gain << std::endl;
         m_device->setAntenna(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                              m_dev_cfg.antenna_tx);
         m_device->setFrequency(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
@@ -142,6 +144,8 @@ void SDR::configure_rx()
         }
         m_device->setGain(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
                           m_dev_cfg.rx_gain);
+        bool gain_mode = m_device->getGainMode(SOAPY_SDR_RX, m_dev_cfg.channel_rx);
+        std::cout << "Gain mode " << gain_mode << std::endl;
         m_device->setAntenna(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
                              m_dev_cfg.antenna_rx);
         m_device->setFrequency(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
@@ -193,7 +197,6 @@ int64_t SDR::start()
                   << std::endl;
         return now_tick;
 }
-
 
 void SDR::start_tx()
 {
