@@ -410,6 +410,11 @@ int64_t SDR::ix_to_hw_time(int64_t ix)
         return hw_time;
 }
 
+int64_t SDR::expected_pong_pos_ix(int64_t hw_time_of_sync)
+{
+        return expected_ping_pos_ix(hw_time_of_sync);
+}
+
 int64_t SDR::expected_ping_pos_ix(int64_t hw_time_of_sync)
 {
         int64_t exp_hw_time = hw_time_of_sync;

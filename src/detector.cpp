@@ -52,10 +52,14 @@ int64_t Detector::look_for_initial_sync()
         return index_of_sync;
 }
 
+int64_t Detector::look_for_pong(int64_t expected_ix)
+{
+        return look_for_ping(expected_ix);
+}
+
 int64_t Detector::look_for_ping(int64_t expected_ix)
 {
         int64_t index_of_sync(-1);
-        expected_ix += 0;
         int64_t adjust_ix = reduce_buffer_data(expected_ix);
         arma::uvec found_bursts;
         if (m_det_type == CDMA) {
@@ -98,12 +102,12 @@ bool Detector::found_initial_sync(int64_t ix)
         return found_ok_index(ix);
 }
 
-bool Detector::found_ping(int64_t ix)
+bool Detector::found_pong(int64_t ix)
 {
-        return found_ok_index(ix);
+        return found_ping(ix);
 }
 
-bool Detector::found_pong(int64_t ix)
+bool Detector::found_ping(int64_t ix)
 {
         return found_ok_index(ix);
 }

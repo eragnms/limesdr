@@ -65,8 +65,10 @@ struct SDR_Device_Config
         double timeout = 2; //!< Read and write stream timeout
 
         size_t no_of_rx_samples_initial_sync =
-                2 * sampling_rate_rx * burst_period; //!< Read buffer size
+                (size_t)(2 * sampling_rate_rx * burst_period); //!< Read buffer size
         size_t no_of_rx_samples_ping =
+                (size_t)(1 * sampling_rate_rx * burst_period); //!< Read buffer size
+        size_t no_of_rx_samples_pong =
                 (size_t)(1 * sampling_rate_rx * burst_period); //!< Read buffer size
 
         uint32_t ping_scr_code = 2;
@@ -78,7 +80,8 @@ struct SDR_Device_Config
         size_t num_of_ping_tries = 10; //!< Number of tries before initial sync
         int64_t ping_burst_guard = 2; //!< Guard samples around expected PING
 
-        double pong_delay = 55e-3; //!< In tag, time from ping rx to pong tx
+        double pong_delay = 5e-3; //!< In tag, time from ping rx to pong tx
+        double pong_delay_processing = 50e-3;
 
         bool tx_active = true;
         bool rx_active = true;

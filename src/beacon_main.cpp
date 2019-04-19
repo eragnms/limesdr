@@ -79,13 +79,27 @@ void run_beacon()
                             tx_start_tick);
         my_futures.push_back(std::move(future));
 
+        //long long int tx_start_time_hw_ns = SoapySDR::ticksToTimeNs(
+        //        tx_start_tick,
+        //        dev_cfg.f_clk);
+        //int64_t earliest_pong_tx_time_hw_ns =
+        //        tx_start_time_hw_ns + dev_cfg.pong_delay * 1e9;
+        //int64_t last_pong_time_hw_ns = earliest_pong_tx_time_hw_ns;
+
+        // TODO: Can we get rid of this?
+        // A dummy read to get timestamps up to sync
+        std::vector<std::complex<int16_t>> buff_data_dummy(100);
+        sdr.read(100, buff_data_dummy);
+
         TimePoint time_last_spin = std::chrono::high_resolution_clock::now();
         int spin_index(0);
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
         while (not stop) {
-                look_for_pong(tx_start_tick);
+                //last_pong_time_hw_ns = look_for_pong(sdr,
+                //                                    last_pong_time_hw_ns);
+                //calculate_tof(tx_start_time_hw_ns, last_pong_time_hw_ns);
                 time_last_spin = print_spin(time_last_spin, spin_index++);
                 usleep(100);
         }
@@ -100,12 +114,88 @@ void run_beacon()
         sdr.close();
 }
 
-void look_for_pong(int64_t tx_start_tick)
+void calculate_tof(int64_t tx_start_time_hw_ns, int64_t last_pong_time_hw_ns)
+{
+        /* TODO: this is just a place holder for now. Should probably be
+         * something like mod((last-tx), burst_period)/2*c
+         */
+        int64_t tof = last_pong_time_hw_ns - tx_start_time_hw_ns;
+        if (tof > 0) {}
+}
+
+
+int64_t look_for_pong(SDR sdr, int64_t last_pong_time_hw_ns)
 {
         SDR_Device_Config dev_cfg;
-        if (tx_start_tick) {}
+        const size_t no_of_samples_pong =
+                dev_cfg.no_of_rx_samples_pong;
 
+        size_t num_pong_tries(0);
+        size_t num_of_found_pongs(0);
+        size_t num_of_missed_pongs(0);
+        size_t tot_num_of_missed_pongs(0);
+        int64_t sync_ix(-1);
+        int64_t hw_time_of_sync(0);
+
+        std::vector<std::complex<int16_t>> buff_data_pong(
+                no_of_samples_pong);
+
+        Detector detector;
+        detector.configure(CDMA, {dev_cfg.pong_scr_code}, dev_cfg);
+        int ret = sdr.read(no_of_samples_pong,
+                           buff_data_pong);
+        if (return_ok(ret)) {
+                num_pong_tries++;
+                int64_t expected_pong_ix;
+                expected_pong_ix = sdr.expected_pong_pos_ix(
+                        last_pong_time_hw_ns);
+                detector.add_data(buff_data_pong);
+                sync_ix = detector.look_for_pong(
+                        expected_pong_ix);
+                if (detector.found_pong(sync_ix)) {
+                        hw_time_of_sync = sdr.ix_to_hw_time(
+                                sync_ix);
+                        num_of_found_pongs++;
+                        num_of_missed_pongs = 0;
+                        std::cout << "Found PONG"
+                                  << " expected "
+                                  << expected_pong_ix
+                                  << " sync ix "
+                                  << sync_ix
+                                  << " diff "
+                                  << expected_pong_ix-sync_ix
+                                  << " data_length "
+                                  << buff_data_pong.size()
+                                  << std::endl;
+                } else {
+                        num_of_missed_pongs++;
+                        tot_num_of_missed_pongs++;
+                }
+        }
+        return hw_time_of_sync;
 }
+
+bool return_ok(int ret)
+{
+        bool data_ok(true);
+        if (ret == SOAPY_SDR_TIMEOUT) {
+                std::cout << "Timeout!" << std::endl;
+        }
+        if (ret == SOAPY_SDR_OVERFLOW) {
+                std::cout << "Overflow!" << std::endl;
+        }
+        if (ret == SOAPY_SDR_UNDERFLOW) {
+                std::cout << "Underflow!" << std::endl;
+        }
+        if (ret < 0) {
+                std::string err = "Unexpected stream error ";
+                err += SoapySDR::errToStr(ret);
+                //throw std::runtime_error(err);
+                std::cout << err << std::endl;
+        }
+        return data_ok;
+}
+
 
 void transmit_ping(SDR sdr, int64_t tx_start_tick)
 {
