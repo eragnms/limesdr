@@ -125,14 +125,17 @@ public:
          */
         void list_hw_info();
         /**
-         * \brief Print a warning if burst_time is strange
+         * \brief Modify the burst_time if burst_time is strange
          *
          * The burst_time will be considered strange if the current
-         * harware has passed it in time.
+         * harware has passed it in time. A number of burst periods
+         * will then be added to the burst time and a new burst time
+         * will be returned
          *
          * \param[in] burst_time the time to check
+         * \return burst time to use
          */
-        void check_burst_time(long long int burst_time);
+        int64_t check_burst_time(long long int burst_time);
         int64_t ix_to_hw_time(int64_t ix);
         int64_t expected_ping_pos_ix(int64_t hw_time_of_sync);
         int64_t expected_pong_pos_ix(int64_t hw_time_of_sync);

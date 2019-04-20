@@ -141,7 +141,7 @@ void run_tag(bool plot_data)
                                         num_syncs++;
                                         hw_time_of_sync = sdr.ix_to_hw_time(
                                                 sync_ix);
-                                        std::cout << "Found inital sync"
+                                        std::cout << "**** Found inital sync"
                                                   << " at hw time "
                                                   << hw_time_of_sync
                                                   << " index "

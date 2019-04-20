@@ -225,7 +225,7 @@ void transmit_ping(SDR sdr, int64_t tx_start_tick)
                 long long int burst_time = SoapySDR::ticksToTimeNs(
                         tx_tick,
                         dev_cfg.f_clk);
-                sdr.check_burst_time(burst_time);
+                //burst_time = sdr.check_burst_time(burst_time);
                 sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
                 tx_tick += ticks_per_burst_period;
         }
