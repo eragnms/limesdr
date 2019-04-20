@@ -213,6 +213,7 @@ double Detector::calculate_threshold()
         double mean = arma::mean(corr_data);
         double standard_dev = arma::stddev(corr_data);
         double threshold = mean + m_dev_cfg.threshold_factor * standard_dev;
+        std::cout << "Threshold " << threshold << std::endl;
         return threshold;
 }
 
@@ -228,21 +229,25 @@ int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
         size_t num_peaks = peak_indexes.n_rows;
         std::cout << "Num peaks: " << num_peaks << std::endl;
         std::cout << "index:amplitude " << std::flush;
-        for (size_t n=0; n<num_peaks-1; n++) {
-                std::cout << peak_indexes(n)
-                          << ":"
-                          << m_corr_result(peak_indexes(n))
-                          << ", "
-                          << std::flush;
-                for (size_t m=n+1; m<num_peaks-1; m++) {
-                        uint64_t spacing = peak_indexes(m) - peak_indexes(n);
-                        if (spacing_ok(spacing)) {
-                                sync_index = peak_indexes(m);
+        if (num_peaks<10) {
+                for (size_t n=0; n<num_peaks-1; n++) {
+                        for (size_t m=n+1; m<num_peaks; m++) {
+                                uint64_t spacing = peak_indexes(m) - peak_indexes(n);
+                                std::cout << peak_indexes(n)
+                                          << ":"
+                                          << m_corr_result(peak_indexes(n))
+                                          << ":"
+                                          << spacing
+                                          << ", "
+                                          << std::flush;
+                                if (spacing_ok(spacing)) {
+                                        sync_index = peak_indexes(m);
+                                        break;
+                                }
+                        }
+                        if (sync_index != -1) {
                                 break;
                         }
-                }
-                if (sync_index != -1) {
-                        break;
                 }
         }
         std::cout << std::endl;

@@ -142,11 +142,15 @@ void run_tag(bool plot_data)
                                         hw_time_of_sync = sdr.ix_to_hw_time(
                                                 sync_ix);
                                         std::cout << "Found inital sync"
-                                                  << " at "
+                                                  << " at hw time "
                                                   << hw_time_of_sync
+                                                  << " index "
+                                                  << sync_ix
                                                   << std::endl;
-                                        current_state = SEARCH_FOR_PING;
-                                        //stop = true;
+                                        //current_state = SEARCH_FOR_PING;
+                                        if (num_syncs >= 3) {
+                                                stop = true;
+                                        }
                                 }
                         }
                         break;
