@@ -230,7 +230,7 @@ int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
                           << m_corr_result(peak_indexes(n))
                           << ", "
                           << std::flush;
-                for (size_t m=n+1; m<num_peaks-1; m++) {
+                for (size_t m=n+1; m<num_peaks; m++) {
                         uint64_t spacing = peak_indexes(m) - peak_indexes(n);
                         if (spacing_ok(spacing)) {
                                 sync_index = peak_indexes(m);
