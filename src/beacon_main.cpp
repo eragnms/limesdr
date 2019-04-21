@@ -65,6 +65,13 @@ void run_beacon()
         std::string dev_serial = dev_cfg.serial_bladerf_x40;
         //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         //std::string dev_serial = dev_cfg.serial_lime_3;
+        if (dev_cfg.is_beacon) {
+                dev_cfg.tx_frequency = dev_cfg.ping_frequency;
+                dev_cfg.rx_frequency = dev_cfg.pong_frequency;
+        } else {
+                dev_cfg.tx_frequency = dev_cfg.pong_frequency;
+                dev_cfg.rx_frequency = dev_cfg.ping_frequency;
+        }
 
         SDR sdr;
         SoapySDR::setLogLevel(dev_cfg.log_level);

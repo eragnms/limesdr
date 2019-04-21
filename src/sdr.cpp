@@ -103,7 +103,7 @@ void SDR::configure_tx()
         m_device->setAntenna(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
                              m_dev_cfg.antenna_tx);
         m_device->setFrequency(SOAPY_SDR_TX, m_dev_cfg.channel_tx,
-                               m_dev_cfg.frequency);
+                               m_dev_cfg.tx_frequency);
         if (is_limesdr()) {
                 bool tx_lo_locked = false;
                 while (not tx_lo_locked) {
@@ -150,7 +150,7 @@ void SDR::configure_rx()
         m_device->setAntenna(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
                              m_dev_cfg.antenna_rx);
         m_device->setFrequency(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
-                               m_dev_cfg.frequency);
+                               m_dev_cfg.rx_frequency);
 
         if (is_limesdr()) {
                 /*

@@ -70,8 +70,15 @@ void run_tag(bool plot_data)
         std::string dev_serial = dev_cfg.serial_bladerf_x40;
         //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         //std::string dev_serial = dev_cfg.serial_lime_3;
-        dev_cfg.tx_active = false;
+        //dev_cfg.tx_active = false;
         dev_cfg.is_beacon = false;
+        if (dev_cfg.is_beacon) {
+                dev_cfg.tx_frequency = dev_cfg.ping_frequency;
+                dev_cfg.rx_frequency = dev_cfg.pong_frequency;
+        } else {
+                dev_cfg.tx_frequency = dev_cfg.pong_frequency;
+                dev_cfg.rx_frequency = dev_cfg.ping_frequency;
+        }
         const size_t no_of_samples_initial_sync =
                 dev_cfg.no_of_rx_samples_initial_sync;
         const size_t no_of_samples_ping =
