@@ -39,7 +39,7 @@ struct SDR_Device_Config
         std::string serial_lime_2 = "00090726074D2435";
         std::string serial_lime_3 = "0009072C02870A19";
 
-        double frequency = 500e6; //!< Center frequency [Hz]
+        double frequency = 800e6; //!< Center frequency [Hz]
         double tx_gain = 50; //!< 60 dB is about 0 dBm
         double rx_gain = 20;
         double tx_bw = -1; //!< Not used if -1
