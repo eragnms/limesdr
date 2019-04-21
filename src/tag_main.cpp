@@ -164,6 +164,7 @@ void run_tag(bool plot_data)
                         int ret = sdr.read(no_of_samples_ping,
                                            buff_data_ping);
                         if (return_ok(ret, no_of_samples_ping)) {
+                                std::cout << "Data read OK" << std::endl;
                                 num_ping_tries++;
                                 int64_t expected_ping_ix;
                                 expected_ping_ix = sdr.expected_ping_pos_ix(
@@ -186,7 +187,7 @@ void run_tag(bool plot_data)
                                                   << " data_length "
                                                   << buff_data_ping.size()
                                                   << std::endl;
-                                        current_state = SEND_PONG;
+                                        //current_state = SEND_PONG;
                                 } else {
                                         num_of_missed_pings++;
                                         tot_num_of_missed_pings++;
@@ -202,6 +203,10 @@ void run_tag(bool plot_data)
                                 if (num_of_found_pings == 10) {
                                         //stop = true;
                                 }
+                        } else {
+                                std::cout << "Failed read data "
+                                          << ret
+                                          << std::endl;
                         }
                         break;
                 }
