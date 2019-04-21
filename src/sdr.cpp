@@ -389,6 +389,15 @@ int32_t SDR::read(size_t no_of_samples,
                                                       no_of_samples,
                                                       flags,
                                                       time_ns);
+/*        if ((size_t)no_of_received_samples != no_of_samples) {
+                std::cout << "!!!! READ error !!!! read "
+                          << no_of_received_samples
+                          << " expected "
+                          << no_of_samples
+                          << std::endl;
+        } {
+                std::cout << "Data read OK!" << std::endl;
+                }*/
         m_last_rx_timestamp = time_ns;
         return no_of_received_samples;
 }

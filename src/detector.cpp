@@ -209,6 +209,7 @@ double Detector::calculate_threshold()
         double mean = arma::mean(corr_data);
         double standard_dev = arma::stddev(corr_data);
         double threshold = mean + m_dev_cfg.threshold_factor * standard_dev;
+        std::cout << "Threshold " << threshold << std::endl;
         return threshold;
 }
 
@@ -221,12 +222,21 @@ arma::uvec Detector::find_peaks(double threshold)
 int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
 {
         int64_t sync_index(-1);
+        std::cout << "*** " << peak_indexes.n_rows << std::endl;
         for (size_t n=0; n<peak_indexes.n_rows-1; n++) {
-                uint64_t spacing = peak_indexes(n+1) - peak_indexes(n);
-                if (spacing_ok(spacing)) {
-                        sync_index = peak_indexes(n+1);
+                std::cout << peak_indexes(n) << ": " << std::flush;
+                for (size_t m=n+1; m<peak_indexes.n_rows; m++) {
+                        uint64_t spacing = peak_indexes(m) - peak_indexes(n);
+                        std::cout << spacing << ", " << std::flush;
+                        if (spacing_ok(spacing)) {
+                                sync_index = peak_indexes(n+1);
+                                break;
+                        }
+                }
+                if (sync_index != -1) {
                         break;
                 }
+                std::cout << std::endl;
         }
         return sync_index;
 }

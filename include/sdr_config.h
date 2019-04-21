@@ -70,7 +70,7 @@ struct SDR_Device_Config
                 (size_t)(1 * sampling_rate_rx * burst_period); //!< Read buffer size
 
         uint32_t ping_scr_code = 2;
-        uint32_t pong_scr_code = 2;
+        uint32_t pong_scr_code = 12;
 
         int64_t max_sync_error = 5;
         uint32_t threshold_factor = 16;

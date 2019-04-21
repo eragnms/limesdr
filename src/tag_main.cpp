@@ -67,8 +67,8 @@ void list_device_info()
 void run_tag(bool plot_data)
 {
         SDR_Device_Config dev_cfg;
-        std::string dev_serial = dev_cfg.serial_bladerf_x40;
-        //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
+        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         //std::string dev_serial = dev_cfg.serial_lime_3;
         dev_cfg.tx_active = false;
         dev_cfg.is_beacon = false;
@@ -118,7 +118,8 @@ void run_tag(bool plot_data)
                 case INITIAL_SYNC: {
                         int ret = sdr.read(no_of_samples_initial_sync,
                                            buff_data_initial);
-                        if (return_ok(ret)) {
+                        if (return_ok(ret, no_of_samples_initial_sync)) {
+                                std::cout << "Data read OK" << std::endl;
                                 //num_packets++;
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
@@ -130,18 +131,24 @@ void run_tag(bool plot_data)
                                         hw_time_of_sync = sdr.ix_to_hw_time(
                                                 sync_ix);
                                         std::cout << std::endl
-                                                  << "Found inital sync"
+                                                  << "*** Found inital sync"
                                                   << std::endl;
-                                        current_state = SEARCH_FOR_PING;
-                                        //stop = true;
+                                        //current_state = SEARCH_FOR_PING;
+                                        if (num_syncs >= 10) {
+                                                stop = true;
+                                        }
                                 }
+                        } else {
+                                std::cout << "Failed read data "
+                                          << ret
+                                          << std::endl;
                         }
                         break;
                 }
                 case SEARCH_FOR_PING: {
                         int ret = sdr.read(no_of_samples_ping,
                                            buff_data_ping);
-                        if (return_ok(ret)) {
+                        if (return_ok(ret, no_of_samples_ping)) {
                                 num_ping_tries++;
                                 int64_t expected_ping_ix;
                                 expected_ping_ix = sdr.expected_ping_pos_ix(
@@ -219,11 +226,11 @@ void run_tag(bool plot_data)
                   << std::endl;
         if (plot_data) {
                 Analysis analysis;
-                analysis.add_data(buff_data_initial);
-                analysis.plot_imag_data();
+                //analysis.add_data(buff_data_initial);
+                //analysis.plot_imag_data();
                 //analysis.save_data("initial_buff_20ms");
-                analysis.add_data(buff_data_ping);
-                analysis.plot_imag_data();
+                //analysis.add_data(buff_data_ping);
+                //analysis.plot_imag_data();
                 //analysis.save_data("ping_buff_10ms");
                 std::vector<float> corr;
                 corr = detector.get_corr_result();
@@ -232,7 +239,7 @@ void run_tag(bool plot_data)
         }
 }
 
-bool return_ok(int ret)
+bool return_ok(int ret, size_t expected_num_samples)
 {
         bool data_ok(true);
         if (ret == SOAPY_SDR_TIMEOUT) {
@@ -249,6 +256,7 @@ bool return_ok(int ret)
                 err += SoapySDR::errToStr(ret);
                 throw std::runtime_error(err);
         }
+        data_ok &= (ret == (int)expected_num_samples);
         return data_ok;
 }
 
