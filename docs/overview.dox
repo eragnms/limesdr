@@ -75,6 +75,15 @@
  *
  *      $ bladeRF-cli -l hostedx40-latest.rbf -d "*:serial=a662f87f08f131e8dc3f4700c5d555e7"
  *
+ * \subsection sec_DCOffsetTable Generating a DC offset table
+ *
+ *      $ bladeRF-cli -i
+ *      > cal lms
+ *      > cal table dc rx
+ *      > q
+ *      $ mkdir -p ~/.config/Nuand/bladeRF
+ *      $ mv *_dc_rx.tbl ~/.config/Nuand/bladeRF/
+ *
  * \section sec_Usage Usage
  *
  * To run the application do...
