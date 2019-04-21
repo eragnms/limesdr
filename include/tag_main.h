@@ -40,7 +40,7 @@ enum TagStateMachine {
         SEND_PONG /**< Send PONG burst */
 };
 
-void run_tag(bool plot_data);
+void run_tag(bool plot_data, uint32_t device);
 void sigIntHandler(const int);
 void list_device_info();
 bool return_ok(int ret, size_t expected_num_samples);

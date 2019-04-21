@@ -35,14 +35,20 @@ int main(int argc, char** argv)
                 TCLAP::SwitchArg list_switch("l","list-devices",
                                              "List info on attached devices",
                                              cmd, false);
+                TCLAP::ValueArg<uint32_t> device_arg("d", "device",
+                                                     "1-BRF1, 2-BRF2, 3-L3",
+                                                     false, 0,
+                                                     "uint32_t");
+                cmd.add(device_arg);
                 cmd.parse(argc, argv);
                 bool start_beacon = start_switch.getValue();
                 bool list_dev_info = list_switch.getValue();
+                uint32_t device = device_arg.getValue();
                 if (list_dev_info) {
                         list_device_info();
                 }
                 if (start_beacon) {
-                        run_beacon();
+                        run_beacon(device);
                 }
         }
         catch (TCLAP::ArgException &e) {
@@ -59,12 +65,23 @@ void list_device_info()
         sdr.list_hw_info();
 }
 
-void run_beacon()
+void run_beacon(uint32_t device)
 {
         SDR_Device_Config dev_cfg;
-        std::string dev_serial = dev_cfg.serial_bladerf_x40;
-        //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
-        //std::string dev_serial = dev_cfg.serial_lime_3;
+        std::string dev_serial = "";
+        switch(device) {
+        case 1:
+                dev_serial = dev_cfg.serial_bladerf_x40;
+                break;
+        case 2:
+                dev_serial = dev_cfg.serial_bladerf_xA4;
+                break;
+        case 3:
+                dev_serial = dev_cfg.serial_lime_3;
+                break;
+        default:
+                dev_serial = dev_cfg.serial_bladerf_xA4;
+        }
         if (dev_cfg.is_beacon) {
                 dev_cfg.tx_frequency = dev_cfg.ping_frequency;
                 dev_cfg.rx_frequency = dev_cfg.pong_frequency;

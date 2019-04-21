@@ -30,7 +30,7 @@
 
 typedef std::chrono::_V2::system_clock::time_point TimePoint;
 
-void run_beacon();
+void run_beacon(uint32_t device);
 void sigIntHandler(const int);
 void list_device_info();
 void transmit_ping(SDR sdr, int64_t tx_start_tick);
