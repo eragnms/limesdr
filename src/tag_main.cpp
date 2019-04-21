@@ -153,6 +153,7 @@ void run_tag(bool plot_data)
                                                 stop = true;
                                         }
                                 }
+                                stop = true;
                         } else {
                                 std::cout << "Failed read data "
                                           << ret

@@ -142,6 +142,7 @@ void SDR::configure_rx()
                 m_device->setBandwidth(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
                                        m_dev_cfg.rx_bw);
         }
+        m_device->setGainMode(SOAPY_SDR_RX, m_dev_cfg.channel_rx, false);
         m_device->setGain(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
                           m_dev_cfg.rx_gain);
         bool gain_mode = m_device->getGainMode(SOAPY_SDR_RX, m_dev_cfg.channel_rx);
