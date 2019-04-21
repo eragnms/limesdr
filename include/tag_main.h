@@ -43,5 +43,5 @@ enum TagStateMachine {
 void run_tag(bool plot_data);
 void sigIntHandler(const int);
 void list_device_info();
-bool return_ok(int ret);
+bool return_ok(int ret, size_t expected_num_samples);
 std::string state_to_string(TagStateMachine state);

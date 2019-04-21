@@ -249,6 +249,7 @@ int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
                                 break;
                         }
                 }
+                std::cout << std::endl;
         }
         std::cout << std::endl;
         return sync_index;
