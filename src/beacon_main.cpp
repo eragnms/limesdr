@@ -62,8 +62,8 @@ void list_device_info()
 void run_beacon()
 {
         SDR_Device_Config dev_cfg;
-        std::string dev_serial = dev_cfg.serial_bladerf_x40;
-        //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
+        //std::string dev_serial = dev_cfg.serial_bladerf_x40;
+        std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         //std::string dev_serial = dev_cfg.serial_lime_3;
 
         SDR sdr;
@@ -225,7 +225,7 @@ void transmit_ping(SDR sdr, int64_t tx_start_tick)
                 long long int burst_time = SoapySDR::ticksToTimeNs(
                         tx_tick,
                         dev_cfg.f_clk);
-                //burst_time = sdr.check_burst_time(burst_time);
+                burst_time = sdr.check_burst_time(burst_time);
                 sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
                 tx_tick += ticks_per_burst_period;
         }
