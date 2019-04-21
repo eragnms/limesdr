@@ -38,6 +38,6 @@ TimePoint print_spin(TimePoint time_last_spin, int spin_index);
 int64_t calculate_tx_start_tick(int64_t now_tick);
 int64_t ticks_per_period(double period);
 int64_t look_for_pong(SDR sdr, int64_t tx_start_tick);
-bool return_ok(int ret);
+bool return_ok(int ret, size_t expected_num_samples);
 void calculate_tof(int64_t tx_start_time_hw_ns,
                    int64_t last_pong_time_hw_ns);
