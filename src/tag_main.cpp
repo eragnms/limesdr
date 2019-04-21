@@ -70,7 +70,6 @@ void run_tag(bool plot_data)
         std::string dev_serial = dev_cfg.serial_bladerf_x40;
         //std::string dev_serial = dev_cfg.serial_bladerf_xA4;
         //std::string dev_serial = dev_cfg.serial_lime_3;
-        //dev_cfg.tx_active = false;
         dev_cfg.is_beacon = false;
         if (dev_cfg.is_beacon) {
                 dev_cfg.tx_frequency = dev_cfg.ping_frequency;
@@ -155,12 +154,8 @@ void run_tag(bool plot_data)
                                                   << " index "
                                                   << sync_ix
                                                   << std::endl;
-                                        //current_state = SEARCH_FOR_PING;
-                                        if (num_syncs >= 10) {
-                                                stop = true;
-                                        }
+                                        current_state = SEARCH_FOR_PING;
                                 }
-                                //stop = true;
                         } else {
                                 std::cout << "Failed read data "
                                           << ret
@@ -195,7 +190,7 @@ void run_tag(bool plot_data)
                                                   << " data_length "
                                                   << buff_data_ping.size()
                                                   << std::endl;
-                                        //current_state = SEND_PONG;
+                                        current_state = SEND_PONG;
                                 } else {
                                         num_of_missed_pings++;
                                         tot_num_of_missed_pings++;
