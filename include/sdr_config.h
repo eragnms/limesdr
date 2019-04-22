@@ -20,7 +20,7 @@
  */
 struct SDR_Device_Config
 {
-        std::string req_soapybladerf_version = "0.5.4-wittra";
+        std::string req_soapybladerf_version = "0.5.5-wittra";
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_FATAL;
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_CRITICAL;
         //SoapySDRLogLevel log_level = SoapySDR::LogLevel::SOAPY_SDR_ERROR;
