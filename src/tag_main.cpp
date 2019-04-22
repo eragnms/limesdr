@@ -154,7 +154,7 @@ void run_tag(bool plot_data, uint32_t device)
                         int ret = sdr.read(no_of_samples_initial_sync,
                                            buff_data_initial);
                         if (return_ok(ret, no_of_samples_initial_sync)) {
-                                std::cout << "Data read OK" << std::endl;
+                                //std::cout << "Data read OK" << std::endl;
                                 //num_packets++;
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
@@ -174,9 +174,11 @@ void run_tag(bool plot_data, uint32_t device)
                                         current_state = SEARCH_FOR_PING;
                                 }
                         } else {
+                                /*
                                 std::cout << "Failed read data "
                                           << ret
                                           << std::endl;
+                                */
                         }
                         break;
                 }
@@ -184,7 +186,7 @@ void run_tag(bool plot_data, uint32_t device)
                         int ret = sdr.read(no_of_samples_ping,
                                            buff_data_ping);
                         if (return_ok(ret, no_of_samples_ping)) {
-                                std::cout << "Data read OK" << std::endl;
+                                //std::cout << "Data read OK" << std::endl;
                                 num_ping_tries++;
                                 int64_t expected_ping_ix;
                                 expected_ping_ix = sdr.expected_ping_pos_ix(
@@ -224,9 +226,11 @@ void run_tag(bool plot_data, uint32_t device)
                                         //stop = true;
                                 }
                         } else {
+                                /*
                                 std::cout << "Failed read data "
                                           << ret
                                           << std::endl;
+                                */
                         }
                         break;
                 }
