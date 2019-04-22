@@ -17,7 +17,7 @@ std::vector<std::future<void>> my_futures;
 
 static sig_atomic_t stop = false;
 // TODO: make this one atomic
-long long int burst_time;
+long long int burst_time = -1;
 void sigIntHandler(const int)
 {
         stop = true;
@@ -34,6 +34,9 @@ int main(int argc, char** argv)
                 TCLAP::SwitchArg start_switch("s","start",
                                               "Start beacon",
                                               cmd, false);
+                TCLAP::SwitchArg plot_switch("p","plot",
+                                             "Plot data",
+                                             cmd, false);
                 TCLAP::SwitchArg list_switch("l","list-devices",
                                              "List info on attached devices",
                                              cmd, false);
@@ -44,13 +47,14 @@ int main(int argc, char** argv)
                 cmd.add(device_arg);
                 cmd.parse(argc, argv);
                 bool start_beacon = start_switch.getValue();
+                bool plot_data = plot_switch.getValue();
                 bool list_dev_info = list_switch.getValue();
                 uint32_t device = device_arg.getValue();
                 if (list_dev_info) {
                         list_device_info();
                 }
                 if (start_beacon) {
-                        run_beacon(device);
+                        run_beacon(plot_data, device);
                 }
         }
         catch (TCLAP::ArgException &e) {
@@ -67,7 +71,7 @@ void list_device_info()
         sdr.list_hw_info();
 }
 
-void run_beacon(uint32_t device)
+void run_beacon(bool plot_data, uint32_t device)
 {
         SDR_Device_Config dev_cfg;
         std::string dev_serial = "";
@@ -117,14 +121,20 @@ void run_beacon(uint32_t device)
         std::vector<std::complex<int16_t>> buff_data_dummy(100);
         sdr.read(100, buff_data_dummy);
 
+        Detector detector;
+        detector.configure(CDMA, {dev_cfg.pong_scr_code}, dev_cfg);
+
         TimePoint time_last_spin = std::chrono::high_resolution_clock::now();
         int spin_index(0);
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
         while (not stop) {
-                last_pong_time_hw_ns = look_for_pong(sdr,
+                last_pong_time_hw_ns = look_for_pong(sdr, detector,
                                                      last_pong_time_hw_ns);
+                if (last_pong_time_hw_ns != -1) {
+                        stop = true;
+                }
                 //calculate_tof(tx_start_time_hw_ns, last_pong_time_hw_ns);
                 time_last_spin = print_spin(time_last_spin, spin_index++);
                 usleep(100);
@@ -138,6 +148,14 @@ void run_beacon(uint32_t device)
         }
 
         sdr.close();
+
+        if (plot_data) {
+                Analysis analysis;
+                std::vector<float> corr;
+                corr = detector.get_corr_result();
+                analysis.add_data(corr);
+                analysis.plot_data();
+        }
 }
 
 void calculate_tof(int64_t tx_start_time_hw_ns, int64_t last_pong_time_hw_ns)
@@ -149,8 +167,10 @@ void calculate_tof(int64_t tx_start_time_hw_ns, int64_t last_pong_time_hw_ns)
         if (tof > 0) {}
 }
 
-
-int64_t look_for_pong(SDR sdr, int64_t last_pong_time_hw_ns)
+// TODO Make this execute as a thread as well
+// TODO What should this return?
+int64_t look_for_pong(SDR sdr, Detector &detector,
+                      int64_t last_pong_time_hw_ns)
 {
         SDR_Device_Config dev_cfg;
         const size_t no_of_samples_pong =
@@ -161,35 +181,28 @@ int64_t look_for_pong(SDR sdr, int64_t last_pong_time_hw_ns)
         size_t num_of_missed_pongs(0);
         size_t tot_num_of_missed_pongs(0);
         int64_t sync_ix(-1);
-        int64_t hw_time_of_sync(0);
+        int64_t hw_time_of_sync(-1);
 
         std::vector<std::complex<int16_t>> buff_data_pong(
                 no_of_samples_pong);
 
         last_pong_time_hw_ns += 0;
 
-        Detector detector;
-        detector.configure(CDMA, {dev_cfg.pong_scr_code}, dev_cfg);
+        long long int last_burst_time = burst_time;
         int ret = sdr.read(no_of_samples_pong, buff_data_pong);
         if (return_ok(ret, no_of_samples_pong)) {
-                std::cout << "Data read OK" << std::endl;
+                //std::cout << "Data read OK" << std::endl;
                 num_pong_tries++;
                 int64_t expected_pong_ix;
-                MARK;
-                we need to get this index correct
                 expected_pong_ix = sdr.expected_pong_pos_ix(
-                        burst_time + dev_cfg.pong_delay);
-                MARK;
+                        last_burst_time + dev_cfg.pong_delay);
                 detector.add_data(buff_data_pong);
-                MARK;
                 sync_ix = detector.look_for_pong(
                         expected_pong_ix);
-                MARK;
                 if (detector.found_pong(sync_ix)) {
-                        hw_time_of_sync = sdr.ix_to_hw_time(
-                                sync_ix);
+                        hw_time_of_sync = sdr.ix_to_hw_time( sync_ix);
                         num_of_found_pongs++;
-                        std::cout << "Found PONG"
+                        std::cout << "*** Found PONG"
                                   << " expected "
                                   << expected_pong_ix
                                   << " sync ix "

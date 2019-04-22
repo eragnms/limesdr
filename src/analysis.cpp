@@ -51,7 +51,12 @@ void Analysis::plot_imag_data()
 
 void Analysis::plot_data()
 {
-        plot(arma::abs(m_data), "absolute part");
+        if (m_data.n_rows > 0) {
+                plot(arma::abs(m_data), "absolute part");
+        } else {
+                std::cout << "Will not plot data as it is empty!"
+                          << std::endl;
+        }
 }
 
 

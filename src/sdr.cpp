@@ -437,6 +437,10 @@ int64_t SDR::expected_ping_pos_ix(int64_t hw_time_of_sync)
         while (exp_hw_time < m_last_rx_timestamp) {
                 exp_hw_time += burst_period_ns;
         }
+        int64_t rx_burst_length = m_last_rx_timestamp + burst_period_ns;
+        while (exp_hw_time > rx_burst_length) {
+                exp_hw_time -= burst_period_ns;
+        }
         int64_t fs = m_dev_cfg.sampling_rate_rx;
         int64_t ix = ((exp_hw_time - m_last_rx_timestamp) * fs) / 1e9;
         return ix;
@@ -512,12 +516,14 @@ void SDR::check_lib_bladerf_support()
 {
         std::string libname = "libbladeRFSupport";
         std::string version = get_modules_version(libname);
-        std::size_t found = version.find("wittra");
+        std::size_t found = version.find(m_dev_cfg.req_soapybladerf_version);
         std::cout << "Lib BladeRF SOAPY support version: "
                   << version << std::endl;
         if (found == std::string::npos) {
                 std::string err = "Need the Wittra SoapySDR";
-                err += " plugin for BladeRF";
+                err += " plugin for BladeRF,";
+                err += " version ";
+                err += m_dev_cfg.req_soapybladerf_version;
                 throw std::runtime_error(err);
         }
 }
