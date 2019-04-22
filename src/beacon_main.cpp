@@ -194,8 +194,8 @@ int64_t look_for_pong(SDR sdr, Detector &detector,
                 //std::cout << "Data read OK" << std::endl;
                 num_pong_tries++;
                 int64_t expected_pong_ix;
-                expected_pong_ix = sdr.expected_pong_pos_ix(
-                        last_burst_time + dev_cfg.pong_delay);
+                int64_t exp_pong_time = last_burst_time + dev_cfg.pong_delay * 1e9;
+                expected_pong_ix = sdr.expected_pong_pos_ix(exp_pong_time);
                 detector.add_data(buff_data_pong);
                 sync_ix = detector.look_for_pong(
                         expected_pong_ix);
@@ -211,6 +211,10 @@ int64_t look_for_pong(SDR sdr, Detector &detector,
                                   << expected_pong_ix-sync_ix
                                   << " data_length "
                                   << buff_data_pong.size()
+                                  << " expected pong time "
+                                  << exp_pong_time
+                                  << " last burst time "
+                                  << last_burst_time
                                   << std::endl;
                 } else {
                         num_of_missed_pongs++;
@@ -276,7 +280,10 @@ void transmit_ping(SDR sdr, int64_t tx_start_tick)
                 burst_time = SoapySDR::ticksToTimeNs(
                         tx_tick,
                         dev_cfg.f_clk);
-                //burst_time = sdr.check_burst_time(burst_time);
+                burst_time = sdr.check_burst_time(burst_time);
+                std::cout << "Sent burst time "
+                          << burst_time
+                          << std::endl;
                 sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
                 tx_tick += ticks_per_burst_period;
         }
