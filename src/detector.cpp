@@ -60,9 +60,7 @@ int64_t Detector::look_for_pong(int64_t expected_ix)
 int64_t Detector::look_for_ping(int64_t expected_ix)
 {
         int64_t index_of_sync(-1);
-        //int64_t adjust_ix = reduce_buffer_data(expected_ix);
-        int64_t adjust_ix(0);
-        expected_ix += 0;
+        int64_t adjust_ix = reduce_buffer_data(expected_ix);
         arma::uvec found_bursts;
         if (m_det_type == CDMA) {
                 found_bursts = detect_cdma_bursts();
@@ -134,10 +132,6 @@ arma::uvec Detector::detect_cdma_bursts()
                 double threshold = calculate_threshold();
                 peak_indexes = find_peaks(threshold);
                 if (peak_indexes.n_rows > 0) {
-                        std::cout << "Found "
-                                  << peak_indexes.n_rows
-                                  << " of peaks"
-                                  << std::endl;
                         break;
                 }
         }
@@ -219,7 +213,7 @@ double Detector::calculate_threshold()
         double mean = arma::mean(corr_data);
         double standard_dev = arma::stddev(corr_data);
         double threshold = mean + m_dev_cfg.threshold_factor * standard_dev;
-        //std::cout << "Threshold " << threshold << std::endl;
+        std::cout << "Threshold " << threshold << std::endl;
         return threshold;
 }
 
