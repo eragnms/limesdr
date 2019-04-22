@@ -88,7 +88,7 @@ struct SDR_Device_Config
         int64_t ping_burst_guard = 2; //!< Guard samples around expected PING
 
         double pong_delay = 5e-3; //!< In tag, time from ping rx to pong tx
-        double pong_delay_processing = 2 * burst_period;
+        double pong_delay_processing = 3 * burst_period;
 
         bool tx_active = true;
         bool rx_active = true;
