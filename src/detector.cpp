@@ -20,7 +20,7 @@ void Detector::configure(DetectorType det_type,
         m_det_type = det_type;
         m_codes = codes;
         m_dev_cfg = dev_cfg;
-
+        m_is_beacon = m_dev_cfg.is_beacon;
 }
 
 void Detector::add_data(std::vector<std::complex<float>> data)
@@ -60,7 +60,12 @@ int64_t Detector::look_for_pong(int64_t expected_ix)
 int64_t Detector::look_for_ping(int64_t expected_ix)
 {
         int64_t index_of_sync(-1);
-        int64_t adjust_ix = reduce_buffer_data(expected_ix);
+        int64_t adjust_ix;
+        if (m_is_beacon) {
+                adjust_ix = 0;
+        } else {
+                adjust_ix = reduce_buffer_data(expected_ix);
+        }
         arma::uvec found_bursts;
         if (m_det_type == CDMA) {
                 found_bursts = detect_cdma_bursts();

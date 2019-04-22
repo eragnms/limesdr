@@ -130,4 +130,5 @@ private:
         SDR_Device_Config m_dev_cfg;
         arma::vec m_corr_result;
         arma::cx_vec m_reference;
+        bool m_is_beacon;
 };
