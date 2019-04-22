@@ -213,7 +213,7 @@ double Detector::calculate_threshold()
         double mean = arma::mean(corr_data);
         double standard_dev = arma::stddev(corr_data);
         double threshold = mean + m_dev_cfg.threshold_factor * standard_dev;
-        std::cout << "Threshold " << threshold << std::endl;
+        //std::cout << "Threshold " << threshold << std::endl;
         return threshold;
 }
 
