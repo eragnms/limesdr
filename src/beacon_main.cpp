@@ -176,7 +176,6 @@ int64_t look_for_pong(SDR sdr, int64_t last_pong_time_hw_ns)
                 num_pong_tries++;
                 int64_t expected_pong_ix;
                 MARK;
-                we need to get this index correct
                 expected_pong_ix = sdr.expected_pong_pos_ix(
                         burst_time + dev_cfg.pong_delay);
                 MARK;
