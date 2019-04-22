@@ -175,16 +175,11 @@ int64_t look_for_pong(SDR sdr, int64_t last_pong_time_hw_ns)
                 std::cout << "Data read OK" << std::endl;
                 num_pong_tries++;
                 int64_t expected_pong_ix;
-                MARK;
-                we need to get this index correct
                 expected_pong_ix = sdr.expected_pong_pos_ix(
                         burst_time + dev_cfg.pong_delay);
-                MARK;
                 detector.add_data(buff_data_pong);
-                MARK;
                 sync_ix = detector.look_for_pong(
                         expected_pong_ix);
-                MARK;
                 if (detector.found_pong(sync_ix)) {
                         hw_time_of_sync = sdr.ix_to_hw_time(
                                 sync_ix);
