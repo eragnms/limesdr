@@ -396,18 +396,12 @@ int32_t SDR::read(size_t no_of_samples,
         return no_of_received_samples;
 }
 
-int64_t SDR::ix_to_hw_time(int64_t ix)
+int64_t SDR::ix_to_hw_ns(int64_t ix)
 {
-        int64_t hw_time;
+        int64_t time_hw_ns;
         int64_t fs = m_dev_cfg.sampling_rate_rx;
-        int64_t ix_ns = (ix * 1e9) / fs;
-        /*std::cout << "ix "
-                  << ix
-                  << " ix_ns "
-                  << ix_ns
-                  << std::endl;*/
-        hw_time = m_last_rx_timestamp + ix_ns;
-        return hw_time;
+        time_hw_ns = m_last_rx_timestamp + (ix * 1e9) / fs;
+        return time_hw_ns;
 }
 
 int64_t SDR::expected_pong_pos_ix(int64_t hw_time_of_sync)

@@ -163,7 +163,7 @@ void run_tag(bool plot_data, uint32_t device)
                                         }*/
                                 if (detector.found_initial_sync(sync_ix)) {
                                         num_syncs++;
-                                        hw_time_of_sync = sdr.ix_to_hw_time(
+                                        hw_time_of_sync = sdr.ix_to_hw_ns(
                                                 sync_ix);
                                         std::cout << "**** Found inital sync"
                                                   << " at hw time "
@@ -195,7 +195,7 @@ void run_tag(bool plot_data, uint32_t device)
                                 sync_ix = detector.look_for_ping(
                                         expected_ping_ix);
                                 if (detector.found_ping(sync_ix)) {
-                                        hw_time_of_sync = sdr.ix_to_hw_time(
+                                        hw_time_of_sync = sdr.ix_to_hw_ns(
                                                 sync_ix);
                                         num_of_found_pings++;
                                         num_of_missed_pings = 0;

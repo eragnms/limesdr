@@ -101,20 +101,13 @@ void run_beacon(bool plot_data, uint32_t device)
         sdr.connect(dev_serial);
         sdr.configure(dev_cfg);
         int64_t now_hw_ticks = sdr.start();
-        int64_t tx_start_tick = calculate_tx_start_tick(now_hw_ticks);
+        int64_t tx_start_hw_ticks = calculate_tx_start_tick(now_hw_ticks);
 
         std::future<void> future;
         future = std::async(std::launch::async, &transmit_ping,
                             sdr,
-                            tx_start_tick);
+                            tx_start_hw_ticks);
         my_futures.push_back(std::move(future));
-
-        long long int tx_start_time_hw_ns = SoapySDR::ticksToTimeNs(
-                tx_start_tick,
-                dev_cfg.f_clk);
-        int64_t earliest_pong_tx_time_hw_ns =
-                tx_start_time_hw_ns + dev_cfg.pong_delay * 1e9;
-        int64_t last_pong_time_hw_ns = earliest_pong_tx_time_hw_ns;
 
         // TODO: Can we get rid of this?
         // A dummy read to get timestamps up to sync
@@ -130,9 +123,9 @@ void run_beacon(bool plot_data, uint32_t device)
                   << std::endl;
         signal(SIGINT, sigIntHandler);
         while (not stop) {
-                last_pong_time_hw_ns = look_for_pong(sdr, detector,
-                                                     last_pong_time_hw_ns);
-                if (last_pong_time_hw_ns != -1) {
+                int64_t pong_time_hw_ns;
+                pong_time_hw_ns = look_for_pong(sdr, detector);
+                if (pong_time_hw_ns != -1) {
                         stop = true;
                 }
                 time_last_spin = print_spin(time_last_spin, spin_index++);
@@ -169,10 +162,7 @@ void calculate_tof(int64_t tx_start_time_hw_ns, int64_t last_pong_time_hw_ns)
         if (tof > 0) {}
 }
 
-// TODO Make this execute as a thread as well
-// TODO What should this return?
-int64_t look_for_pong(SDR sdr, Detector &detector,
-                      int64_t last_pong_time_hw_ns)
+int64_t look_for_pong(SDR sdr, Detector &detector)
 {
         SDR_Device_Config dev_cfg;
         const size_t no_of_samples_pong =
@@ -188,8 +178,6 @@ int64_t look_for_pong(SDR sdr, Detector &detector,
         std::vector<std::complex<int16_t>> buff_data_pong(
                 no_of_samples_pong);
 
-        last_pong_time_hw_ns += 0;
-
         long long int last_burst_time = burst_time;
         int ret = sdr.read(no_of_samples_pong, buff_data_pong);
         if (return_ok(ret, no_of_samples_pong)) {
@@ -202,7 +190,7 @@ int64_t look_for_pong(SDR sdr, Detector &detector,
                 sync_ix = detector.look_for_pong(
                         expected_pong_ix);
                 if (detector.found_pong(sync_ix)) {
-                        hw_time_of_sync = sdr.ix_to_hw_time( sync_ix);
+                        hw_time_of_sync = sdr.ix_to_hw_ns( sync_ix);
                         num_of_found_pongs++;
                         std::cout << "*** Found PONG"
                                   << " expected "
@@ -288,16 +276,17 @@ void transmit_ping(SDR sdr, int64_t tx_start_tick)
         }
 }
 
-int64_t calculate_tx_start_tick(int64_t now_tick)
+int64_t calculate_tx_start_tick(int64_t now_hw_ticks)
 {
         SDR_Device_Config dev_cfg;
-        int64_t tx_future = dev_cfg.time_in_future;
-        tx_future += 2 * dev_cfg.burst_period;
-        int64_t tx_start_tick;
-        tx_start_tick = now_tick + SoapySDR::timeNsToTicks(
-                (tx_future) * 1e9,
-                dev_cfg.f_clk);
-        return tx_start_tick;
+        int64_t tx_future_rel_ns =
+                (dev_cfg.time_in_future + 2 * dev_cfg.burst_period);
+        tx_future_rel_ns *= 1e9;
+        int64_t tx_start_hw_ticks;
+        tx_start_hw_ticks =
+                now_hw_ticks + SoapySDR::timeNsToTicks(tx_future_rel_ns,
+                                                       dev_cfg.f_clk);
+        return tx_start_hw_ticks;
 }
 
 int64_t ticks_per_period(double period)
