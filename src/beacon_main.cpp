@@ -100,8 +100,8 @@ void run_beacon(bool plot_data, uint32_t device)
         SoapySDR::setLogLevel(dev_cfg.log_level);
         sdr.connect(dev_serial);
         sdr.configure(dev_cfg);
-        int64_t now_tick = sdr.start();
-        int64_t tx_start_tick = calculate_tx_start_tick(now_tick);
+        int64_t now_hw_ticks = sdr.start();
+        int64_t tx_start_tick = calculate_tx_start_tick(now_hw_ticks);
 
         std::future<void> future;
         future = std::async(std::launch::async, &transmit_ping,

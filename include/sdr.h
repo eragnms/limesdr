@@ -158,8 +158,7 @@ private:
         SoapySDR::Device *m_device;
         SoapySDR::Stream *m_tx_stream;
         SoapySDR::Stream *m_rx_stream;
-        int64_t m_tx_start_tick;
-        int64_t m_rx_start_tick;
+        int64_t m_rx_start_hw_ticks;
         int64_t m_last_rx_timestamp;
         int64_t m_time_of_next_burst;
 };

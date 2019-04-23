@@ -7,6 +7,7 @@
  * \li \ref sec_Detail
  * \li \ref sec_Install
  * \li \ref sec_Usage
+ * \li \ref sec_Conventions
  * \li \ref sec_SeeAlso
  *
  * \section sec_Overview Overview
@@ -87,6 +88,15 @@
  * \section sec_Usage Usage
  *
  * To run the application do...
+ *
+ * \section sec_Conventions Code Conventions
+ *
+ * \subsection sec_Timing Timing Related
+ *
+ * \li Variables containing hw based times, all in [ns] are be called <variable_name>_hw_ns
+ * \li Variables containing relative times, all in [ns] are be called <variable_name>_rel_ns
+ * \li Variables containing hw based ticks, all in [ticks] are be called <variable_name>_hw_ticks
+ * \li Variables containing relative ticks, all in [ticks] are be called <variable_name>_rel_ticks
  *
  * \section sec_SeeAlso See Also
  *

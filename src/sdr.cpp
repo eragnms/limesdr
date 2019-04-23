@@ -245,22 +245,21 @@ int64_t SDR::start_rx()
                 std::cout << "sdr: RX stream has been successfully set up!"
                           << std::endl;
         }
-        int64_t now_tick(-1);
+        int64_t now_hw_ticks(-1);
         m_device->setHardwareTime(0);
-        int64_t current_hardware_time = m_device->getHardwareTime();
-        now_tick = SoapySDR::timeNsToTicks(current_hardware_time,
+        int64_t now_hw_ns = m_device->getHardwareTime();
+        now_hw_ticks = SoapySDR::timeNsToTicks(now_hw_ns,
                                                    m_dev_cfg.f_clk);
-        m_rx_start_tick = now_tick;
-        int64_t rx_future = m_dev_cfg.time_in_future + m_dev_cfg.burst_period;
-        m_rx_start_tick += SoapySDR::timeNsToTicks(rx_future * 1e9,
-                                                   m_dev_cfg.f_clk);
-        int64_t burst_time = SoapySDR::ticksToTimeNs(m_rx_start_tick,
+        m_rx_start_hw_ticks = now_hw_ticks;
+        int64_t rx_future_rel_ns =
+                (m_dev_cfg.time_in_future + m_dev_cfg.burst_period) * 1e9;
+        m_rx_start_hw_ticks += SoapySDR::timeNsToTicks(rx_future_rel_ns,
+                                                       m_dev_cfg.f_clk);
+        int64_t burst_time = SoapySDR::ticksToTimeNs(m_rx_start_hw_ticks,
                                                      m_dev_cfg.f_clk);
-        //burst_time = 0;
         int rx_flags = SOAPY_SDR_HAS_TIME;
         rx_flags |= SOAPY_SDR_END_BURST;
         rx_flags |= SOAPY_SDR_ONE_PACKET;
-        //int rx_flags(0);
         int ret = m_device->activateStream(m_rx_stream,
                                            rx_flags,
                                            burst_time);
@@ -273,7 +272,7 @@ int64_t SDR::start_rx()
                 std::cout << "sdr: RX stream has been successfully activated!"
                           << std::endl;
         }
-        return now_tick;
+        return now_hw_ticks;
 }
 
 SoapySDR::Stream *SDR::get_rx_stream()
