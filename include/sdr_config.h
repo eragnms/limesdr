@@ -44,8 +44,8 @@ struct SDR_Device_Config
         double pong_frequency = 500e6; //!< Center frequency PONG [Hz]
         double tx_frequency = 0;
         double rx_frequency = 0;
-        double tx_gain = 50; //!< 60 dB is about 0 dBm
-        double rx_gain = 20;
+        double tx_gain = 65; //!< 60 dB is about 0 dBm
+        double rx_gain = 25;
         double tx_bw = -1; //!< Not used if -1
         double rx_bw = -1; //!< Not used if -1
 
@@ -86,9 +86,12 @@ struct SDR_Device_Config
         uint32_t threshold_factor = 8;
         size_t num_of_ping_tries = 10; //!< Number of tries before initial sync
         int64_t ping_burst_guard = 2; //!< Guard samples around expected PING
+        int64_t pong_burst_guard = 15; //!< Guard samples around expected PONG
 
         double pong_delay = 5e-3; //!< In tag, time from ping rx to pong tx
         double pong_delay_processing = 3 * burst_period;
+
+        int64_t pong_pos_comp = 2257; //!< Compensate for burst sequence length
 
         bool tx_active = true;
         bool rx_active = true;

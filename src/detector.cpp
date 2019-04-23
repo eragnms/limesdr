@@ -67,9 +67,12 @@ int64_t Detector::look_for_ping(int64_t expected_ix)
         int64_t index_of_sync(-1);
         int64_t adjust_ix;
         if (m_is_beacon) {
-                adjust_ix = 0;
+                adjust_ix = reduce_buffer_data(expected_ix,
+                                               m_dev_cfg.pong_burst_guard);
+                //adjust_ix = 0;
         } else {
-                adjust_ix = reduce_buffer_data(expected_ix);
+                adjust_ix = reduce_buffer_data(expected_ix,
+                                               m_dev_cfg.ping_burst_guard);
         }
         arma::uvec found_bursts;
         if (m_det_type == CDMA) {
@@ -82,10 +85,16 @@ int64_t Detector::look_for_ping(int64_t expected_ix)
         return index_of_sync;
 }
 
-int64_t Detector::reduce_buffer_data(int64_t expected_ix)
+int64_t Detector::reduce_buffer_data(int64_t expected_ix, int64_t guard)
 {
         size_t data_length = m_dev_cfg.tx_burst_length;
-        data_length += 2 * m_dev_cfg.ping_burst_guard;
+        /*
+        std::cout << "reduction "
+                  << data_length << ", "
+                  << guard << ", "
+                  << std::flush;
+        */
+        data_length += 2 * guard;
         int64_t start_pos = expected_ix - data_length / 2;
         uint64_t start_ix;
         if (start_pos < 0) {
@@ -101,6 +110,15 @@ int64_t Detector::reduce_buffer_data(int64_t expected_ix)
                 end_ix = (uint64_t)end_pos;
         }
         data_length = end_ix - start_ix + 1;
+        /*
+        std::cout << m_data.n_rows << ", "
+                  << data_length << ", "
+                  << end_ix << ", "
+                  << start_ix << ", "
+                  << expected_ix << ", "
+                  << start_pos
+                  << std::endl;
+        */
         arma::cx_vec tmp = m_data;
         m_data.set_size(data_length);
         m_data = tmp.rows(start_ix, end_ix);

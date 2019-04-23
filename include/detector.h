@@ -128,7 +128,7 @@ private:
         bool found_ok_index(int64_t ix);
         int64_t check_bursts_for_intial_sync_index(arma::uvec peak_indexes);
         int64_t check_bursts_for_ping_index(arma::uvec peak_indexes);
-        int64_t reduce_buffer_data(int64_t expected_ix);
+        int64_t reduce_buffer_data(int64_t expected_ix, int64_t guard);
 
         arma::cx_vec m_data;
         DetectorType m_det_type;

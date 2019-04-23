@@ -135,7 +135,6 @@ void run_beacon(bool plot_data, uint32_t device)
                 if (last_pong_time_hw_ns != -1) {
                         stop = true;
                 }
-                //calculate_tof(tx_start_time_hw_ns, last_pong_time_hw_ns);
                 time_last_spin = print_spin(time_last_spin, spin_index++);
                 usleep(100);
         }
@@ -284,9 +283,6 @@ void transmit_ping(SDR sdr, int64_t tx_start_tick)
                         tx_tick,
                         dev_cfg.f_clk);
                 burst_time = sdr.check_burst_time(burst_time);
-                std::cout << "Sent burst time "
-                          << burst_time
-                          << std::endl;
                 sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
                 tx_tick += ticks_per_burst_period;
         }
