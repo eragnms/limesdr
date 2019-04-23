@@ -177,7 +177,7 @@ void run_tag(bool plot_data, uint32_t device)
                         if (return_ok(ret, no_of_samples_ping)) {
                                 num_ping_tries++;
                                 int64_t expected_ping_ix;
-                                expected_ping_ix = sdr.expected_ping_pos_ix(
+                                expected_ping_ix = sdr.find_exp_ping_pos_ix(
                                         sync_hw_ns);
                                 detector.add_data(buff_data_ping);
                                 sync_ix = detector.look_for_ping(

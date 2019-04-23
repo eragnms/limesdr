@@ -182,7 +182,7 @@ int64_t look_for_pong(SDR sdr, Detector &detector)
                 int64_t expected_pong_ix;
                 int64_t exp_pong_hw_ns =
                         last_burst_hw_ns + dev_cfg.pong_delay * 1e9;
-                expected_pong_ix = sdr.expected_pong_pos_ix(exp_pong_hw_ns);
+                expected_pong_ix = sdr.find_exp_pong_pos_ix(exp_pong_hw_ns);
                 detector.add_data(buff_data_pong);
                 sync_ix = detector.look_for_pong(
                         expected_pong_ix);

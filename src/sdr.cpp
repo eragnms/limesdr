@@ -385,9 +385,9 @@ int64_t SDR::ix_to_hw_ns(int64_t ix)
         return time_hw_ns;
 }
 
-int64_t SDR::expected_pong_pos_ix(int64_t hw_time_of_sync)
+int64_t SDR::find_exp_pong_pos_ix(int64_t hw_time_of_sync)
 {
-        int64_t expected_pong_pos_ix = expected_ping_pos_ix(hw_time_of_sync);
+        int64_t expected_pong_pos_ix = find_exp_ping_pos_ix(hw_time_of_sync);
         expected_pong_pos_ix += m_dev_cfg.pong_pos_comp;
         if (expected_pong_pos_ix >= (int64_t)m_dev_cfg.no_of_rx_samples_pong) {
                 expected_pong_pos_ix -= m_dev_cfg.no_of_rx_samples_pong;
@@ -395,7 +395,7 @@ int64_t SDR::expected_pong_pos_ix(int64_t hw_time_of_sync)
         return expected_pong_pos_ix;
 }
 
-int64_t SDR::expected_ping_pos_ix(int64_t hw_time_of_sync)
+int64_t SDR::find_exp_ping_pos_ix(int64_t hw_time_of_sync)
 {
         int64_t exp_hw_time = hw_time_of_sync;
         int64_t burst_period_ns = m_dev_cfg.burst_period * 1e9;

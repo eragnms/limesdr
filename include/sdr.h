@@ -137,8 +137,8 @@ public:
          */
         void check_burst_time(long long int burst_hw_ns);
         int64_t ix_to_hw_ns(int64_t ix);
-        int64_t expected_ping_pos_ix(int64_t hw_time_of_sync);
-        int64_t expected_pong_pos_ix(int64_t hw_time_of_sync);
+        int64_t find_exp_ping_pos_ix(int64_t hw_time_of_sync);
+        int64_t find_exp_pong_pos_ix(int64_t hw_time_of_sync);
 
 private:
         std::string get_device_driver();
