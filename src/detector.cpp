@@ -182,11 +182,11 @@ void Detector::correlate_cdma(uint32_t code_nr)
         double extra_samples_for_filter = m_dev_cfg.extra_samples_filter;
         size_t mod_length = m_dev_cfg.tx_burst_length_chip;
         mod_length = mod_length * (1 + extra_samples_for_filter);
-        Modulation modulation(mod_length, scale_factor, Novs);
-        modulation.generate_cdma(code_nr);
-        modulation.filter();
-        modulation.scrap_samples(mod_length * extra_samples_for_filter);
-        std::vector<std::complex<float>> tx_pulse = modulation.get_data();
+        Modulator modulator(mod_length, scale_factor, Novs);
+        modulator.generate_cdma(code_nr);
+        modulator.filter();
+        modulator.scrap_samples(mod_length * extra_samples_for_filter);
+        std::vector<std::complex<float>> tx_pulse = modulator.get_data();
         m_reference = arma::conv_to<arma::cx_vec>::from(tx_pulse);
         m_corr_result = correlate(m_reference);
 }

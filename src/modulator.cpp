@@ -1,17 +1,17 @@
 /**
- * \file modulation.cpp
+ * \file modulator.cpp
  *
- * \brief Modulation class
+ * \brief Modulator class
  *
  * \author Mats Gustafsson
  *
  * Copyright (C) 2019 by Wittra. All rights reserved.
  */
 
-#include "modulation.h"
+#include "modulator.h"
 
 
-Modulation::Modulation(size_t no_of_samples,
+Modulator::Modulator(size_t no_of_samples,
                        double scale_factor,
                        uint16_t Novs)
 {
@@ -20,7 +20,7 @@ Modulation::Modulation(size_t no_of_samples,
         m_Novs = Novs;
 }
 
-void Modulation::generate_sine(double tone_freq,
+void Modulator::generate_sine(double tone_freq,
                                double sampling_rate)
 {
         m_data.clear();
@@ -33,7 +33,7 @@ void Modulation::generate_sine(double tone_freq,
         }
 }
 
-void Modulation::generate_cdma(uint16_t code_nr)
+void Modulator::generate_cdma(uint16_t code_nr)
 {
         m_data.clear();
         arma::cx_vec scr_code(m_no_of_samples);
@@ -47,7 +47,7 @@ void Modulation::generate_cdma(uint16_t code_nr)
 
 }
 
-void Modulation::filter()
+void Modulator::filter()
 {
         arma::vec c_novs_8 = {7.298941506695379e-04, 1.012674740974449e-04,
                               -6.400057619412672e-04, -1.317153962281510e-03,
@@ -150,7 +150,7 @@ void Modulation::filter()
                 filtered_data);
 }
 
-void Modulation::scrap_samples(size_t no_to_scrap)
+void Modulator::scrap_samples(size_t no_to_scrap)
 {
         arma::cx_vec data = arma::conv_to<arma::cx_vec>::from(m_data);
         arma::cx_vec tmp(data.n_rows-no_to_scrap);
@@ -166,12 +166,12 @@ void Modulation::scrap_samples(size_t no_to_scrap)
         m_data = arma::conv_to<std::vector<std::complex<float>>>::from(tmp);
 }
 
-std::vector<std::complex<float>> Modulation::get_data()
+std::vector<std::complex<float>> Modulator::get_data()
 {
         return m_data;
 }
 
-void Modulation::gen_scr_code(uint16_t code_nr, arma::cx_vec & Z)
+void Modulator::gen_scr_code(uint16_t code_nr, arma::cx_vec & Z)
 {
         arma::vec x = arma::zeros<arma::vec>(18);
         x(0) = 1;
@@ -196,7 +196,7 @@ void Modulation::gen_scr_code(uint16_t code_nr, arma::cx_vec & Z)
         }
 }
 
-arma::cx_vec Modulation::repvecN(arma::cx_vec vect)
+arma::cx_vec Modulator::repvecN(arma::cx_vec vect)
 {
         uint32_t length = vect.n_rows;
         arma::cx_vec tmp = arma::zeros<arma::cx_vec>(vect.n_rows * m_Novs);
@@ -208,7 +208,7 @@ arma::cx_vec Modulation::repvecN(arma::cx_vec vect)
         return tmp;
 }
 
-void Modulation::shift_N(arma::vec & x, arma::vec & y, int32_t N_shifts)
+void Modulator::shift_N(arma::vec & x, arma::vec & y, int32_t N_shifts)
 {
         for (int32_t i=0; i<N_shifts; i++) {
                 int8_t x_tmp = mod_2(x(0) + x(7));
@@ -220,7 +220,7 @@ void Modulation::shift_N(arma::vec & x, arma::vec & y, int32_t N_shifts)
         }
 }
 
-int8_t Modulation::mod_2(double x)
+int8_t Modulator::mod_2(double x)
 {
         return (int8_t) floor(2*(x/2-floor(x/2)));
 }

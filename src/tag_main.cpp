@@ -123,11 +123,11 @@ void run_tag(bool plot_data, uint32_t device)
         double extra_samples_for_filter = dev_cfg.extra_samples_filter;
         size_t mod_length = dev_cfg.tx_burst_length_chip;
         mod_length = mod_length * (1 + extra_samples_for_filter);
-        Modulation modulation(mod_length, scale_factor, Novs);
-        modulation.generate_cdma(dev_cfg.pong_scr_code);
-        modulation.filter();
-        modulation.scrap_samples(mod_length * extra_samples_for_filter);
-        std::vector<std::complex<float>> tx_buff_data = modulation.get_data();
+        Modulator modulator(mod_length, scale_factor, Novs);
+        modulator.generate_cdma(dev_cfg.pong_scr_code);
+        modulator.filter();
+        modulator.scrap_samples(mod_length * extra_samples_for_filter);
+        std::vector<std::complex<float>> tx_buff_data = modulator.get_data();
         std::vector<void *> tx_buffs_data;
         tx_buffs_data.push_back(tx_buff_data.data());
         std::cout << "sample count per send call: "

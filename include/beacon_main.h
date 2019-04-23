@@ -24,7 +24,7 @@
 
 #include "sdr_config.h"
 #include "sdr.h"
-#include "modulation.h"
+#include "modulator.h"
 #include "analysis.h"
 #include "detector.h"
 

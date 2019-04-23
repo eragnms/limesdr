@@ -151,25 +151,6 @@ void SDR::configure_rx()
                              m_dev_cfg.antenna_rx);
         m_device->setFrequency(SOAPY_SDR_RX, m_dev_cfg.channel_rx,
                                m_dev_cfg.rx_frequency);
-
-        if (is_limesdr()) {
-                /*
-                  bool rx_lo_locked = false;
-                while (not rx_lo_locked) {
-                        std::string rx_locked = m_device->readSensor(
-                                SOAPY_SDR_RX,
-                                m_dev_cfg.channel_rx,
-                                "lo_locked");
-                        if (rx_locked == "true") {
-                                rx_lo_locked = true;
-                        }
-                        usleep(100);
-                }
-                std::cout << "sdr: RX LO lock detected on channel "
-                          << std::to_string(m_dev_cfg.channel_rx)
-                          << std::endl;
-                */
-        }
         std::cout << "sdr: Actual RX frequency on channel "
                   << std::to_string(m_dev_cfg.channel_rx) << ": "
                   << std::to_string(m_device->getFrequency(
@@ -180,11 +161,11 @@ void SDR::configure_rx()
 
 int64_t SDR::start()
 {
-        int64_t now_tick(-1);
+        int64_t now_hw_ticks(-1);
         int mtu_tx(-1);
         int mtu_rx(-1);
         if (m_dev_cfg.rx_active) {
-                now_tick = start_rx();
+                now_hw_ticks = start_rx();
                 mtu_rx = m_device->getStreamMTU(m_rx_stream);
         }
         if (m_dev_cfg.tx_active) {
@@ -196,7 +177,7 @@ int64_t SDR::start()
                   << " [Sa], mtu_rx="
                   << std::to_string(mtu_rx) + " [Sa]"
                   << std::endl;
-        return now_tick;
+        return now_hw_ticks;
 }
 
 void SDR::start_tx()

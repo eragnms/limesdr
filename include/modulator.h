@@ -1,7 +1,7 @@
 /**
- * \file modulation.h
+ * \file modulator.h
  *
- * \brief Modulation class
+ * \brief Modulator class
  *
  * Class for the differet modulations used in the project
  *
@@ -18,18 +18,18 @@
 #include "macros.h"
 
 /**
- * \class Modulation
+ * \class Modulator
  *
- * \brief Modulation class
+ * \brief Modulator class
  *
  * Generating the modulation and returning vectors of modulated data
  *
  */
-class Modulation
+class Modulator
 {
 public:
         /**
-         * \brief Modulation constructor
+         * \brief Modulator constructor
          *
          * \param[in] no_of_samples the number of samples to be generated
          * \param[in] scale_factor scales the amplitude of the generated data
@@ -37,7 +37,7 @@ public:
          * (Novs-1) number of times, i.e. Novs=1 will have no impact on the
          * data
          */
-        Modulation(size_t no_of_samples,
+        Modulator(size_t no_of_samples,
                    double scale_factor,
                    uint16_t Novs);
         /**

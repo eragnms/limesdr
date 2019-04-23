@@ -15,7 +15,7 @@
 
 #include "macros.h"
 #include "sdr_config.h"
-#include "modulation.h"
+#include "modulator.h"
 
 /**
  * \brief enum
