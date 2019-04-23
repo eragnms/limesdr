@@ -76,7 +76,6 @@ int64_t Detector::look_for_ping(int64_t expected_ix)
         if (m_is_beacon) {
                 adjust_ix = reduce_buffer_data(expected_ix,
                                                m_dev_cfg.pong_burst_guard);
-                //adjust_ix = 0;
         } else {
                 adjust_ix = reduce_buffer_data(expected_ix,
                                                m_dev_cfg.ping_burst_guard);
@@ -95,12 +94,6 @@ int64_t Detector::look_for_ping(int64_t expected_ix)
 int64_t Detector::reduce_buffer_data(int64_t expected_ix, int64_t guard)
 {
         size_t data_length = m_dev_cfg.tx_burst_length;
-        /*
-        std::cout << "reduction "
-                  << data_length << ", "
-                  << guard << ", "
-                  << std::flush;
-        */
         data_length += 2 * guard;
         int64_t start_pos = expected_ix - data_length / 2;
         uint64_t start_ix;
@@ -117,15 +110,6 @@ int64_t Detector::reduce_buffer_data(int64_t expected_ix, int64_t guard)
                 end_ix = (uint64_t)end_pos;
         }
         data_length = end_ix - start_ix + 1;
-        /*
-        std::cout << m_data.n_rows << ", "
-                  << data_length << ", "
-                  << end_ix << ", "
-                  << start_ix << ", "
-                  << expected_ix << ", "
-                  << start_pos
-                  << std::endl;
-        */
         arma::cx_vec tmp = m_data;
         m_data.set_size(data_length);
         m_data = tmp.rows(start_ix, end_ix);
@@ -262,19 +246,11 @@ int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
 {
         int64_t sync_index(-1);
         size_t num_peaks = peak_indexes.n_rows;
-        std::cout << "Num peaks: " << num_peaks << std::endl;
-        std::cout << "index:amplitude " << std::flush;
         if (num_peaks < 20) {
                 for (size_t n=0; n<num_peaks-1; n++) {
                         for (size_t m=n+1; m<num_peaks; m++) {
-                                uint64_t spacing = peak_indexes(m) - peak_indexes(n);
-                                std::cout << peak_indexes(n)
-                                          << ":"
-                                          << m_corr_result(peak_indexes(n))
-                                          << ":"
-                                          << spacing
-                                          << ", "
-                                          << std::flush;
+                                uint64_t spacing =
+                                        peak_indexes(m) - peak_indexes(n);
                                 if (spacing_ok(spacing)) {
                                         sync_index = peak_indexes(m);
                                         break;
@@ -285,7 +261,6 @@ int64_t Detector::find_initial_sync_ix(arma::uvec peak_indexes)
                         }
                 }
         }
-        std::cout << std::endl;
         return sync_index;
 }
 
@@ -297,8 +272,5 @@ bool Detector::spacing_ok(int64_t burst_spacing)
         int64_t max_diff = m_dev_cfg.max_sync_error;
         ok = burst_spacing <= (burst_period + max_diff);
         ok = ok && (burst_spacing >= (burst_period - max_diff));
-        if (ok) {
-                std::cout << "Spacing " << burst_spacing << std::endl;
-        }
         return ok;
 }

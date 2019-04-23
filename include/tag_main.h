@@ -45,3 +45,5 @@ void sigIntHandler(const int);
 void list_device_info();
 bool return_ok(int ret, size_t expected_num_samples);
 std::string state_to_string(TagStateMachine state);
+bool time_for_initial_sync(size_t num_of_missed_pings,
+                           SDR_Device_Config dev_cfg);

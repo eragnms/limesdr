@@ -138,7 +138,7 @@ void run_tag(bool plot_data, uint32_t device)
         size_t tot_num_of_missed_pings(0);
         size_t num_ping_tries(0);
         int64_t sync_ix(-1);
-        int64_t hw_time_of_sync(0);
+        int64_t sync_hw_ns(0);
         TagStateMachine current_state(INITIAL_SYNC);
         std::cout << "**********************" << std::endl;
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
@@ -154,31 +154,20 @@ void run_tag(bool plot_data, uint32_t device)
                         int ret = sdr.read(no_of_samples_initial_sync,
                                            buff_data_initial);
                         if (return_ok(ret, no_of_samples_initial_sync)) {
-                                //std::cout << "Data read OK" << std::endl;
-                                //num_packets++;
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
-                                /*if (num_packets > 10) {
-                                        g_stop = true;
-                                        }*/
                                 if (detector.found_initial_sync(sync_ix)) {
                                         num_syncs++;
-                                        hw_time_of_sync = sdr.ix_to_hw_ns(
+                                        sync_hw_ns = sdr.ix_to_hw_ns(
                                                 sync_ix);
                                         std::cout << "**** Found inital sync"
                                                   << " at hw time "
-                                                  << hw_time_of_sync
+                                                  << sync_hw_ns
                                                   << " index "
                                                   << sync_ix
                                                   << std::endl;
                                         current_state = SEARCH_FOR_PING;
                                 }
-                        } else {
-                                /*
-                                std::cout << "Failed read data "
-                                          << ret
-                                          << std::endl;
-                                */
                         }
                         break;
                 }
@@ -186,16 +175,15 @@ void run_tag(bool plot_data, uint32_t device)
                         int ret = sdr.read(no_of_samples_ping,
                                            buff_data_ping);
                         if (return_ok(ret, no_of_samples_ping)) {
-                                //std::cout << "Data read OK" << std::endl;
                                 num_ping_tries++;
                                 int64_t expected_ping_ix;
                                 expected_ping_ix = sdr.expected_ping_pos_ix(
-                                        hw_time_of_sync);
+                                        sync_hw_ns);
                                 detector.add_data(buff_data_ping);
                                 sync_ix = detector.look_for_ping(
                                         expected_ping_ix);
                                 if (detector.found_ping(sync_ix)) {
-                                        hw_time_of_sync = sdr.ix_to_hw_ns(
+                                        sync_hw_ns = sdr.ix_to_hw_ns(
                                                 sync_ix);
                                         num_of_found_pings++;
                                         num_of_missed_pings = 0;
@@ -214,7 +202,8 @@ void run_tag(bool plot_data, uint32_t device)
                                         num_of_missed_pings++;
                                         tot_num_of_missed_pings++;
                                 }
-                                if (num_of_missed_pings > dev_cfg.num_of_ping_tries) {
+                                if (time_for_initial_sync(num_of_missed_pings,
+                                                          dev_cfg)) {
                                         num_of_missed_pings = 0;
                                         std::cout << "Faild PING detect"
                                                   << std::endl;
@@ -222,31 +211,25 @@ void run_tag(bool plot_data, uint32_t device)
                                                   << std::endl;
                                         current_state = INITIAL_SYNC;
                                 }
-                                if (num_of_found_pings == 10) {
-                                        //g_stop = true;
-                                }
-                        } else {
-                                /*
-                                std::cout << "Failed read data "
-                                          << ret
-                                          << std::endl;
-                                */
                         }
                         break;
                 }
                 case SEND_PONG: {
                         std::cout << "Sending PONG" << std::endl;
                         const double fs_tx = dev_cfg.sampling_rate_tx;
-                        double pong_delay = dev_cfg.pong_delay + dev_cfg.pong_delay_processing;
-                        int64_t tmp = dev_cfg.D_tx * pong_delay * fs_tx;
-                        int64_t ticks_before_pong = tmp;
-                        int64_t tx_tick = SoapySDR::timeNsToTicks(
-                                hw_time_of_sync, dev_cfg.f_clk) + ticks_before_pong;
-                        long long int burst_time = SoapySDR::ticksToTimeNs(
-                                tx_tick,
+                        double pong_delay_rel_ns = dev_cfg.pong_delay;
+                        pong_delay_rel_ns += dev_cfg.pong_delay_processing;
+                        int64_t pong_delay_rel_ticks =
+                                dev_cfg.D_tx * pong_delay_rel_ns * fs_tx;
+                        int64_t tx_hw_ticks = SoapySDR::timeNsToTicks(
+                                sync_hw_ns, dev_cfg.f_clk) +
+                                pong_delay_rel_ticks;
+                        long long int burst_hw_ns = SoapySDR::ticksToTimeNs(
+                                tx_hw_ticks,
                                 dev_cfg.f_clk);
-                        sdr.check_burst_time(burst_time);
-                        sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
+                        sdr.check_burst_time(burst_hw_ns);
+                        sdr.write(tx_buffs_data, no_of_tx_samples,
+                                  burst_hw_ns);
                         current_state = SEARCH_FOR_PING;
                         break;
                 }
@@ -273,6 +256,12 @@ void run_tag(bool plot_data, uint32_t device)
                 analysis.add_data(corr);
                 analysis.plot_data();
         }
+}
+
+bool time_for_initial_sync(size_t num_of_missed_pings,
+                           SDR_Device_Config dev_cfg)
+{
+        return (num_of_missed_pings > dev_cfg.num_of_ping_tries);
 }
 
 bool return_ok(int ret, size_t expected_num_samples)
