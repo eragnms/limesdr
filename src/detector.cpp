@@ -41,6 +41,11 @@ void Detector::add_data(std::vector<std::complex<int16_t>> data)
         }
 }
 
+arma::cx_vec Detector::get_data()
+{
+        return m_data;
+}
+
 int64_t Detector::look_for_initial_sync()
 {
         int64_t index_of_sync(-1);

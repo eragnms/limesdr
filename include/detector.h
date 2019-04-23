@@ -55,6 +55,12 @@ public:
          */
         void add_data(std::vector<std::complex<int16_t>> data);
         /**
+         * \brief Fetch data from the detector
+         *
+         * \return last data that was added to the detector
+         */
+        arma::cx_vec get_data();
+        /**
          * \brief Set up parameters used in the detector
          *
          * \param[in] det_type defines what detector to use

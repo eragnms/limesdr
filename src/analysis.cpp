@@ -39,6 +39,13 @@ void Analysis::add_data(std::vector<std::complex<int16_t>> data)
         }
 }
 
+void Analysis::add_data(arma::cx_vec data)
+{
+        m_data.clear();
+        m_data.set_size(data.n_rows);
+        m_data = data;
+}
+
 void Analysis::plot_real_data()
 {
         plot(arma::real(m_data), "real part");

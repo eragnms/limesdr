@@ -155,6 +155,9 @@ void run_beacon(bool plot_data, uint32_t device)
                 corr = detector.get_corr_result();
                 analysis.add_data(corr);
                 analysis.plot_data();
+                arma::cx_vec raw_data = detector.get_data();
+                analysis.add_data(raw_data);
+                analysis.save_data("raw_beacon_data");
         }
 }
 

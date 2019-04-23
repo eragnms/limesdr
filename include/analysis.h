@@ -49,6 +49,12 @@ public:
          */
         void add_data(std::vector<std::complex<int16_t>> data);
         /**
+         * \brief Add data for analysis
+         *
+         * \param[in] data the data to be analysed
+         */
+        void add_data(arma::cx_vec data);
+        /**
          * \brief Plot real data
          *
          * Plot the real part of the data that has been added with
