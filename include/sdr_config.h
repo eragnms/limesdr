@@ -44,10 +44,10 @@ struct SDR_Device_Config
         double pong_frequency = 500e6; //!< Center frequency PONG [Hz]
         double tx_frequency = 0;
         double rx_frequency = 0;
-        double tx_gain = 65; //!< 60 dB is about 0 dBm
+        double tx_gain = 60; //!< 60 dB is about 0 dBm
         double rx_gain = 25;
-        double tx_bw = -1; //!< Not used if -1
-        double rx_bw = -1; //!< Not used if -1
+        double tx_bw = 4e6; //!< Not used if -1
+        double rx_bw = 4e6; //!< Not used if -1
 
         uint16_t Novs_tx = 2; //!< No of oversampling [2,4,8]
         uint16_t Novs_rx = 2; //!< No of oversampling [2,4,8]

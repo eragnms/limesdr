@@ -28,6 +28,7 @@ void Detector::add_data(std::vector<std::complex<float>> data)
         m_data.clear();
         m_data.set_size(data.size());
         m_data = arma::conv_to<arma::cx_vec>::from(data);
+        m_raw_data = m_data;
 }
 
 void Detector::add_data(std::vector<std::complex<int16_t>> data)
@@ -39,11 +40,17 @@ void Detector::add_data(std::vector<std::complex<int16_t>> data)
                 int16_t im = std::imag(data[n]);
                 m_data(n) = std::complex<double>((double)re, (double)im);
         }
+        m_raw_data = m_data;
 }
 
 arma::cx_vec Detector::get_data()
 {
         return m_data;
+}
+
+arma::cx_vec Detector::get_raw_data()
+{
+        return m_raw_data;
 }
 
 int64_t Detector::look_for_initial_sync()

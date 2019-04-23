@@ -57,9 +57,22 @@ public:
         /**
          * \brief Fetch data from the detector
          *
-         * \return last data that was added to the detector
+         * This is the data as it is in the current processing step,
+         * i.e. it might have been modified by different methods that
+         * have been run after the data was added with add_data.
+         *
+         * \return data that is processed in the detector
          */
         arma::cx_vec get_data();
+        /**
+         * \brief Fetch raw data from the detector
+         *
+         * This is the unprocessed data as it looked when it
+         * was added to the detector.
+         *
+         * \return last data that was added to the detector
+         */
+        arma::cx_vec get_raw_data();
         /**
          * \brief Set up parameters used in the detector
          *
@@ -131,6 +144,7 @@ private:
         int64_t reduce_buffer_data(int64_t expected_ix, int64_t guard);
 
         arma::cx_vec m_data;
+        arma::cx_vec m_raw_data;
         DetectorType m_det_type;
         std::vector<uint32_t> m_codes;
         SDR_Device_Config m_dev_cfg;
