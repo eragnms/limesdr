@@ -11,7 +11,7 @@
 # 1.2.0       # Final Release
 # 1.2.0.post1 # Post Release
 # 1.2.0.<anything>.s1 # Special of <anything>
-AC_INIT([limesdr_test], [0.0.7.dev1], [mats@mcnab.se])
+AC_INIT([limesdr_test], [0.0.7], [mats@mcnab.se])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
