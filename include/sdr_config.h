@@ -67,7 +67,7 @@ struct SDR_Device_Config
 
         double burst_period = 10e-3; //!< Time between PINGs [s]
         double rx_burst_period_samp = burst_period * sampling_rate_rx;
-        size_t tx_burst_length_chip = 512; //!< PING length
+        size_t tx_burst_length_chip = 512; //!< PING and PONG lengths
         double tx_burst_length = tx_burst_length_chip * Novs_tx;
         double extra_samples_filter = 1/8;
 
