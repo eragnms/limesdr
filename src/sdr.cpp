@@ -457,34 +457,15 @@ void SDR::close()
         SoapySDR::Device::unmake(m_device);
 }
 
-int64_t SDR::check_burst_time(long long int burst_time)
+void SDR::check_burst_time(long long int burst_hw_ns)
 {
-        int64_t current_hardware_time = m_device->getHardwareTime();
-        if (burst_time - current_hardware_time < 0) {
-                std::cout << "burst_time: " << burst_time
-                          << " current time:  " << current_hardware_time
-                          << " diff: " << burst_time - current_hardware_time
+        int64_t current_hw_ns = m_device->getHardwareTime();
+        if ((burst_hw_ns - current_hw_ns) < 0) {
+                std::cout << "burst_hw_ns: " << burst_hw_ns
+                          << " current time:  " << current_hw_ns
+                          << " diff: " << burst_hw_ns - current_hw_ns
                           << std::endl;
-                /*
-                double burst_period = m_dev_cfg.burst_period;
-                //double sampling_rate = m_dev_cfg.sampling_rate_tx;
-                //int64_t ticks_per_burst_period = (int64_t)(
-                //        m_dev_cfg.D_tx * burst_period * sampling_rate);
-                while (burst_time < current_hardware_time) {
-                long long tx_tick = SoapySDR::timeNsToTicks(
-                                burst_time,
-                                m_dev_cfg.f_clk);
-                                tx_tick += 10*ticks_per_burst_period;
-                                burst_time = SoapySDR::ticksToTimeNs(tx_tick,
-                                m_dev_cfg.f_clk);
-                        burst_time += 100*burst_period;
-                        current_hardware_time = m_device->getHardwareTime();
-                        std::cout << burst_time-current_hardware_time << std::endl;
-
-                }
-                */
         }
-        return burst_time;
 }
 
 bool SDR::is_limesdr()

@@ -15,10 +15,10 @@
 
 SoapySDR::Device *device(nullptr);
 
-static sig_atomic_t stop = false;
+static sig_atomic_t g_stop = false;
 void sigIntHandler(const int)
 {
-    stop = true;
+    g_stop = true;
 }
 
 int main(int argc, char** argv)
@@ -148,7 +148,7 @@ void run_tag(bool plot_data, uint32_t device)
         size_t num_syncs(0);
         //int64_t old_hw_time(0);
         //size_t num_packets(0);
-        while (not stop) {
+        while (not g_stop) {
                 switch(current_state) {
                 case INITIAL_SYNC: {
                         int ret = sdr.read(no_of_samples_initial_sync,
@@ -159,7 +159,7 @@ void run_tag(bool plot_data, uint32_t device)
                                 detector.add_data(buff_data_initial);
                                 sync_ix = detector.look_for_initial_sync();
                                 /*if (num_packets > 10) {
-                                        stop = true;
+                                        g_stop = true;
                                         }*/
                                 if (detector.found_initial_sync(sync_ix)) {
                                         num_syncs++;
@@ -223,7 +223,7 @@ void run_tag(bool plot_data, uint32_t device)
                                         current_state = INITIAL_SYNC;
                                 }
                                 if (num_of_found_pings == 10) {
-                                        //stop = true;
+                                        //g_stop = true;
                                 }
                         } else {
                                 /*

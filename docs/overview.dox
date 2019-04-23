@@ -91,6 +91,11 @@
  *
  * \section sec_Conventions Code Conventions
  *
+ * \subsection sec_General General
+ *
+ * \li Class attributes use a prefix m_
+ * \li Global variables use a prefix g_
+ *
  * \subsection sec_Timing Timing Related
  *
  * \li Variables containing hw based times, all in [ns] are be called <variable_name>_hw_ns

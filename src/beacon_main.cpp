@@ -15,12 +15,12 @@
 
 std::vector<std::future<void>> my_futures;
 
-static sig_atomic_t stop = false;
+static sig_atomic_t g_stop = false;
 // TODO: make this one atomic
-long long int burst_time = -1;
+long long int g_burst_hw_ns = -1;
 void sigIntHandler(const int)
 {
-        stop = true;
+        g_stop = true;
 }
 
 int main(int argc, char** argv)
@@ -122,11 +122,11 @@ void run_beacon(bool plot_data, uint32_t device)
         std::cout << "Starting stream loop, press Ctrl+C to exit..."
                   << std::endl;
         signal(SIGINT, sigIntHandler);
-        while (not stop) {
+        while (not g_stop) {
                 int64_t pong_time_hw_ns;
                 pong_time_hw_ns = look_for_pong(sdr, detector);
                 if (pong_time_hw_ns != -1) {
-                        stop = true;
+                        g_stop = true;
                 }
                 time_last_spin = print_spin(time_last_spin, spin_index++);
                 usleep(100);
@@ -167,30 +167,27 @@ int64_t look_for_pong(SDR sdr, Detector &detector)
         SDR_Device_Config dev_cfg;
         const size_t no_of_samples_pong =
                 dev_cfg.no_of_rx_samples_pong;
-
         size_t num_pong_tries(0);
         size_t num_of_found_pongs(0);
         size_t num_of_missed_pongs(0);
         size_t tot_num_of_missed_pongs(0);
         int64_t sync_ix(-1);
-        int64_t hw_time_of_sync(-1);
-
+        int64_t sync_hw_ns(-1);
         std::vector<std::complex<int16_t>> buff_data_pong(
                 no_of_samples_pong);
-
-        long long int last_burst_time = burst_time;
+        long long int last_burst_hw_ns = g_burst_hw_ns;
         int ret = sdr.read(no_of_samples_pong, buff_data_pong);
         if (return_ok(ret, no_of_samples_pong)) {
-                //std::cout << "Data read OK" << std::endl;
                 num_pong_tries++;
                 int64_t expected_pong_ix;
-                int64_t exp_pong_time = last_burst_time + dev_cfg.pong_delay * 1e9;
-                expected_pong_ix = sdr.expected_pong_pos_ix(exp_pong_time);
+                int64_t exp_pong_hw_ns =
+                        last_burst_hw_ns + dev_cfg.pong_delay * 1e9;
+                expected_pong_ix = sdr.expected_pong_pos_ix(exp_pong_hw_ns);
                 detector.add_data(buff_data_pong);
                 sync_ix = detector.look_for_pong(
                         expected_pong_ix);
                 if (detector.found_pong(sync_ix)) {
-                        hw_time_of_sync = sdr.ix_to_hw_ns( sync_ix);
+                        sync_hw_ns = sdr.ix_to_hw_ns(sync_ix);
                         num_of_found_pongs++;
                         std::cout << "*** Found PONG"
                                   << " expected "
@@ -202,22 +199,16 @@ int64_t look_for_pong(SDR sdr, Detector &detector)
                                   << " data_length "
                                   << buff_data_pong.size()
                                   << " expected pong time "
-                                  << exp_pong_time
+                                  << exp_pong_hw_ns
                                   << " last burst time "
-                                  << last_burst_time
+                                  << last_burst_hw_ns
                                   << std::endl;
                 } else {
                         num_of_missed_pongs++;
                         tot_num_of_missed_pongs++;
                 }
-        }  else {
-                /*
-                std::cout << "Failed read data "
-                          << ret
-                          << std::endl;
-                */
         }
-        return hw_time_of_sync;
+        return sync_hw_ns;
 }
 
 bool return_ok(int ret, size_t expected_num_samples)
@@ -242,16 +233,14 @@ bool return_ok(int ret, size_t expected_num_samples)
         return data_ok;
 }
 
-void transmit_ping(SDR sdr, int64_t tx_start_tick)
+void transmit_ping(SDR sdr, int64_t tx_start_hw_ticks)
 {
         SDR_Device_Config dev_cfg;
         size_t buffer_size_tx = dev_cfg.tx_burst_length;
         size_t no_of_tx_samples = buffer_size_tx;
-
-        int64_t tx_tick = tx_start_tick;
-        double burst_period = dev_cfg.burst_period;
-        int64_t ticks_per_burst_period = ticks_per_period(burst_period);
-
+        int64_t tx_hw_ticks = tx_start_hw_ticks;
+        int64_t burst_period_rel_ticks = ticks_per_period(
+                dev_cfg.burst_period);
         double scale_factor(1.0);
         uint16_t Novs = dev_cfg.Novs_tx;
         double extra_samples_for_filter = dev_cfg.extra_samples_filter;
@@ -266,13 +255,13 @@ void transmit_ping(SDR sdr, int64_t tx_start_tick)
         tx_buffs_data.push_back(tx_buff_data.data());
         std::cout << "sample count per send call: "
                   << no_of_tx_samples << std::endl;
-        while (not stop) {
-                burst_time = SoapySDR::ticksToTimeNs(
-                        tx_tick,
+        while (not g_stop) {
+                g_burst_hw_ns = SoapySDR::ticksToTimeNs(
+                        tx_hw_ticks,
                         dev_cfg.f_clk);
-                burst_time = sdr.check_burst_time(burst_time);
-                sdr.write(tx_buffs_data, no_of_tx_samples, burst_time);
-                tx_tick += ticks_per_burst_period;
+                sdr.check_burst_time(g_burst_hw_ns);
+                sdr.write(tx_buffs_data, no_of_tx_samples, g_burst_hw_ns);
+                tx_hw_ticks += burst_period_rel_ticks;
         }
 }
 
@@ -293,8 +282,8 @@ int64_t ticks_per_period(double period)
 {
         SDR_Device_Config dev_cfg;
         double sampling_rate = dev_cfg.sampling_rate_tx;
-        int64_t ticks = (int64_t)(dev_cfg.D_tx * period * sampling_rate);
-        return ticks;
+        int64_t rel_ticks = (int64_t)(dev_cfg.D_tx * period * sampling_rate);
+        return rel_ticks;
 }
 
 TimePoint print_spin(TimePoint time_last_spin, int spin_index)
