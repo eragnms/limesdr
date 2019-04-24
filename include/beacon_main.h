@@ -21,6 +21,7 @@
 #include <math.h>
 #include <signal.h>
 #include <future>
+#include <atomic>
 
 #include "sdr_config.h"
 #include "sdr.h"

@@ -17,7 +17,7 @@ std::vector<std::future<void>> my_futures;
 
 static sig_atomic_t g_stop = false;
 // TODO: make this one atomic
-long long int g_burst_hw_ns = -1;
+std::atomic<long long> g_burst_hw_ns;
 void sigIntHandler(const int)
 {
         g_stop = true;
@@ -175,7 +175,7 @@ int64_t look_for_pong(SDR sdr, Detector &detector)
         int64_t sync_hw_ns(-1);
         std::vector<std::complex<int16_t>> buff_data_pong(
                 no_of_samples_pong);
-        long long int last_burst_hw_ns = g_burst_hw_ns;
+        long long last_burst_hw_ns = g_burst_hw_ns;
         int ret = sdr.read(no_of_samples_pong, buff_data_pong);
         if (return_ok(ret, no_of_samples_pong)) {
                 num_pong_tries++;
