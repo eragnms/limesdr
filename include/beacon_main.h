@@ -25,7 +25,7 @@
 #include "sdr_config.h"
 #include "sdr.h"
 #include "modulator.h"
-#include "analysis.h"
+#include "analyser.h"
 #include "detector.h"
 
 typedef std::chrono::_V2::system_clock::time_point TimePoint;

@@ -1,7 +1,7 @@
 /**
- * \file analysis.h
+ * \file analyser.h
  *
- * \brief Analysis class
+ * \brief Analyser class
  *
  * \author Mats Gustafsson
  *
@@ -16,20 +16,20 @@
 #include "macros.h"
 
 /**
- * \class Analysis
+ * \class Analyser
  *
- * \brief Analysis class
+ * \brief Analyser class
  *
  * This class supports data analysis of different forms.
  *
  */
-class Analysis
+class Analyser
 {
 public:
         /**
-         * \brief Analysis constructor
+         * \brief Analyser constructor
          */
-        Analysis();
+        Analyser();
         /**
          * \brief Add data for analysis
          *

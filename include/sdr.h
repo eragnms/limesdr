@@ -125,19 +125,35 @@ public:
          */
         void list_hw_info();
         /**
-         * \brief Modify the burst_time if burst_time is strange
+         * \brief Check if burst_time is strange
          *
          * The burst_time will be considered strange if the current
-         * harware has passed it in time. A number of burst periods
-         * will then be added to the burst time and a new burst time
-         * will be returned
+         * harware has passed it in time. A warning will be printed
+         * to the screen in that case.
          *
          * \param[in] burst_time the time to check
-         * \return burst time to use
          */
         void check_burst_time(long long int burst_hw_ns);
+        /**
+         * \brief Convert an index into an absolute hw time
+         *
+         * \param[in] ix the index to convert
+         * \return the hw time in ns
+         */
         int64_t ix_to_hw_ns(int64_t ix);
+        /**
+         * \brief Based on a sync time find index of next PING
+         *
+         * \param[in] hw_time_of_sync the last sync time
+         * \return index of next expected PING
+         */
         int64_t find_exp_ping_pos_ix(int64_t hw_time_of_sync);
+        /**
+         * \brief Based on a sync time find index of next PONG
+         *
+         * \param[in] hw_time_of_sync the last sync time
+         * \return index of next expected PONG
+         */
         int64_t find_exp_pong_pos_ix(int64_t hw_time_of_sync);
 
 private:

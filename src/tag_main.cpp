@@ -244,17 +244,17 @@ void run_tag(bool plot_data, uint32_t device)
                   << tot_num_of_missed_pings
                   << std::endl;
         if (plot_data) {
-                Analysis analysis;
-                //analysis.add_data(buff_data_initial);
-                //analysis.plot_imag_data();
-                //analysis.save_data("initial_buff_20ms");
-                //analysis.add_data(buff_data_ping);
-                //analysis.plot_imag_data();
-                //analysis.save_data("ping_buff_10ms");
+                Analyser analyser;
+                //analyser.add_data(buff_data_initial);
+                //analyser.plot_imag_data();
+                //analyser.save_data("initial_buff_20ms");
+                //analyser.add_data(buff_data_ping);
+                //analyser.plot_imag_data();
+                //analyser.save_data("ping_buff_10ms");
                 std::vector<float> corr;
                 corr = detector.get_corr_result();
-                analysis.add_data(corr);
-                analysis.plot_data();
+                analyser.add_data(corr);
+                analyser.plot_data();
         }
 }
 

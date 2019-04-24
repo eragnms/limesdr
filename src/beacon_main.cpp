@@ -142,14 +142,14 @@ void run_beacon(bool plot_data, uint32_t device)
         sdr.close();
 
         if (plot_data) {
-                Analysis analysis;
+                Analyser analyser;
                 std::vector<float> corr;
                 corr = detector.get_corr_result();
-                analysis.add_data(corr);
-                analysis.plot_data();
+                analyser.add_data(corr);
+                analyser.plot_data();
                 arma::cx_vec raw_data = detector.get_raw_data();
-                analysis.add_data(raw_data);
-                analysis.save_data("raw_beacon_data");
+                analyser.add_data(raw_data);
+                analyser.save_data("raw_beacon_data");
         }
 }
 
